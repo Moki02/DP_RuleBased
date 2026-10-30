@@ -1,0 +1,280 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5548bfb272654349855ddd86943f4cbf, type: 3}
+  m_Name: GameBalance
+  m_EditorClassIdentifier: 
+  isDemoMode: 0
+  enableDebugKeys: 1
+  zoneCount: 3
+  skillCostMultiplier: 1
+  collapseEndsGame: 0
+  dayLengthSeconds: 240
+  collapseClockPenalty: 30
+  walkSpeed: 4
+  sprintSpeed: 6.5
+  dehydratedSpeedMult: 0.75
+  heavyCarryThreshold: 6
+  heavyCarrySpeedMult: 0.9
+  interactRange: 2
+  hydMax: 100
+  drainIdle: 0.25
+  drainWalk: 0.5
+  drainSprint: 1.2
+  drainPump: 0.6
+  drainMinigame: 0.25
+  hubShadeMult: 0.5
+  thirstyAt: 59
+  dehydratedAt: 29
+  thirstySprintMult: 1.5
+  hydPerLiter: 25
+  drinkRate: 0.5
+  refillRate: 1
+  sickSeconds: 30
+  sickMult: 1.5
+  startClean: 10
+  startCanteen: 2
+  startRaw: 0
+  pumpLitersPerStroke: 0.2
+  pumpStrokeInterval: 0.5
+  suctionLimit: 7
+  pumpByDepth:
+  - depth: 4
+    factor: 1
+  - depth: 5.5
+    factor: 0.8
+  - depth: 6.5
+    factor: 0.5
+  - depth: 7
+    factor: 0.4
+  deepSetPumpByDepth:
+  - depth: 4
+    factor: 1
+  - depth: 5.5
+    factor: 1
+  - depth: 6.5
+    factor: 0.8
+  - depth: 7.5
+    factor: 0.6
+  - depth: 8.5
+    factor: 0.4
+  - depth: 10
+    factor: 0
+  rainLitersPerM2s: 0.1
+  runoff: 0.9
+  catchArea: 4
+  stillRate: 0.02
+  wellRate: 0.08
+  boilRate: 0.167
+  filterRate: 0.4
+  filterRipeningByDay:
+  - 0.5
+  - 0.75
+  - 1
+  sodisLiters: 8
+  sodisSeconds: 90
+  chlorineSeconds: 30
+  chlorineTabletMax: 5
+  chlorineTabletCost: 1
+  canteenTiers:
+  - displayName: Bamboo Canteen
+    capacity: 2
+    evaporationFactor: 0
+  - displayName: Water Jug
+    capacity: 4
+    evaporationFactor: 0
+  - displayName: Hydration Pack
+    capacity: 6
+    evaporationFactor: 0
+  - displayName: Jerry Can
+    capacity: 10
+    evaporationFactor: 0
+  cleanStorageTiers:
+  - displayName: Tapayan
+    capacity: 25
+    evaporationFactor: 1
+  - displayName: Plastic Drum
+    capacity: 50
+    evaporationFactor: 0.5
+  - displayName: Ferrocement Tank
+    capacity: 150
+    evaporationFactor: 0.5
+  - displayName: Underground Cistern
+    capacity: 300
+    evaporationFactor: 0.1
+  rawBasinTiers:
+  - displayName: Basin
+    capacity: 15
+    evaporationFactor: 1
+  - displayName: Bigger Basin
+    capacity: 40
+    evaporationFactor: 1
+  - displayName: Concrete Basin
+    capacity: 100
+    evaporationFactor: 1
+  stages:
+  - displayName: "El Ni\xF1o Advisory"
+    startDay: 1
+    heatMult: 1
+    rainChance: 0.5
+    evaporation: 0.02
+    waterTableDepth: 4
+    solarSunFactor: 1
+    deepWellFactor: 1
+    eventWeights:
+      thunderstorm: 50
+      heatwave: 10
+      waterTableDrop: 0
+      cloudSeeding: 0
+      rationing: 0
+      reliefTanker: 0
+      grassFire: 0
+      calm: 40
+  - displayName: Dry Spell
+    startDay: 3
+    heatMult: 1.1
+    rainChance: 0.35
+    evaporation: 0.03
+    waterTableDepth: 5.5
+    solarSunFactor: 1.2
+    deepWellFactor: 0.95
+    eventWeights:
+      thunderstorm: 35
+      heatwave: 20
+      waterTableDrop: 10
+      cloudSeeding: 0
+      rationing: 10
+      reliefTanker: 0
+      grassFire: 5
+      calm: 20
+  - displayName: Drought
+    startDay: 5
+    heatMult: 1.25
+    rainChance: 0.15
+    evaporation: 0.05
+    waterTableDepth: 6.5
+    solarSunFactor: 1.4
+    deepWellFactor: 0.85
+    eventWeights:
+      thunderstorm: 15
+      heatwave: 25
+      waterTableDrop: 15
+      cloudSeeding: 15
+      rationing: 10
+      reliefTanker: 5
+      grassFire: 5
+      calm: 10
+  - displayName: State of Calamity
+    startDay: 9
+    heatMult: 1.4
+    rainChance: 0.05
+    evaporation: 0.08
+    waterTableDepth: 7.5
+    solarSunFactor: 1.6
+    deepWellFactor: 0.75
+    eventWeights:
+      thunderstorm: 5
+      heatwave: 30
+      waterTableDrop: 15
+      cloudSeeding: 15
+      rationing: 10
+      reliefTanker: 10
+      grassFire: 10
+      calm: 5
+  cellSize: 4
+  gridSize: 41
+  revealRadius: 8
+  revealRadiusTrailSense: 14
+  sectionMappedPct: 0.75
+  markerLimit: 3
+  markerLimitLandmarks: 8
+  sectionReward:
+  - 2
+  - 3
+  - 4
+  milestonePercents:
+  - 0.25
+  - 0.5
+  - 0.75
+  - 1
+  milestoneRewards:
+  - 10
+  - 15
+  - 20
+  - 30
+  gateReward:
+  - 2
+  - 2
+  - 3
+  collapseUnbankedLoss: 0.5
+  lockLiters:
+  - 4
+  - 10
+  - 18
+  pourRate: 1
+  minigameFailHyd: 5
+  minigameLockout: 10
+  valveTiming:
+  - bandWidth: 30
+    needleSpeed: 120
+    hitsToWin: 3
+    missesToLose: 3
+  - bandWidth: 22
+    needleSpeed: 160
+    hitsToWin: 3
+    missesToLose: 3
+  - bandWidth: 15
+    needleSpeed: 200
+    hitsToWin: 3
+    missesToLose: 3
+  - bandWidth: 12
+    needleSpeed: 220
+    hitsToWin: 4
+    missesToLose: 3
+  valveBandMinMove: 40
+  pipeGridSize:
+  - 4
+  - 5
+  - 5
+  pipeTimeLimit:
+  - 45
+  - 60
+  - 60
+  leakClickWindow: 1.5
+  leaksToWin: 10
+  leakMissesToLose: 3
+  leakIntervalStart: 1.2
+  leakIntervalEnd: 0.6
+  eventWindowMin: 40
+  eventWindowMax: 200
+  stormWarn: 20
+  stormSeconds: 60
+  stormDrainMult: 0.5
+  stormCanteenRefill: 0.05
+  heatwaveMult: 1.3
+  heatwaveMultStage4: 1.6
+  heatwaveStillMult: 2
+  heatwaveEvapMult: 2
+  heatIndexDanger: 46
+  heatIndexExtreme: 53
+  waterTableDropMeters: 1
+  seedWait: 90
+  seedChance: 0.7
+  seedStorm: 45
+  rationSeconds: 60
+  tankerSeconds: 60
+  tankerLiters: 20
+  fireSeconds: 90
+  fireHydPerSec: 10
+  fireLiters: 2
+  scriptedEvents: []
+  wakeLiters: 2
+  gameOverBelowLiters: 2
