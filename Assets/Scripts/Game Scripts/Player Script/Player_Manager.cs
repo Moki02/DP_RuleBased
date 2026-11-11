@@ -1,8 +1,25 @@
+// ============================================================================
+// Player_Manager.cs
+// The "hub" of the player: finds all the other Player scripts on the same object so any
+// script can reach them through Player_Manager.instance (e.g.
+// Player_Manager.instance.playerHydration_Manager), links the player to the camera and
+// input, and runs movement and the camera each frame.
+//
+// DESIGN RULES: none of its own (movement stops whenever Game_Manager says the player
+// can't be controlled: pause, menus, minigames, collapse; and while pumping).
+//
+// HOW TO USE: on the Player prefab, together with CharacterController, Animator and the
+// other Player*_Manager scripts. Nothing to drag in.
+// HOW TO EDIT: nothing to tune here; speeds are in PlayerStats_Manager.
+// ============================================================================
+
 using UnityEngine;
 
 
+/// <summary>Holds references to all the player's scripts and drives movement and the camera.</summary>
 public class Player_Manager : MonoBehaviour
 {
+    /// <summary>The player in this scene.</summary>
     public static Player_Manager instance;
 
     [HideInInspector] public CharacterController characterController;
@@ -35,6 +52,8 @@ public class Player_Manager : MonoBehaviour
         animator = GetComponent<Animator>();
     }
 
+    // Start (not Awake): the camera and Game Manager are other objects, so they are only
+    // sure to have run their own Awake (and set their "instance") by now.
     private void Start()
     {
         game_Manager = Game_Manager.instance;
@@ -46,19 +65,21 @@ public class Player_Manager : MonoBehaviour
         PlayerInteraction_Manager.instance.player = this;
     }
 
-   
+
 
     private void Update()
     {
         if (!Game_Manager.instance.CanControlPlayer())
             return;
 
+        // The hand pump holds the player in place while pumping.
         if (playerHydration_Manager.isPumping)
             return;
 
         playerLocomotion_Manager.HandleAllMovement();
     }
 
+    // LateUpdate: the camera moves after the player has moved this frame, so it doesn't jitter.
     private void LateUpdate()
     {
         Player_Camera.instance.HandleAllCamereActions();

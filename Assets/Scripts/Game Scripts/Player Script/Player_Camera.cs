@@ -1,26 +1,52 @@
+// ============================================================================
+// Player_Camera.cs
+// The third-person camera: follows the player, turns with the mouse (left/right on this
+// object, up/down on the pivot child), and slides in towards the player when a wall is
+// between them so the view never goes through walls.
+//
+// DESIGN RULES: R8.26 (zone 2 turning carries the player and camera: TurnWithPlayer).
+//
+// HOW TO USE: on the "Player Camera (Left & Right)" prefab. Drag in the Camera, the pivot
+// child, and pick which layers block the camera (walls). Player_Manager calls
+// HandleAllCamereActions every LateUpdate and fills in "Player" by itself.
+// HOW TO EDIT: look limits and collision size in the Inspector. Mouse sensitivity is the
+// 0.15 in HandleRotation. Follow smoothing is cameraSmoothSpeed below.
+// ============================================================================
+
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 
+/// <summary>Third-person follow camera with mouse look and wall collision.</summary>
 public class Player_Camera : MonoBehaviour
 {
+    /// <summary>The camera in the scene (there is only one).</summary>
     public static Player_Camera instance;
+    [Tooltip("Filled in by Player_Manager at Start.")]
     public Player_Manager player;
+    [Tooltip("The Camera object (a child of the pivot).")]
     public Camera cameraObject;
+    [Tooltip("Child that tilts up and down; the camera hangs off it.")]
     [SerializeField] Transform cameraPivotTransform;
 
     // CHANGE THESE TO TWEAK CAMERA PERFORMANCE
-    [Header("Camera Settings")]
     private float cameraSmoothSpeed = 1;        // THE BIGGER THE NUMBER, THE LONGER FOR THE CAMERA TO REACH ITS POSITION DURING MOVEMENT
+    [Header("Camera Settings")]
+    [Tooltip("Lowest the camera can look, in degrees (negative = down).")]
     [SerializeField] float minimumPivot = -30;  // LOWEST POINT YOU ARE ABLE TO LOOK DOWN
+    [Tooltip("Highest the camera can look, in degrees.")]
     [SerializeField] float maximumPivot = 60;   // HIGHEST POINT YOU ARE ABLE TO LOOK UP
+    [Tooltip("Radius in metres of the sphere used to check for walls behind the player.")]
     [SerializeField] float cameraCollisionRadius = 0.2f;
+    [Tooltip("Layers that push the camera in (walls, props).")]
     [SerializeField] LayerMask collideWithLayer;
 
-    [Header("Camera Values")]
     private Vector3 cameraVelocity;
     private Vector3 cameraObjectPosition; // USED FOR CAMERA COLLISIONS (MOVES THE CAMERA OBJECT TO THIS POSITION UPON COLLIDING)
+    [Header("Camera Values")]
+    [Tooltip("Current left/right angle in degrees (shown for debugging; changed by the mouse).")]
     [SerializeField] float leftAndRightLookAngle;
+    [Tooltip("Current up/down angle in degrees (shown for debugging; changed by the mouse).")]
     [SerializeField] float upAndDownLookAngle;
     private float cameraZPosition; // VALUES USE FOR CAMERA COLLISIONS
     private float targetcameraZPosition; // VALUES USE FOR CAMERA COLLISIONS
@@ -41,9 +67,11 @@ public class Player_Camera : MonoBehaviour
 
     private void Start()
     {
+        // The camera's starting distance behind the pivot is the "normal" distance.
         cameraZPosition = cameraObject.transform.localPosition.z;
     }
 
+    /// <summary>Follow, mouse look (only when the player has control) and wall collision. Called by Player_Manager.LateUpdate.</summary>
     public void HandleAllCamereActions()
     {
         if (player == null)
@@ -62,7 +90,7 @@ public class Player_Camera : MonoBehaviour
     /// <summary>
     /// Turns the camera left/right by <paramref name="degrees"/> and snaps it onto the player.
     /// Used when zone 2 turns and carries the player with it (Zone2Rotator, GDD R8.26), so the
-    /// player's view of the zone stays the same.
+    /// player's view of the zone stays the same. Also used with 0 after a revive, to snap.
     /// </summary>
     public void TurnWithPlayer(float degrees)
     {
@@ -87,7 +115,7 @@ public class Player_Camera : MonoBehaviour
 
         // ELSE ROTATE REGULARLY
 
-        // ROTATE LEFT AND RIGHT BASED ON HORIZONTAL MOVEMENT ON THE RIGHT JOYSTICK
+        // ROTATE LEFT AND RIGHT BASED ON HORIZONTAL MOVEMENT OF THE MOUSE (0.15 = SENSITIVITY)
         leftAndRightLookAngle +=
           PlayerInput_Manager.instance.mouseHorizontalInput * 0.15f;
 

@@ -1,22 +1,42 @@
+// ============================================================================
+// PlayerInteraction_Manager.cs
+// Finds the closest usable interactable (pump, tap, lock basin, valve, note...) inside the
+// box in front of the player, shows its prompt ("Hold [E] to Drink"), and runs it:
+//   - Press type: once, in the frame E is pressed;
+//   - Hold type: every frame while E is held; StopInteraction is called when E is released,
+//     the player walks away, another one becomes closer, or the player loses control.
+// Nothing works while the game is paused, in a menu or minigame, or the player is collapsed.
+//
+// DESIGN RULES: Controls table (E), R8.9 (hold E to pour).
+//
+// HOW TO USE: on the Player prefab. Drag in the "Interaction Hitbox" (a BoxCollider child in
+// front of the player; only its size and position are used) and the HUD's "Interaction Text".
+// HOW TO EDIT: change the reach by resizing the hitbox box.
+// ============================================================================
 
 using UnityEngine;
 using TMPro;
 
+/// <summary>Picks the interactable in reach, shows its prompt and runs it when E is pressed or held.</summary>
 public class PlayerInteraction_Manager : MonoBehaviour
 {
+    /// <summary>The player's interaction script in this scene.</summary>
     public static PlayerInteraction_Manager instance;
 
     [Header("Interaction Settings")]
+    [Tooltip("Box in front of the player. An interactable is in reach when its Interaction Point is inside this box.")]
     public BoxCollider interaction_Hitbox;
 
     [Header("Interaction UI")]
+    [Tooltip("HUD text that shows the prompt, e.g. \"Hold [E] to Drink\". Optional.")]
     public TMP_Text interactionText;
 
+    [Tooltip("Filled in automatically.")]
     public Player_Manager player;
     private PlayerInput_Manager playerInput;
 
-    private Interactable_Manager currentInteractable;
-    private Interactable_Manager activeInteractable;
+    private Interactable_Manager currentInteractable; // the closest one in reach this frame (its prompt shows)
+    private Interactable_Manager activeInteractable;  // the Hold one being used right now (needs StopInteraction later)
 
     private void Awake()
     {
@@ -55,6 +75,7 @@ public class PlayerInteraction_Manager : MonoBehaviour
 
         FindInteractable();
 
+        // A different one is now closest: end the hold on the old one first.
         if (activeInteractable != null &&
             activeInteractable != currentInteractable)
         {
@@ -92,6 +113,7 @@ public class PlayerInteraction_Manager : MonoBehaviour
         UpdateInteractionUI();
     }
 
+    // Closest interactable that can be used now and whose point is inside the hitbox.
     private void FindInteractable()
     {
         currentInteractable = null;
@@ -123,6 +145,7 @@ public class PlayerInteraction_Manager : MonoBehaviour
         }
     }
 
+    // Works for a rotated box: the point is turned into the box's own local space first.
     private bool IsInsideHitbox(Vector3 worldPosition)
     {
         Vector3 localPosition =
@@ -168,7 +191,8 @@ public class PlayerInteraction_Manager : MonoBehaviour
             interactionText.text = "";
     }
 
-    // Dev Note: Still unused but already writing this function just incase of future purposes
+    // Dev Note: Unity calls this when the player (or this script) is switched off. Nothing switches
+    // it off yet; it's here so a hold (pumping, pouring) is ended cleanly if that ever happens.
     private void OnDisable()
     {
         StopCurrentInteraction();

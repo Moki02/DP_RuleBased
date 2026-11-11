@@ -1,7 +1,15 @@
-// MazeBuilderEditor.cs
+// ============================================================================
+// MazeBuilderEditor.cs   (Editor only)
 // Adds "Build maze", "Clear" and "Check tile set" buttons to the MazeBuilder Inspector, plus
 // a summary of the layout so the designer can check the CSV was read correctly. Ticking the
 // Gates / Doors boxes applies straight away, in the editor or in Play mode.
+//
+// DESIGN RULES: none of its own (MazeBuilder builds the maze from the layout CSV).
+//
+// HOW TO USE: select the Maze object; the buttons and summary appear under its settings.
+// "Build maze" deletes and rebuilds everything under _Generated.
+// HOW TO EDIT: nothing to tune.
+// ============================================================================
 
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -9,9 +17,11 @@ using UnityEngine;
 
 namespace TheLastDrop
 {
+    /// <summary>The MazeBuilder Inspector: layout summary and Build / Clear / Check buttons.</summary>
     [CustomEditor(typeof(MazeBuilder))]
     public class MazeBuilderEditor : Editor
     {
+        /// <summary>Draws the normal settings, then the summary and buttons.</summary>
         public override void OnInspectorGUI()
         {
             var builder = (MazeBuilder)target;
@@ -70,6 +80,8 @@ namespace TheLastDrop
             }
         }
 
+        // Outside Play mode, marks the scene as changed so Unity asks to save it.
+        // (In Play mode changes are thrown away anyway.)
         static void MarkDirty(MazeBuilder builder)
         {
             if (!Application.isPlaying) EditorSceneManager.MarkSceneDirty(builder.gameObject.scene);

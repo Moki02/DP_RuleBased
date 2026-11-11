@@ -94,6 +94,7 @@ namespace TheLastDrop
             return list;
         }
 
+        // Header name -> column number, ignoring upper/lower case.
         static Dictionary<string, int> Columns(string[] header)
         {
             var d = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -101,6 +102,7 @@ namespace TheLastDrop
             return d;
         }
 
+        // The trimmed cell under that header, or "" if the column or cell is missing.
         static string Cell(string[] row, Dictionary<string, int> col, string name) =>
             col.TryGetValue(name, out int i) && i < row.Length ? row[i].Trim() : "";
     }
