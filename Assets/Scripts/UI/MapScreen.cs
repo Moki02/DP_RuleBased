@@ -11,7 +11,9 @@
 // turns, the revealed zone 2 tiles flash for 2 s so the player sees what moved.
 //
 // DESIGN RULES: R8.1 (reveal), R8.4 (markers), R8.28 (knowledge turns with zone 2), new
-// rule: everyone gets the zone 2 turn indicator.
+// rule: everyone gets the zone 2 turn indicator. Batch 5 added: R8.18 room icons (through
+// extraIcons), R8.7 the journal (J or the Journal button fire JournalRequested), and V2
+// Landmarks (effect "gatesOnMap"): gates show on the map even before they are revealed.
 //
 // HOW TO USE: put this on the "Systems" object (the Build Playtest Scene menu does it).
 // It builds its own canvas when the game starts. From Phase 5 it is also the Map page of
@@ -71,6 +73,7 @@ namespace TheLastDrop
         [Tooltip("{0} = markers placed, {1} = most allowed.")] public string markersFormat = "Markers {0}/{1}   (F)";
         [Tooltip("Legend heading.")] public string legendTitle = "LEGEND";
         [Tooltip("Key hint at the bottom of the panel.")] public string closeHint = "M / Esc   Close";
+        [Tooltip("The journal button above the key hint (batch 5, R8.7).")] public string journalLabel = "J   Journal";
         [Tooltip("Legend labels, in this order: floor, base, wall, gate shut, gate open, room, valve, marker, you, zone 2 edge.")]
         public string[] legendLabels = { "Floor", "Base", "Wall", "Gate (shut)", "Gate (open)", "Room", "Valve", "Marker", "You", "Zone 2 edge" };
 
@@ -79,6 +82,15 @@ namespace TheLastDrop
         /// Empty = every gate is drawn shut.
         /// </summary>
         public Func<Vector2Int, bool> isGateTileOpen;
+
+        /// <summary>
+        /// Batch 5 (R8.18): extra icons to draw on the map, such as found rooms. Return world tiles.
+        /// Empty = no extra icons.
+        /// </summary>
+        public Func<IEnumerable<MapIcon>> extraIcons;
+
+        /// <summary>Batch 5 (R8.7): fired when the player presses J or the Journal button while the map is open.</summary>
+        public event Action JournalRequested;
 
         /// <summary>True while the map is on screen.</summary>
         public bool IsOpen => root != null && root.activeSelf;
@@ -93,8 +105,9 @@ namespace TheLastDrop
         RawImage mapImage;
         Texture2D texture;
         Color32[] pixels;
-        RectTransform playerArrow, zone2Arrow, markerLayer;
+        RectTransform playerArrow, zone2Arrow, markerLayer, iconLayer;
         readonly List<Image> markerIcons = new List<Image>();
+        readonly List<Image> extraIconImages = new List<Image>();
         TextMeshProUGUI percentText, zone2Text, markersText, titleText;
         bool framesBuilt;
         bool flashPending;
@@ -142,6 +155,9 @@ namespace TheLastDrop
                     else if (IsOpen && kb.escapeKey.wasPressedThisFrame) Close();
                 }
             }
+            // J opens the journal (R8.7), also when the map is a page of the Tab menu.
+            var keys = Keyboard.current;
+            if (IsOpen && keys != null && keys.jKey.wasPressedThisFrame) JournalRequested?.Invoke();
             if (IsOpen) Redraw();
         }
 
@@ -208,13 +224,16 @@ namespace TheLastDrop
             bool flashing = Time.unscaledTime < flashUntil;
             // Blink about 3 times a second while flashing.
             bool flashOn = flashing && Mathf.FloorToInt(Time.unscaledTime * 6f) % 2 == 0;
+            // V2 Landmarks: gates show on the map even before the player has seen them.
+            bool gatesOnMap = Skills.B("gatesOnMap", false);
 
             int w = grid.Width, h = grid.Height;
             for (int y = 0; y < h; y++)
             for (int x = 0; x < w; x++)
             {
                 Color c;
-                if (!reveal.IsRevealed(x, y)) c = unrevealedColor;
+                if (!reveal.IsRevealed(x, y))
+                    c = gatesOnMap && grid.CodeAt(x, y) == TileType.Gate ? TileColor(TileType.Gate, new Vector2Int(x, y)) : unrevealedColor;
                 else if (flashOn && grid.IsInZone2(x, y)) c = flashColor;
                 else c = TileColor(grid.CodeAt(x, y), new Vector2Int(x, y));
                 // Texture rows start at the BOTTOM, but tile row 0 is the TOP (north), so flip y.
@@ -225,6 +244,7 @@ namespace TheLastDrop
 
             DrawPlayer(grid);
             DrawMarkers(grid, reveal);
+            DrawExtraIcons(grid);
             if (!framesBuilt) BuildZone2Outline(grid);
 
             int turns = grid.Zone2Turns;
@@ -305,6 +325,33 @@ namespace TheLastDrop
             for (; i < markerIcons.Count; i++) markerIcons[i].gameObject.SetActive(false);
         }
 
+        // Batch 5: icons from extraIcons (found rooms, R8.18), each a small square with a letter.
+        void DrawExtraIcons(MazeGrid grid)
+        {
+            int i = 0;
+            if (extraIcons != null)
+            {
+                foreach (var icon in extraIcons())
+                {
+                    if (i >= extraIconImages.Count)
+                    {
+                        var img = UiBuilder.Image("RoomIcon", iconLayer, icon.color);
+                        var letter = UiBuilder.Text("Letter", img.transform, "", 16f, Color.black, TextAlignmentOptions.Center);
+                        letter.fontStyle = FontStyles.Bold;
+                        extraIconImages.Add(img);
+                    }
+                    var image = extraIconImages[i];
+                    UiBuilder.Place(image.rectTransform, MapPoint(grid, icon.worldTile.x, icon.worldTile.y),
+                        new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(22f, 22f));
+                    image.color = icon.color;
+                    image.GetComponentInChildren<TextMeshProUGUI>().text = icon.letter;
+                    image.gameObject.SetActive(true);
+                    i++;
+                }
+            }
+            for (; i < extraIconImages.Count; i++) extraIconImages[i].gameObject.SetActive(false);
+        }
+
         // Two square outlines: zone 2's inner edge (next to zone 1) and its outer edge.
         void BuildZone2Outline(MazeGrid grid)
         {
@@ -363,6 +410,7 @@ namespace TheLastDrop
             mapImage.raycastTarget = false;
 
             markerLayer = UiBuilder.Rect("Markers", mapRect);
+            iconLayer = UiBuilder.Rect("Icons", mapRect);   // batch 5: room icons
             var arrow = UiBuilder.Image("Player", mapRect, playerColor);
             arrow.sprite = UiBuilder.ArrowSprite;
             playerArrow = arrow.rectTransform;
@@ -401,6 +449,11 @@ namespace TheLastDrop
                 UiBuilder.Place(sw.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(24f, y), new Vector2(22f, 22f));
                 TopLeftText(panel, "Label", legendLabels[i], 20f, textColor, 60f, y + 2f, 280f, 28f);
             }
+
+            // Batch 5 (R8.7): the journal of survivor notes read so far.
+            var journal = UiBuilder.Button("Journal", panel, journalLabel, 22f, new Color32(62, 54, 45, 255), textColor,
+                () => JournalRequested?.Invoke());
+            UiBuilder.Place((RectTransform)journal.transform, Vector2.zero, Vector2.zero, new Vector2(24f, 64f), new Vector2(200f, 40f));
 
             var hint = UiBuilder.Text("Hint", panel, closeHint, 20f, mutedTextColor, TextAlignmentOptions.BottomLeft);
             UiBuilder.Place(hint.rectTransform, Vector2.zero, Vector2.zero, new Vector2(24f, 20f), new Vector2(320f, 30f));
