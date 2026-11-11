@@ -2,7 +2,7 @@
 // SimpleHud.cs
 // Plain TextMeshPro screen text that any system can use, with no prefab and no art:
 //
-//   SimpleHud.SetLine("canteen", "Canteen 1.5 / 2 L");   // a status line on the left (null removes it)
+//   SimpleHud.SetLine("sick", "SICK 12 s");          // a status line, bottom left (null removes it)
 //   SimpleHud.Toast("+3.0 L banked");                    // a short message at the top for a few seconds (max 5 at once)
 //   SimpleHud.Banner("THUNDERSTORM", "Rain for 60 s");   // a big message in the middle for a few seconds
 //   SimpleHud.ShowPanel("THE DROUGHT WINS", "Day 14", ("Restart", Restart));  // full-screen panel with buttons
@@ -13,7 +13,7 @@
 // frozen (time scale 0). The panel's buttons need an EventSystem in the scene (the Build
 // Playtest Scene menu adds one). Don't call these from OnDestroy: during a scene change that
 // would make a new canvas in the scene being closed.
-// Status line keys used so far: hyd, canteen, unbanked, clean, raw, jugs, sick
+// Status line keys used so far: drinking, unbanked, jugs, sick (SurvivalDirector), lockdown, stage, event, ... (the team HUD shows HYD, canteen, Raw Basin and Clean Storage)
 // (SurvivalDirector), stage (StageManager), lockdown (NightLockdown), plus the other batches'.
 //
 // DESIGN RULES: none of its own. The artists can replace any of this later.
@@ -39,6 +39,10 @@ namespace TheLastDrop
         static readonly Color ToastColor = new Color(0.55f, 0.85f, 1f);
 
         static SimpleHud instance;
+
+        const int NormalSortOrder = 9;
+        const int PanelSortOrder = 90;
+        Canvas canvas;
 
         TextMeshProUGUI status, toasts, bannerTitle, bannerLine;
         Image fade;
@@ -116,6 +120,7 @@ namespace TheLastDrop
                     new Vector2(0f, -i * 80f), new Vector2(360f, 64f));
             }
             h.panel.gameObject.SetActive(true);
+            if (h.canvas != null) h.canvas.sortingOrder = PanelSortOrder;
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
         }
@@ -123,7 +128,9 @@ namespace TheLastDrop
         /// <summary>Hides the full-screen panel.</summary>
         public static void HidePanel()
         {
-            if (instance != null) instance.panel.gameObject.SetActive(false);
+            if (instance == null) return;
+            instance.panel.gameObject.SetActive(false);
+            if (instance.canvas != null) instance.canvas.sortingOrder = NormalSortOrder;
         }
 
         /// <summary>True while the full-screen panel is up.</summary>
@@ -134,8 +141,11 @@ namespace TheLastDrop
         static SimpleHud Get()
         {
             if (instance != null) return instance;
-            var canvas = UiBuilder.CreateCanvas("SimpleHudCanvas", null, 80);
+            // Sort order 9: under the team's HUD and pause menu (10). The full-screen panel lifts the
+            // canvas to 90 while it's up, so end screens and the title cover everything.
+            var canvas = UiBuilder.CreateCanvas("SimpleHudCanvas", null, NormalSortOrder);
             instance = canvas.gameObject.AddComponent<SimpleHud>();
+            instance.canvas = canvas;
             instance.Build(canvas.transform);
             return instance;
         }
@@ -148,8 +158,9 @@ namespace TheLastDrop
         void Build(Transform root)
         {
             // Status lines: left side, a little below the top.
-            status = UiBuilder.Text("Status", root, "", LineSize, TextColor, TextAlignmentOptions.TopLeft);
-            UiBuilder.Place(status.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(24f, -140f), new Vector2(620f, 520f));
+            status = UiBuilder.Text("Status", root, "", LineSize, TextColor, TextAlignmentOptions.BottomLeft);
+            // Bottom-left, growing upwards, so it stays clear of the team's HYD bar and the F1 debug panel (top-left).
+            UiBuilder.Place(status.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(24f, 24f), new Vector2(620f, 360f));
             status.textWrappingMode = TextWrappingModes.NoWrap;
             status.outlineWidth = 0.2f;
             status.outlineColor = Color.black;

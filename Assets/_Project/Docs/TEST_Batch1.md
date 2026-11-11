@@ -8,7 +8,7 @@ Branch `batch1-survival-core`. About 15 minutes. Press **6** for the ×4 clock w
 - [ ] **Tools > The Last Drop > Delete Save**, then Play.
 
 ## Hydration (R2)
-- [ ] Stand still in the base for 40 s. **Expected:** HYD drops by about 5 (0.25/s × 0.5 hub shade). The left-side text shows `HYD`, `Canteen 2.0 / 2 L`.
+- [ ] Stand still in the base for 40 s. **Expected:** HYD drops by about 5 (0.25/s × 0.5 hub shade). The team HUD shows HYD and the canteen; at the base the Hub HUD shows Raw Basin and Clean Storage.
 - [ ] Walk out of the base and sprint. **Expected:** HYD falls faster; at 59 the text says Thirsty, at 29 Dehydrated and Shift stops working.
 - [ ] Hold **Q**. **Expected:** the canteen drops 0.5 L/s and HYD rises 12.5/s; it stops at 100 HYD or an empty canteen.
 
@@ -29,7 +29,7 @@ Branch `batch1-survival-core`. About 15 minutes. Press **6** for the ×4 clock w
 - [ ] Win an orange valve grate. **Expected:** `+2.0 L unbanked (valve opened)`.
 
 ## Night (R8.20, R8.21)
-- [ ] Watch the last minute of day. **Expected:** `Lockdown in N s` on the left; toasts at 60, 40, 20, 10 and 5 s.
+- [ ] Watch the last minute of day. **Expected:** `Lockdown in N s` bottom left; toasts at 60, 40, 20, 10 and 5 s.
 - [ ] Stay outside at night. **Expected:** HYD drops 4 per second; you collapse in ~25 s.
 
 ## Collapse and game over (R11)

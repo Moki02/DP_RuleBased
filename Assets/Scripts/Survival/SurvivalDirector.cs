@@ -8,7 +8,7 @@
 //   - banks unbanked water the moment the player walks into the hub, with the +10% Safe
 //     Return bonus if it's still daytime (R3.5), and shows "+X L banked"; what doesn't fit
 //     goes to the Raw Basin, then the spare jugs (GameResources_Manager.StoreHomeWater);
-//   - shows the water numbers as plain text on the left of the screen.
+//   - shows extra water text (unbanked, spare jugs, Sick, drinking) bottom left; HYD, canteen and storage are on the team HUD.
 // SurvivalRules (bottom) are small helpers for minigame losses and rewards (R9.3, R8.8).
 //
 // DESIGN RULES: R2.4, R3.5, R8.2a, R8.8, R9.3.
@@ -136,19 +136,12 @@ namespace TheLastDrop
             var p = Player_Manager.instance;
             if (res == null || p == null) return;
             var hyd = p.playerHydration_Manager;
-            var stats = p.playerStats_Manager;
 
-            if (hyd != null && stats != null && !hyd.hydrationOff)
-                SimpleHud.SetLine("hyd", $"HYD {Mathf.CeilToInt(stats.player_Hydration)} / {stats.player_MaxHydration:0}  ({StateName(hyd.currentHydrationState)})");
-            else
-                SimpleHud.SetLine("hyd", null);
-
-            SimpleHud.SetLine("canteen", $"Canteen {res.FormatWater(res.canteen)} / {res.canteen_Max:0.#} L" + (hyd != null && hyd.IsDrinking ? "  drinking..." : ""));
+            // HYD, the canteen, Raw Basin and Clean Storage are shown by the team's Player HUD and
+            // Hub HUD, so this text only adds what those don't show.
+            SimpleHud.SetLine("drinking", hyd != null && hyd.IsDrinking ? $"Drinking...  canteen {res.FormatWater(res.canteen)}" : null);
             SimpleHud.SetLine("unbanked", res.unbankedWater > 0.0001f ? $"Unbanked +{res.FormatWater(res.unbankedWater)}" : null);
 
-            bool atHub = PlayerAtHub();
-            SimpleHud.SetLine("clean", atHub ? $"Clean Storage {res.FormatWater(res.cleanStorage)} / {res.cleanStorage_Max:0} L" : null);
-            SimpleHud.SetLine("raw", atHub ? $"Raw Basin {res.FormatWater(res.rawBasin)} / {res.rawBasin_Max:0} L" : null);
             SimpleHud.SetLine("jugs", res.spareJugs > 0.0001f ? $"Spare jugs {res.FormatWater(res.spareJugs)}" : null);
             SimpleHud.SetLine("sick", hyd != null && hyd.SickSecondsLeft > 0f ? $"SICK {Mathf.CeilToInt(hyd.SickSecondsLeft)} s (drain ×1.5)" : null);
         }

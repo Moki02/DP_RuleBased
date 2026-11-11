@@ -7,12 +7,13 @@ no conflicts.
 
 ## Merge order
 
-1. `batch1-survival-core` into `main`
-2. Then, in any order: `batch2-drought`, `batch3-events`, `batch4-sources`,
-   `batch5-maze-content`, `batch6-menus`
+**Use `integration-all`.** It is all six batches merged, plus the code review fixes and comments
+(2026-11-11 evening). Merge only `integration-all` into `main`; the six batch branches are kept
+for history and don't contain the review fixes.
 
 After merging, open Unity, wait for it to compile, then run **Tools > The Last Drop > Build
-Playtest Scene** once (it places the hub's pump, boiling pot and Clean Storage tap) and press Play.
+Playtest Scene** once (it places the hub's pump, boiling pot and Clean Storage tap, and links
+the demo balance) and press Play. Read `REVIEW_NOTES.md` for what to check first.
 
 ## Rules every batch follows
 

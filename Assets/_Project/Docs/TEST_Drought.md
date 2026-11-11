@@ -7,7 +7,7 @@ Branch `batch2-drought`. About 10 minutes. Press **6** for the ×4 clock when wa
 - [ ] **Tools > The Last Drop > Delete Save**, then Play. **Expected:** a `StageManager` and an `Evaporation` component appear on the `Systems` object.
 
 ## Stage 1 at the start (R10.1)
-- [ ] Look at the left-side text. **Expected:** `Stage 1: El Niño Advisory  (heat ×1)`, and a toast `RADIO: PAGASA has issued an El Niño Advisory...`.
+- [ ] Look at the bottom-left text. **Expected:** `Stage 1: El Niño Advisory  (heat ×1)`, and a toast `RADIO: PAGASA has issued an El Niño Advisory...`.
 - [ ] Look at the hand pump. **Expected:** label says `Hand Pump: 100%, water table 4 m`.
 - [ ] Stand still in the base for 40 s. **Expected:** HYD drops by about 5 (0.25/s × 0.5 shade × 1 heat). Repeat after pressing **8** three times (Stage 4): about 7 (× 1.4).
 

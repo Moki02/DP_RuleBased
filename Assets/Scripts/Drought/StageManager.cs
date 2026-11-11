@@ -208,6 +208,7 @@ namespace TheLastDrop
             if (sun == null || !balance.stageLighting) return;
             Color tint = balance.stageSunTint != null && index < balance.stageSunTint.Length ? balance.stageSunTint[index] : Color.white;
             float mult = balance.stageSunIntensity != null && index < balance.stageSunIntensity.Length ? balance.stageSunIntensity[index] : 1f;
+            mult = Mathf.Max(0.01f, mult); // never 0, or the next stage couldn't scale it back up
             sun.color = sunBaseColor * tint;
             // Intensity is changed RELATIVELY (swap our old multiplier for the new one), because
             // the Thunderstorm (EventManager) also dims the sun relatively. Setting it outright

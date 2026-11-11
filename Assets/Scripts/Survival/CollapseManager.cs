@@ -102,6 +102,11 @@ namespace TheLastDrop
             }
             float clockCost = balance != null ? balance.collapseClockPenalty : 30f;
 
+            // The player is carried home, so the unbanked water that survived the collapse is
+            // banked now (R3.5, no Safe Return bonus) - BEFORE the game over check, so water the
+            // player was carrying can still save the run.
+            if (SurvivalDirector.Instance != null) SurvivalDirector.Instance.Bank(false);
+
             // 3. Game over? (R11.4)
             float wakeLitres = balance != null ? balance.wakeLiters : 2f;
             float needed = balance != null ? balance.gameOverBelowLiters : 2f;
@@ -126,9 +131,6 @@ namespace TheLastDrop
                 if (hydration != null) hydration.ResetAfterRevive(wakeHyd);
                 if (Game_Manager.instance != null) Game_Manager.instance.ChangeGameState(Game_Manager.GameState.Exploring);
             }
-
-            // The rest of the unbanked water is home now (R3.5), but with no Safe Return bonus.
-            if (SurvivalDirector.Instance != null) SurvivalDirector.Instance.Bank(false);
 
             // R11.2: 30 s of clock time. Done AFTER waking on purpose: if those 30 s cross dawn,
             // the dawn autosave (and anything else listening for night or dawn) sees the woken

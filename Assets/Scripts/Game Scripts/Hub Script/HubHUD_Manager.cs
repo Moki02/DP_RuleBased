@@ -60,6 +60,11 @@ public class HubHUD_Manager : MonoBehaviour
         if (player == null || resources == null)
             return;
 
+        // The maze scene is built by a menu, which can't point this prefab at the scene's hub
+        // box. So if Hub Area is empty, use the same box the hydration hub shade uses (R2.2).
+        if (hubArea == null && player.playerHydration_Manager != null)
+            hubArea = player.playerHydration_Manager.hubArea;
+
         UpdateUnbankedWaterUI();
         UpdateHubUI();
     }
