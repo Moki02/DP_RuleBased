@@ -158,10 +158,12 @@ namespace TheLastDrop
                 ("Quit", new System.Action(Quit)));
         }
 
-        /// <summary>Starts a new run: deletes the save and reloads the scene.</summary>
+        /// <summary>Starts a new run: deletes the save (not in Demo mode) and reloads the scene, skipping the title screen.</summary>
         public static void Restart()
         {
-            SaveManager.DeleteSave();
+            // A Demo run doesn't touch the full game's save; the next run skips the title screen.
+            if (!BalanceProvider.UseDemo) SaveManager.DeleteSave();
+            MainMenu.SkipMenuOnce = true;
             Time.timeScale = 1f;
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }

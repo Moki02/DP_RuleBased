@@ -6,7 +6,7 @@
 //     and a Valve Timing minigame whose difficulty grows with distance from the hub (R9.6);
 //     zone 2's 8 exits use the exit valve settings, and winning one wins the game (R11.6);
 //   - each V tile (8 of them) gets a ValveGate on its grate (R8.8).
-// It also tells the map which gates are open, opens the "You escaped" panel, and, when
+// It also tells the map which gates are open, opens the win screen (WinScreen), and, when
 // night falls, moves a player standing in a gate's doorway back to the hub side so the
 // closing gate can't trap them.
 //
@@ -145,15 +145,20 @@ namespace TheLastDrop
             var basin = go.GetComponentInChildren<LockBasin_Manager>();
             if (basin == null) basin = go.AddComponent<LockBasin_Manager>();
 
-            basin.basin_MaxWater = balance.GetLockLiters(LockIndex(gate.Kind));
+            // Demo mode (section 13): Lock 1 becomes the exit, so zone 1's exits are exit gates
+            // with GetLockLiters(0) (8 L) and the exit valve; winning one wins the demo (R13.4).
+            bool demoExit = balance.isDemoMode && gate.Kind == GateKind.Zone1Exit;
+            bool exitGate = gate.Kind == GateKind.Zone2Exit || demoExit;
+
+            basin.basin_MaxWater = demoExit ? balance.GetLockLiters(0) : balance.GetLockLiters(LockIndex(gate.Kind));
             basin.basin_Water = 0f;
             basin.pourRate = balance.pourRate;
             basin.openWithValveMinigame = true;
-            basin.minigameSettings = ValveDifficulty.ForGate(gate.Kind, gate.Ring, balance);
-            basin.difficultyT = gate.Kind == GateKind.Zone2Exit ? -1f : ValveDifficulty.T(gate.Ring, balance);
+            basin.minigameSettings = ValveDifficulty.ForGate(exitGate ? GateKind.Zone2Exit : gate.Kind, gate.Ring, balance);
+            basin.difficultyT = exitGate ? -1f : ValveDifficulty.T(gate.Ring, balance);
             basin.lockoutSeconds = balance.minigameLockout;
             basin.failHydLog = balance.minigameFailHyd;
-            basin.isExitGate = gate.Kind == GateKind.Zone2Exit;
+            basin.isExitGate = exitGate;
             basin.proximityRange = balance.interactRange;
             basin.gateObjects.Clear();
             foreach (var tile in gate.Tiles)
@@ -197,8 +202,8 @@ namespace TheLastDrop
         {
             if (!basin.isExitGate) return;
             int day = clock != null ? clock.Day : 1;
-            if (escapePanel != null) escapePanel.Show(day);
-            else Debug.Log($"[GateManager] You escaped on day {day} (R11.6).", this);
+            // The win screen with the ending title and stats (R11.6, R11.7). EscapePanel is no longer used.
+            WinScreen.Show(day);
         }
 
         // ------------------------------------------------------------------ Valve gates
