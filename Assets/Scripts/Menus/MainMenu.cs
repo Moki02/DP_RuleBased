@@ -1,62 +1,52 @@
 // ============================================================================
-// MainMenu.cs
-// The title screen. The project has no separate menu scene, so this shows a full-screen
-// panel over the game scene when it starts:
+// MainMenu.cs   (the game scene's side of the menus)
+// The title screen now has its own scene (MainMenu, MenuSceneUI.cs). This script stays in
+// the game scene and:
+//   - starts the run the way the main menu asked (SceneFlow): New Game and Demo just play;
+//     Continue loads the save once every system has started (R11.8). Pressing Play straight
+//     in the game scene in the editor just starts a new run;
+//   - freezes the game behind a full-screen panel when something asks (Freeze / Unfreeze:
+//     time scale 0, cursor free, Esc / Tab / M / B do nothing);
+//   - adds a "Save and quit to menu" button to the team's pause menu (or wires the artists'
+//     own Button named "Quit To Menu Button" in the pause menu prefab), and shows a plain
+//     pause panel (Resume / Save and quit to menu) if the team's pause menu can't be seen;
+//   - shows a "DEMO" HUD line in Demo mode, where autosave is off (R11.8 is one slot).
 //
-//     SALOK
-//     [New Game]  [Continue]  [Demo]  [Quit]
-//
-//   - New Game: deletes the save and starts playing.
-//   - Continue (only shown if there is a save): loads the save and starts playing (R11.8).
-//   - Demo: switches to the GameBalance_Demo asset and starts a fresh run (R13.1).
-//   - Quit: closes the game (stops Play mode in the editor).
-// While the menu (or an end screen) is up the game is frozen (time scale 0, cursor free)
-// and Esc / Tab / M / B do nothing, because the game is held in the Collapsed state,
-// where the pause key and MenuState.Enter() refuse to open anything.
-//
-// After a reload asked for by these buttons, or by Restart on an end screen, the menu is
-// skipped (SkipMenuOnce) and the run starts straight away.
-// Demo mode never autosaves (one save slot, R11.8, belongs to the full game). Debug keys
-// still work behind the title screen: don't press F5 there, it saves the fresh day 1 over
-// the real save.
-//
-// It also shows a plain pause panel (Resume / Save and quit to menu) when Esc pauses
-// the game but the team's pause menu can't be seen, and a "DEMO" HUD line in Demo mode.
-//
-// DESIGN RULES: R11.8 (Continue), section 13 and R13.1 (Demo from the main menu).
+// DESIGN RULES: R11.8 (Continue), section 13 and R13.1 (Demo).
 //
 // HOW TO USE: added to the game scene by itself (needs a BalanceProvider). Nothing to set.
-// HOW TO EDIT: the words are the constants below. The look is SimpleHud's panel.
+// HOW TO EDIT: the words are the constants below.
 // ============================================================================
 
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace TheLastDrop
 {
-    /// <summary>The title screen (New Game, Continue, Demo, Quit) and the game freeze behind menus.</summary>
+    /// <summary>Starts the run the main menu asked for, freezes the game behind panels, and handles pause-to-menu.</summary>
     public class MainMenu : MonoBehaviour
     {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void Register() => AutoSystems.Register<MainMenu>();
 
-        const string GameTitle = "SALOK";
-        const string Subtitle = "Survive the drought. Find the way out.";
+        const string QuitToMenuLabel = "Save and quit to menu";
+        const string DemoQuitToMenuLabel = "Quit to menu";
 
-        /// <summary>True = the next time a game scene starts, skip the title screen and play at once.</summary>
+        /// <summary>Kept for older callers: the game scene never shows a title screen now.</summary>
         public static bool SkipMenuOnce;
 
-        /// <summary>True while the title screen is on screen.</summary>
+        /// <summary>Always false now (the title screen is the MainMenu scene). Kept for older callers.</summary>
         public static bool IsOpen { get; private set; }
 
-        /// <summary>True while the game is held frozen behind the title screen or an end screen.</summary>
+        /// <summary>True while the game is held frozen behind a full-screen panel.</summary>
         public static bool IsFrozen => holdFrozen;
 
         static bool holdFrozen;
-        static bool loadSaveOnStart; // Continue pressed while a Demo run was loaded: load after the reload
 
         bool pausePanelShown;
+        bool pauseButtonAdded;
 
         // Statics survive Play mode in the editor when domain reload is off: start clean.
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -65,7 +55,6 @@ namespace TheLastDrop
             SkipMenuOnce = false;
             IsOpen = false;
             holdFrozen = false;
-            loadSaveOnStart = false;
         }
 
         void Awake()
@@ -77,6 +66,7 @@ namespace TheLastDrop
 
         IEnumerator Start()
         {
+            SkipMenuOnce = false;
             var balance = BalanceProvider.Current;
             if (balance != null && balance.isDemoMode)
             {
@@ -86,110 +76,28 @@ namespace TheLastDrop
                 if (save != null) save.autosaveAtDawn = false;
             }
 
-            if (loadSaveOnStart)
+            if (SceneFlow.ConsumeContinue())
             {
-                loadSaveOnStart = false;
-                SkipMenuOnce = false;
                 // Wait so every system has finished its own Start (same as SaveManager.LoadAndStart).
                 yield return null;
                 yield return null;
                 yield return null;
                 LoadSaveNow();
-                yield break;
             }
-
-            if (SkipMenuOnce)
-            {
-                SkipMenuOnce = false;
-                yield break;
-            }
-            ShowTitle();
         }
 
         void OnDestroy()
         {
-            if (IsOpen || holdFrozen) SimpleHud.HidePanel();
+            if (holdFrozen) SimpleHud.HidePanel();
             IsOpen = false;
             holdFrozen = false;
-        }
-
-        // ------------------------------------------------------------------ Title screen
-
-        void ShowTitle()
-        {
-            IsOpen = true;
-            Freeze();
-            string body = Subtitle;
-            if (SaveManager.HasSave) body += "\n\nA saved game was found.";
-            if (SaveManager.HasSave)
-                SimpleHud.ShowPanel(GameTitle, body,
-                    ("New Game", new System.Action(NewGame)),
-                    ("Continue", new System.Action(Continue)),
-                    ("Demo", new System.Action(Demo)),
-                    ("Quit", new System.Action(CollapseManager.Quit)));
-            else
-                SimpleHud.ShowPanel(GameTitle, body,
-                    ("New Game", new System.Action(NewGame)),
-                    ("Demo", new System.Action(Demo)),
-                    ("Quit", new System.Action(CollapseManager.Quit)));
-        }
-
-        /// <summary>New Game: delete the save and play (a fresh full run).</summary>
-        public void NewGame()
-        {
-            SaveManager.DeleteSave();
-            if (BalanceProvider.UseDemo)
-            {
-                // This scene was loaded with the demo numbers: reload with the full game's.
-                BalanceProvider.UseDemo = false;
-                ReloadScene(skipMenu: true);
-                return;
-            }
-            CloseTitle();
-            Debug.Log("[MainMenu] New Game.", this);
-        }
-
-        /// <summary>Continue: load the save and play (R11.8).</summary>
-        public void Continue()
-        {
-            if (!SaveManager.HasSave) { NewGame(); return; }
-            if (BalanceProvider.UseDemo)
-            {
-                BalanceProvider.UseDemo = false;
-                loadSaveOnStart = true;
-                ReloadScene(skipMenu: true);
-                return;
-            }
-            CloseTitle();
-            LoadSaveNow();
-        }
-
-        /// <summary>Demo: switch to GameBalance_Demo and start a fresh run (section 13, R13.1).</summary>
-        public void Demo()
-        {
-            BalanceProvider.UseDemo = true;
-            Debug.Log("[MainMenu] Demo mode: reloading the scene with GameBalance_Demo.", this);
-            ReloadScene(skipMenu: true);
         }
 
         void LoadSaveNow()
         {
             var save = SaveManager.Instance != null ? SaveManager.Instance : FindAnyObjectByType<SaveManager>();
-            if (save != null)
-            {
-                if (!save.Load()) SimpleHud.Toast("The save couldn't be loaded. Starting a new game.");
-            }
-            else
-            {
-                // No SaveManager in this scene: let it open the game scene and load there.
-                SaveManager.LoadAndStart();
-            }
-        }
-
-        void CloseTitle()
-        {
-            IsOpen = false;
-            Unfreeze();
+            if (save == null || !save.Load())
+                SimpleHud.Toast("The save couldn't be loaded. Starting a new game.");
         }
 
         // ------------------------------------------------------------------ Freezing
@@ -230,7 +138,7 @@ namespace TheLastDrop
             }
         }
 
-        /// <summary>Reloads the game scene (time scale back to 1). skipMenu = go straight into play.</summary>
+        /// <summary>Reloads the game scene (time scale back to 1).</summary>
         public static void ReloadScene(bool skipMenu)
         {
             SkipMenuOnce = skipMenu;
@@ -247,25 +155,27 @@ namespace TheLastDrop
             // Something else (Game_Manager's own Start, a minigame closing) may have switched the
             // state back to Exploring: keep the game frozen while a panel is up.
             if (holdFrozen) { ApplyFreeze(); return; }
-            UpdatePauseFallback();
+            UpdatePause();
         }
 
-        // Esc pauses the game (Game_Manager's Paused state). If the team's pause menu can't be
-        // seen, show a plain one so the player isn't stuck on a frozen screen.
-        void UpdatePauseFallback()
+        // Esc pauses the game (Game_Manager's Paused state). The team's pause menu gets a
+        // "quit to menu" button; if it can't be seen, a plain pause panel shows instead, so the
+        // player is never stuck on a frozen screen.
+        void UpdatePause()
         {
             var gm = Game_Manager.instance;
             bool paused = gm != null && gm.currentGameState == Game_Manager.GameState.Paused;
             bool teamMenuVisible = paused && gm.pauseMenu != null && gm.pauseMenu.activeInHierarchy &&
                                    gm.pauseMenu.GetComponentInParent<Canvas>(true) != null;
 
+            if (teamMenuVisible && !pauseButtonAdded) AddQuitButton(gm.pauseMenu.transform);
+
             if (paused && !teamMenuVisible && !pausePanelShown)
             {
                 pausePanelShown = true;
-                bool demo = BalanceProvider.Current != null && BalanceProvider.Current.isDemoMode;
                 SimpleHud.ShowPanel("PAUSED", "Esc to resume.",
                     ("Resume", new System.Action(Resume)),
-                    (demo ? "Quit to menu" : "Save and quit to menu", new System.Action(SaveAndQuitToMenu)));
+                    (IsDemo ? DemoQuitToMenuLabel : QuitToMenuLabel, new System.Action(SaveAndQuitToMenu)));
             }
             else if (!paused && pausePanelShown)
             {
@@ -273,6 +183,29 @@ namespace TheLastDrop
                 SimpleHud.HidePanel();
             }
         }
+
+        /// <summary>Name of the pause menu's "quit to menu" button. Add a Button with this name to the team's pause menu to use your own.</summary>
+        public const string QuitButtonName = "Quit To Menu Button";
+
+        // The team's pause menu gets a "quit to menu" button. If the artists added a Button named
+        // "Quit To Menu Button" to the pause menu prefab, that one is used (styled and placed by
+        // them); otherwise a plain black-and-white one is added at the bottom.
+        void AddQuitButton(Transform pauseMenu)
+        {
+            pauseButtonAdded = true;
+            Button b = null;
+            foreach (var candidate in pauseMenu.GetComponentsInChildren<Button>(true))
+                if (candidate.name == QuitButtonName) { b = candidate; break; }
+            if (b == null)
+            {
+                b = UiBuilder.Button(QuitButtonName, pauseMenu, IsDemo ? DemoQuitToMenuLabel : QuitToMenuLabel, 28f,
+                                     new Color(0.16f, 0.16f, 0.16f), Color.white, null);
+                UiBuilder.Place((RectTransform)b.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 60f), new Vector2(380f, 60f));
+            }
+            b.onClick.AddListener(SaveAndQuitToMenu);
+        }
+
+        static bool IsDemo => BalanceProvider.Current != null && BalanceProvider.Current.isDemoMode;
 
         void Resume()
         {
@@ -282,11 +215,10 @@ namespace TheLastDrop
 
         void SaveAndQuitToMenu()
         {
-            bool demo = BalanceProvider.Current != null && BalanceProvider.Current.isDemoMode;
-            if (!demo && SaveManager.Instance != null) SaveManager.Instance.Save();
-            BalanceProvider.UseDemo = false;
+            if (!IsDemo && SaveManager.Instance != null) SaveManager.Instance.Save();
             pausePanelShown = false;
-            ReloadScene(skipMenu: false);
+            holdFrozen = false;
+            SceneFlow.ToMainMenu();
         }
     }
 }

@@ -19,7 +19,11 @@
 // HOW TO USE: the Lock Basin prefab has this. In the maze playtest GateManager places one
 // per gate and fills in every field; you don't set anything by hand. In an old scene,
 // drag the gate wall into "Gate Object" and set "Basin Max Water".
-// Pouring takes water from the canteen at the pour rate (×1.5 with M4 Quick Hands).
+// Pouring takes water from the canteen first, at the pour rate (×1.5 with M4 Quick Hands).
+// When the canteen is empty it keeps pouring from the player's own HYD (1 L costs Hyd Per
+// Liter HYD, 25), and stops at GameBalance > Pour Hyd Floor (10 HYD) with "Too thirsty to
+// pour", so the player can't pour themselves into a collapse. GameBalance > Pour From Hyd
+// When Canteen Empty switches the HYD part off.
 //
 // HOW TO EDIT: litres and pour rate come from GameBalance in the maze playtest. The prompt
 // texts are under "Text (what the player reads)".
@@ -80,6 +84,10 @@ public class LockBasin_Manager : Interactable_Manager, INightLockable
     [Tooltip("{0} = seconds left.")]
     public string jammedPrompt = "Valve jammed ({0}s)";
     public string nightPrompt = "Gate locked for the night";
+    [Tooltip("{0} = litres in, {1} = litres needed. Shown when the canteen is empty and the water comes from HYD.")]
+    public string pourHydPrompt = "Canteen empty: hold [E] to pour from your HYD  ({0:0.0} / {1:0.#} L)";
+    [Tooltip("{0} = the HYD floor. Shown when the canteen is empty and HYD is at the floor.")]
+    public string tooThirstyPrompt = "Too thirsty to pour (HYD {0:0}). Drink first.";
 
     /// <summary>The lock's rules and state (null before Start).</summary>
     public GateLockLogic Lock { get; private set; }
@@ -136,14 +144,15 @@ public class LockBasin_Manager : Interactable_Manager, INightLockable
         if (proximityRange > 0f && !IsPlayerClose(player))
             return false;
 
+        // Shown even when there is nothing to pour from, so "Too thirsty to pour" can be read.
         if (!openWithValveMinigame)
-            return resources != null && (resources.canteen > 0f || resources.infiniteCanteen);
+            return resources != null && (HasCanteenWater || CanUseHyd);
 
         switch (Lock.State)
         {
             case GateLockState.Empty:
             case GateLockState.Filling:
-                return resources != null && (resources.canteen > 0f || resources.infiniteCanteen);
+                return resources != null && (HasCanteenWater || CanUseHyd);
             case GateLockState.Full:
                 return Game_Manager.instance == null || Game_Manager.instance.CanControlPlayer();
             default:
@@ -154,7 +163,13 @@ public class LockBasin_Manager : Interactable_Manager, INightLockable
     public override string GetInteractionText()
     {
         if (!openWithValveMinigame || Lock.CanPour)
-            return string.Format(pourPrompt, Lock.Litres, basin_MaxWater);
+        {
+            if (HasCanteenWater)
+                return string.Format(pourPrompt, Lock.Litres, basin_MaxWater);
+            if (HydLitresAvailable <= 0.0001f)
+                return string.Format(tooThirstyPrompt, HydFloor);
+            return string.Format(pourHydPrompt, Lock.Litres, basin_MaxWater);
+        }
         if (Lock.NightLocked)
             return nightPrompt;
         float left = Lock.LockoutLeft(Time.time);
@@ -175,9 +190,12 @@ public class LockBasin_Manager : Interactable_Manager, INightLockable
             return;
         }
 
-        // Pour from the canteen (an infinite canteen gives without running out).
+        // Pour from the canteen first (an infinite canteen gives without running out), then
+        // from the player's HYD down to the floor.
         float wanted = Mathf.Min(pourRate * Skills.F("drinkPourRateMult", 1f) * deltaTime, basin_MaxWater - Lock.Litres); // M4 Quick Hands
         float taken = resources.TakeCanteenWater(wanted);
+        if (taken < wanted && CanUseHyd)
+            taken += TakeFromHyd(wanted - taken);
         Lock.Pour(taken);
         basin_Water = Lock.Litres;
         UpdateBasinUI();
@@ -189,6 +207,50 @@ public class LockBasin_Manager : Interactable_Manager, INightLockable
             else
                 UnlockGate();
         }
+    }
+
+    // ------------------------------------------------------------------ Pouring from HYD
+
+    private bool HasCanteenWater => resources != null && (resources.canteen > 0f || resources.infiniteCanteen);
+
+    private float HydFloor
+    {
+        get { var b = BalanceProvider.Current; return b != null ? b.pourHydFloor : 10f; }
+    }
+
+    // True when the HYD part is on and the player's hydration is running (survival game).
+    private bool CanUseHyd
+    {
+        get
+        {
+            var b = BalanceProvider.Current;
+            if (b != null && !b.pourFromHydWhenCanteenEmpty) return false;
+            var p = Player_Manager.instance;
+            return p != null && p.playerHydration_Manager != null && !p.playerHydration_Manager.hydrationOff;
+        }
+    }
+
+    // Litres the player can still pour from HYD before reaching the floor.
+    private float HydLitresAvailable
+    {
+        get
+        {
+            if (!CanUseHyd) return 0f;
+            var p = Player_Manager.instance;
+            float perL = p.playerHydration_Manager.HydPerLiter;
+            if (perL <= 0f) return 0f;
+            return Mathf.Max(0f, p.playerStats_Manager.player_Hydration - HydFloor) / perL;
+        }
+    }
+
+    // Takes up to <litres> from HYD (never below the floor); returns the litres actually taken.
+    private float TakeFromHyd(float litres)
+    {
+        float amount = Mathf.Min(litres, HydLitresAvailable);
+        if (amount <= 0f) return 0f;
+        var hyd = Player_Manager.instance.playerHydration_Manager;
+        hyd.LoseHydration(amount * hyd.HydPerLiter);
+        return amount;
     }
 
     // ------------------------------------------------------------------ Minigame

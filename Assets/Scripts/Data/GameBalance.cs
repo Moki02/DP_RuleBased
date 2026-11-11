@@ -277,6 +277,10 @@ namespace TheLastDrop
         public float[] lockLiters = { 4f, 10f, 18f };
         [Tooltip("Litres per second poured from the canteen into a lock basin while E is held.")]
         [Min(0f)] public float pourRate = 1f;           // L/s
+        [Tooltip("When the canteen is empty, keep pouring from the player's own HYD (1 L costs Hyd Per Liter HYD). Off = canteen only.")]
+        public bool pourFromHydWhenCanteenEmpty = true;
+        [Tooltip("Pouring from HYD stops at this much HYD, so the player can't pour themselves into a collapse.")]
+        [Min(0f)] public float pourHydFloor = 10f;
 
         // ------------------------------------------------------------------ Minigames (section 9)
         [Header("Minigames")]

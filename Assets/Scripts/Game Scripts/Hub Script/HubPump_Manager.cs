@@ -116,7 +116,11 @@ public class HubPump_Manager : Interactable_Manager
         string state = f <= 0.001f ? "DRY" : Mathf.RoundToInt(f * 100f) + "%";
         if (resources != null && resources.rawBasin >= resources.rawBasin_Max - 0.0001f)
             return $"Hand Pump: Raw Basin FULL";
-        return $"Hold [E] to Pump  (Hand Pump: {state}{(string.IsNullOrEmpty(reason) ? "" : ", " + reason)})";
+        // Show where the water goes, so each stroke has a visible result (the pot's label shows it too).
+        string basin = resources != null
+            ? $"\nRaw Basin {resources.FormatWater(resources.rawBasin)} / {resources.FormatWater(resources.rawBasin_Max)}"
+            : "";
+        return $"Hold [E] to Pump  (Hand Pump: {state}{(string.IsNullOrEmpty(reason) ? "" : ", " + reason)}){basin}";
     }
 
     /// <summary>Called every frame E is held: makes a stroke every Stroke Interval.</summary>

@@ -1,86 +1,67 @@
 // ============================================================================
 // UpgradeCardView.cs
-// One card on the Build or Skills page: an icon slot (a placeholder showing the id until
-// the artists' icons arrive), the name, a water drop with the cost, and a state chip
-// (Owned / Needs W2 / Needs bigger storage / Short 12 L / Can buy). The border colour
-// shows the state; a light ring shows the selected card.
+// One card on the Build or Skills page, made from the card prefab (UpgradeCardUI): fills in
+// the id, name, cost and icon once, and updates the border, chip and fade for the card's
+// state (Owned / Needs W2 / Needs bigger storage / Short 12 L / Can buy). A ring shows the
+// selected card.
 //
 // DESIGN RULES: R7.1 to R7.4 (card states: see UpgradeLogic).
 //
-// HOW TO USE: GameMenu makes one per upgrade. You don't put this on an object.
-// HOW TO EDIT: sizes are the constants below (1920 × 1080 design); colours and words are
-// on GameMenu in the Inspector.
+// HOW TO USE: GameMenu makes one per upgrade from its card prefab. You don't put this on an object.
+// HOW TO EDIT: the card's look is the card prefab (GameMenu > Card Prefab, default
+// Assets/Resources/UI/UpgradeCard.prefab). State colours and words are on GameMenu.
+// Width / Height below are the layout grid's card size (where cards and lines are placed).
 // ============================================================================
 
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace TheLastDrop
 {
     /// <summary>The on-screen card for one upgrade.</summary>
     public class UpgradeCardView
     {
-        /// <summary>Card width in pixels (design).</summary>
+        /// <summary>Card width in pixels used for the layout (design).</summary>
         public const float Width = 140f;
-        /// <summary>Card height in pixels (design).</summary>
+        /// <summary>Card height in pixels used for the layout (design).</summary>
         public const float Height = 156f;
-        const float BorderWidth = 2f, RingWidth = 3f, IconSize = 44f;
 
         /// <summary>The upgrade's id.</summary>
         public readonly string Id;
         /// <summary>The card's rectangle (its centre is its position).</summary>
         public readonly RectTransform Rect;
 
-        readonly Image ring, border, body, chip;
-        readonly TextMeshProUGUI chipText;
-        readonly CanvasGroup fade;
+        readonly UpgradeCardUI ui;
 
-        /// <summary>Builds the card under <paramref name="parent"/>. <paramref name="onClick"/> runs when it's clicked.</summary>
-        public UpgradeCardView(UpgradeInfo info, float cost, Transform parent, GameMenu style, UnityEngine.Events.UnityAction onClick)
+        /// <summary>Makes the card from <paramref name="prefab"/> (or the built-in card if null) under <paramref name="parent"/>.</summary>
+        public UpgradeCardView(UpgradeInfo info, float cost, Transform parent, GameMenu style,
+                               UpgradeCardUI prefab, Sprite iconSprite, UnityEngine.Events.UnityAction onClick)
         {
             Id = info.Id;
-            Rect = UiBuilder.Rect("Card_" + info.Id, parent);
-            UiBuilder.Place(Rect, new Vector2(0f, 1f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(Width, Height));
-            fade = Rect.gameObject.AddComponent<CanvasGroup>();
+            ui = prefab != null ? Object.Instantiate(prefab, parent, false) : UpgradeCardUI.BuildDefault(parent, style);
+            ui.gameObject.name = "Card_" + info.Id;
+            ui.gameObject.SetActive(true);
+            Rect = ui.Rect;
+            // Cards are placed by their centre, measured from the card area's top-left.
+            Rect.anchorMin = Rect.anchorMax = new Vector2(0f, 1f);
+            Rect.pivot = new Vector2(0.5f, 0.5f);
 
-            // Selection ring, border and body are three stacked rectangles, each a bit smaller.
-            ring = UiBuilder.Image("SelectRing", Rect, style.selectedRingColor);
-            Grow(ring.rectTransform, BorderWidth + RingWidth);
-            border = UiBuilder.Image("Border", Rect, style.lineColor);
-            Grow(border.rectTransform, BorderWidth);
-            body = UiBuilder.Image("Body", Rect, style.cardColor, blocksClicks: true);
-            var button = body.gameObject.AddComponent<Button>();
-            button.targetGraphic = body;
-            button.onClick.AddListener(onClick);
+            if (ui.button != null) ui.button.onClick.AddListener(onClick);
+            if (ui.nameText != null) ui.nameText.text = info.Name;
+            if (ui.costText != null) ui.costText.text = $"{cost:0} L";
+            if (ui.drop != null && ui.drop.sprite == null) ui.drop.sprite = UiBuilder.DropSprite;
 
-            // Icon slot with the id, until real icons exist.
-            var icon = UiBuilder.Image("Icon", body.transform, style.lineColor);
-            UiBuilder.Place(icon.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(10f, -10f), new Vector2(IconSize, IconSize));
-            var iconText = UiBuilder.Text("Id", icon.transform, info.Id, 16f, style.textColor, TextAlignmentOptions.Center);
-            iconText.fontStyle = FontStyles.Bold;
-
-            var name = UiBuilder.Text("Name", body.transform, info.Name, 16f, style.textColor);
-            UiBuilder.Place(name.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(10f, -60f), new Vector2(Width - 20f, 40f));
-
-            var drop = UiBuilder.Image("Drop", body.transform, style.waterBlue);
-            drop.sprite = UiBuilder.DropSprite;
-            UiBuilder.Place(drop.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(10f, -104f), new Vector2(14f, 16f));
-            var costText = UiBuilder.Text("Cost", body.transform, $"{cost:0} L", 16f, style.textColor);
-            UiBuilder.Place(costText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(30f, -101f), new Vector2(100f, 22f));
-
-            chip = UiBuilder.Image("Chip", body.transform, style.lineColor);
-            UiBuilder.Place(chip.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(8f, 8f), new Vector2(Width - 16f, 22f));
-            chipText = UiBuilder.Text("ChipText", chip.transform, "", 12f, style.textColor, TextAlignmentOptions.Center);
-            chipText.fontStyle = FontStyles.Bold;
-            chipText.textWrappingMode = TextWrappingModes.NoWrap;
-            chipText.overflowMode = TextOverflowModes.Ellipsis;
-        }
-
-        static void Grow(RectTransform rt, float by)
-        {
-            rt.offsetMin = new Vector2(-by, -by);
-            rt.offsetMax = new Vector2(by, by);
+            bool hasIcon = iconSprite != null;
+            if (ui.icon != null && hasIcon)
+            {
+                ui.icon.sprite = iconSprite;
+                ui.icon.color = Color.white;
+                ui.icon.preserveAspect = true;
+            }
+            if (ui.idText != null)
+            {
+                ui.idText.text = info.Id;
+                ui.idText.gameObject.SetActive(!hasIcon);
+            }
         }
 
         /// <summary>Moves the card so its centre is at (x, y) pixels from the parent's top-left corner (y goes down, so it's negative).</summary>
@@ -89,7 +70,7 @@ namespace TheLastDrop
         /// <summary>Updates the border, chip and fade for a state.</summary>
         public void Show(CardInfo card, bool selected, GameMenu style)
         {
-            ring.enabled = selected;
+            if (ui.selectRing != null) ui.selectRing.enabled = selected;
             Color borderColor = style.lineColor, chipColor = style.lineColor, chipTextColor = style.textColor;
             string chipLabel;
             float alpha = 1f;
@@ -111,11 +92,14 @@ namespace TheLastDrop
                     borderColor = style.canBuyBorder; chipColor = style.canBuyBorder; chipTextColor = style.screenColor;
                     chipLabel = style.chipCanBuy; break;
             }
-            border.color = borderColor;
-            chip.color = chipColor;
-            chipText.color = chipTextColor;
-            chipText.text = chipLabel;
-            fade.alpha = selected ? 1f : alpha;
+            if (ui.border != null) ui.border.color = borderColor;
+            if (ui.chip != null) ui.chip.color = chipColor;
+            if (ui.chipText != null)
+            {
+                ui.chipText.color = chipTextColor;
+                ui.chipText.text = chipLabel;
+            }
+            if (ui.fade != null) ui.fade.alpha = selected ? 1f : alpha;
         }
     }
 }

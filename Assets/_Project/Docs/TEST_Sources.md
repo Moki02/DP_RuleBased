@@ -10,7 +10,7 @@ Deep Well (W7) needs **W1 → W4** and **S3**. Solar Still (W5) needs **W2**.
 ## Setup
 - [ ] Pull, open Unity, wait for compiling. **Expected:** no red errors in the Console.
 - [ ] **Tools > The Last Drop > Delete Save**, then Play. **Expected:** no source models in the base yet; a label over the boiling pot reads `Boiling pot: 0.17 L/s (waiting for raw water)`.
-- [ ] Stand in the base. **Expected:** HUD line `Boiling pot: 0.17 L/s ...` bottom left (hub only).
+- [ ] Stand in the base. **Expected:** HUD line `Boiling pot: 0.17 L/s ...` bottom right (hub only).
 
 ## Rain Catcher (R4.3, R1.4)
 - [ ] Buy **W2 Rain Catcher**. **Expected:** a grey roof over a blue barrel appears 3 tiles west and 3 tiles north of the spawn; label `Rain Catcher 4 m²: 0 L/s (no rain)`. HUD line `Sources: rain 0.000 L/s`.

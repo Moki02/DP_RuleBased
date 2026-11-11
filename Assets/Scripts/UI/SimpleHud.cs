@@ -1,25 +1,28 @@
 // ============================================================================
 // SimpleHud.cs
-// Plain TextMeshPro screen text that any system can use, with no prefab and no art:
+// Screen text that any system can use:
 //
-//   SimpleHud.SetLine("sick", "SICK 12 s");          // a status line, bottom left (null removes it)
+//   SimpleHud.SetLine("sick", "SICK 12 s");          // a status line, bottom right (null removes it)
 //   SimpleHud.Toast("+3.0 L banked");                    // a short message at the top for a few seconds (max 5 at once)
 //   SimpleHud.Banner("THUNDERSTORM", "Rain for 60 s");   // a big message in the middle for a few seconds
 //   SimpleHud.ShowPanel("THE DROUGHT WINS", "Day 14", ("Restart", Restart));  // full-screen panel with buttons
 //   SimpleHud.SetFade(1f);                               // black screen (0 = none)
 //
-// The canvas is made the first time anything is shown, in whatever scene is open, and goes
-// away with that scene. Timers use real time, so messages still disappear while the game is
+// THE LOOK IS A PREFAB WITH ITS OWN CANVAS: Assets/Resources/UI/SimpleHud.prefab (see
+// SimpleHudView.cs; Tools > The Last Drop > Build UI Prefabs makes it). If it's missing, a
+// plain built-in look is used. A copy is made the first time anything is shown, in whatever
+// scene is open, and goes away with that scene. Timers use real time, so messages still disappear while the game is
 // frozen (time scale 0). The panel's buttons need an EventSystem in the scene (the Build
 // Playtest Scene menu adds one). Don't call these from OnDestroy: during a scene change that
-// would make a new canvas in the scene being closed.
-// Status line keys used so far: drinking, unbanked, jugs, sick (SurvivalDirector), lockdown, stage, event, ... (the team HUD shows HYD, canteen, Raw Basin and Clean Storage)
+// would make a new canvas in the scene being closed. (Clearing a line with SetLine(key, null)
+// is safe anywhere: it never makes a canvas.)
+// Status line keys used so far: drinking, jugs, sick (SurvivalDirector), lockdown, stage, event, ... (the team HUD shows HYD, canteen, Raw Basin and Clean Storage)
 // (SurvivalDirector), stage (StageManager), lockdown (NightLockdown), plus the other batches'.
 //
 // DESIGN RULES: none of its own. The artists can replace any of this later.
 //
 // HOW TO USE: call the static methods above from any script.
-// HOW TO EDIT: sizes and colours are the constants at the top of the class.
+// HOW TO EDIT: everything you see is in the prefab.
 // ============================================================================
 
 using System;
@@ -33,22 +36,15 @@ namespace TheLastDrop
     /// <summary>Simple text HUD: status lines, toasts, banners, a full-screen panel and a fade.</summary>
     public class SimpleHud : MonoBehaviour
     {
-        const float LineSize = 26f;
-        const float ToastSize = 30f;
-        static readonly Color TextColor = new Color(0.92f, 0.95f, 1f);
-        static readonly Color ToastColor = new Color(0.55f, 0.85f, 1f);
+        /// <summary>Where the default prefab lives inside a Resources folder.</summary>
+        public const string PrefabResource = "UI/SimpleHud";
 
         static SimpleHud instance;
 
         const int NormalSortOrder = 9;
         const int PanelSortOrder = 90;
         Canvas canvas;
-
-        TextMeshProUGUI status, toasts, bannerTitle, bannerLine;
-        Image fade;
-        RectTransform panel;
-        TextMeshProUGUI panelTitle, panelBody;
-        RectTransform panelButtons;
+        SimpleHudView view;
 
         readonly List<KeyValuePair<string, string>> lines = new List<KeyValuePair<string, string>>();
         readonly List<(string text, float until)> toastList = new List<(string, float)>();
@@ -57,9 +53,13 @@ namespace TheLastDrop
 
         // ------------------------------------------------------------------ Static API
 
-        /// <summary>Sets a status line (left side). Null or empty removes it. Lines keep the order they were first added.</summary>
+        /// <summary>Sets a status line (bottom right). Null or empty removes it. Lines keep the order they were first added.</summary>
         public static void SetLine(string key, string text)
         {
+            // Removing a line never needs a canvas. Without this, a script clearing its line in
+            // OnDestroy while the scene closes made a NEW SimpleHud after the old one was
+            // gone ("Some objects were not cleaned up when closing the scene").
+            if (string.IsNullOrEmpty(text) && instance == null) return;
             var h = Get();
             int i = h.lines.FindIndex(kv => kv.Key == key);
             if (string.IsNullOrEmpty(text))
@@ -89,10 +89,9 @@ namespace TheLastDrop
         public static void Banner(string title, string line, float seconds = 4f)
         {
             var h = Get();
-            h.bannerTitle.text = title;
-            h.bannerLine.text = line;
-            h.bannerTitle.gameObject.SetActive(true);
-            h.bannerLine.gameObject.SetActive(true);
+            var v = h.view;
+            if (v.bannerTitle != null) { v.bannerTitle.text = title; v.bannerTitle.gameObject.SetActive(true); }
+            if (v.bannerLine != null) { v.bannerLine.text = line; v.bannerLine.gameObject.SetActive(true); }
             h.bannerUntil = Time.unscaledTime + seconds;
         }
 
@@ -100,26 +99,47 @@ namespace TheLastDrop
         public static void SetFade(float alpha)
         {
             var h = Get();
-            h.fade.color = new Color(0f, 0f, 0f, Mathf.Clamp01(alpha));
-            h.fade.gameObject.SetActive(alpha > 0.001f);
+            var f = h.view.fade;
+            if (f == null) return;
+            var c = f.color;
+            f.color = new Color(c.r, c.g, c.b, Mathf.Clamp01(alpha));
+            f.gameObject.SetActive(alpha > 0.001f);
         }
 
         /// <summary>A full-screen panel with a title, body text and buttons. Frees the cursor.</summary>
         public static void ShowPanel(string title, string body, params (string label, Action onClick)[] buttons)
         {
             var h = Get();
-            h.panelTitle.text = title;
-            h.panelBody.text = body;
-            foreach (Transform c in h.panelButtons) Destroy(c.gameObject);
+            var v = h.view;
+            if (v.panelTitle != null) v.panelTitle.text = title;
+            if (v.panelBody != null) v.panelBody.text = body;
+            var area = v.panelButtons != null ? v.panelButtons : (v.panel != null ? (RectTransform)v.panel.transform : (RectTransform)h.transform);
+            foreach (Transform c in area)
+                if (v.panelButtonTemplate == null || c != v.panelButtonTemplate.transform) Destroy(c.gameObject);
+
+            float step = 80f;
+            if (v.panelButtonTemplate != null) step = ((RectTransform)v.panelButtonTemplate.transform).sizeDelta.y + 16f;
             for (int i = 0; i < buttons.Length; i++)
             {
                 var b = buttons[i];
-                var btn = UiBuilder.Button("Button_" + b.label, h.panelButtons, b.label, 30f,
-                    new Color(0.15f, 0.35f, 0.55f), Color.white, () => b.onClick?.Invoke());
-                UiBuilder.Place((RectTransform)btn.transform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
-                    new Vector2(0f, -i * 80f), new Vector2(360f, 64f));
+                Button btn;
+                if (v.panelButtonTemplate != null)
+                {
+                    btn = Instantiate(v.panelButtonTemplate, area, false);
+                    btn.gameObject.SetActive(true);
+                    var label = btn.GetComponentInChildren<TMP_Text>(true);
+                    if (label != null) label.text = b.label;
+                }
+                else btn = UiBuilder.Button("Button", area, b.label, 30f, new Color(0.16f, 0.16f, 0.16f), Color.white, null);
+                btn.gameObject.name = "Button_" + b.label;
+                btn.onClick.RemoveAllListeners();
+                btn.onClick.AddListener(() => b.onClick?.Invoke());
+                var rt = (RectTransform)btn.transform;
+                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
+                rt.pivot = new Vector2(0.5f, 1f);
+                rt.anchoredPosition = new Vector2(0f, -i * step);
             }
-            h.panel.gameObject.SetActive(true);
+            if (v.panel != null) v.panel.SetActive(true);
             if (h.canvas != null) h.canvas.sortingOrder = PanelSortOrder;
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
@@ -129,76 +149,40 @@ namespace TheLastDrop
         public static void HidePanel()
         {
             if (instance == null) return;
-            instance.panel.gameObject.SetActive(false);
+            if (instance.view.panel != null) instance.view.panel.SetActive(false);
             if (instance.canvas != null) instance.canvas.sortingOrder = NormalSortOrder;
         }
 
         /// <summary>True while the full-screen panel is up.</summary>
-        public static bool PanelOpen => instance != null && instance.panel.gameObject.activeSelf;
+        public static bool PanelOpen => instance != null && instance.view.panel != null && instance.view.panel.activeSelf;
 
         // ------------------------------------------------------------------ Setup
 
         static SimpleHud Get()
         {
             if (instance != null) return instance;
-            // Sort order 9: under the team's HUD and pause menu (10). The full-screen panel lifts the
-            // canvas to 90 while it's up, so end screens and the title cover everything.
-            var canvas = UiBuilder.CreateCanvas("SimpleHudCanvas", null, NormalSortOrder);
-            instance = canvas.gameObject.AddComponent<SimpleHud>();
-            instance.canvas = canvas;
-            instance.Build(canvas.transform);
+            // The prefab (Resources/UI/SimpleHud), else the built-in look. Sort order 9: under the
+            // team's HUD and pause menu (10); the panel lifts it to 90 so it covers everything.
+            var v = UiBuilder.InstantiateView<SimpleHudView>(null, PrefabResource, null);
+            if (v == null) v = SimpleHudView.BuildDefault(null);
+            instance = v.gameObject.AddComponent<SimpleHud>();
+            instance.view = v;
+            instance.canvas = v.GetComponentInParent<Canvas>();
+            if (instance.canvas != null) instance.canvas.sortingOrder = NormalSortOrder;
+
+            if (v.bannerTitle != null) v.bannerTitle.gameObject.SetActive(false);
+            if (v.bannerLine != null) v.bannerLine.gameObject.SetActive(false);
+            if (v.fade != null) v.fade.gameObject.SetActive(false);
+            if (v.panel != null) v.panel.SetActive(false);
+            if (v.panelButtonTemplate != null) v.panelButtonTemplate.gameObject.SetActive(false);
+            if (v.statusText != null) v.statusText.text = "";
+            if (v.toastsText != null) v.toastsText.text = "";
             return instance;
         }
 
         void OnDestroy()
         {
             if (instance == this) instance = null;
-        }
-
-        void Build(Transform root)
-        {
-            // Status lines: left side, a little below the top.
-            status = UiBuilder.Text("Status", root, "", LineSize, TextColor, TextAlignmentOptions.BottomLeft);
-            // Bottom-left, growing upwards, so it stays clear of the team's HYD bar and the F1 debug panel (top-left).
-            UiBuilder.Place(status.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(24f, 24f), new Vector2(620f, 360f));
-            status.textWrappingMode = TextWrappingModes.NoWrap;
-            status.outlineWidth = 0.2f;
-            status.outlineColor = Color.black;
-
-            // Toasts: top centre.
-            toasts = UiBuilder.Text("Toasts", root, "", ToastSize, ToastColor, TextAlignmentOptions.Top);
-            UiBuilder.Place(toasts.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -90f), new Vector2(1200f, 260f));
-            toasts.outlineWidth = 0.2f;
-            toasts.outlineColor = Color.black;
-
-            // Banner: middle.
-            bannerTitle = UiBuilder.Text("BannerTitle", root, "", 64f, Color.white, TextAlignmentOptions.Center);
-            UiBuilder.Place(bannerTitle.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 220f), new Vector2(1400f, 90f));
-            bannerTitle.fontStyle = FontStyles.Bold;
-            bannerTitle.outlineWidth = 0.25f;
-            bannerTitle.outlineColor = Color.black;
-            bannerLine = UiBuilder.Text("BannerLine", root, "", 32f, Color.white, TextAlignmentOptions.Center);
-            UiBuilder.Place(bannerLine.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 160f), new Vector2(1400f, 60f));
-            bannerLine.outlineWidth = 0.2f;
-            bannerLine.outlineColor = Color.black;
-            bannerTitle.gameObject.SetActive(false);
-            bannerLine.gameObject.SetActive(false);
-
-            // Fade: covers everything below the panel.
-            fade = UiBuilder.Image("Fade", root, Color.clear);
-            fade.gameObject.SetActive(false);
-
-            // Full-screen panel.
-            var bg = UiBuilder.Image("Panel", root, new Color(0f, 0f, 0f, 0.92f), blocksClicks: true);
-            panel = bg.rectTransform;
-            panelTitle = UiBuilder.Text("Title", panel, "", 72f, Color.white, TextAlignmentOptions.Center);
-            UiBuilder.Place(panelTitle.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 300f), new Vector2(1600f, 110f));
-            panelTitle.fontStyle = FontStyles.Bold;
-            panelBody = UiBuilder.Text("Body", panel, "", 32f, TextColor, TextAlignmentOptions.Top);
-            UiBuilder.Place(panelBody.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 1f), new Vector2(0f, 230f), new Vector2(1200f, 420f));
-            panelButtons = UiBuilder.Rect("Buttons", panel);
-            UiBuilder.Place(panelButtons, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 1f), new Vector2(0f, -210f), new Vector2(400f, 300f));
-            panel.gameObject.SetActive(false);
         }
 
         // ------------------------------------------------------------------ Every frame
@@ -210,25 +194,26 @@ namespace TheLastDrop
                 statusDirty = false;
                 var sb = new System.Text.StringBuilder();
                 foreach (var kv in lines) sb.AppendLine(kv.Value);
-                status.text = sb.ToString();
+                if (view.statusText != null) view.statusText.text = sb.ToString();
             }
 
             // Toasts can have different lengths, so check them all (not only the oldest).
             if (toastList.Count > 0 && toastList.RemoveAll(t => t.until <= Time.unscaledTime) > 0)
                 RefreshToasts();
 
-            if (bannerTitle.gameObject.activeSelf && Time.unscaledTime >= bannerUntil)
+            if (view.bannerTitle != null && view.bannerTitle.gameObject.activeSelf && Time.unscaledTime >= bannerUntil)
             {
-                bannerTitle.gameObject.SetActive(false);
-                bannerLine.gameObject.SetActive(false);
+                view.bannerTitle.gameObject.SetActive(false);
+                if (view.bannerLine != null) view.bannerLine.gameObject.SetActive(false);
             }
         }
 
         void RefreshToasts()
         {
+            if (view.toastsText == null) return;
             var sb = new System.Text.StringBuilder();
             foreach (var t in toastList) sb.AppendLine(t.text);
-            toasts.text = sb.ToString();
+            view.toastsText.text = sb.ToString();
         }
     }
 }

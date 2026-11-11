@@ -5,8 +5,8 @@
 //      so the fade counts real time). An open minigame is closed with no penalty.
 //   2. The collapse costs: all canteen water (kept with E5 Second Wind) and half the
 //      unbanked water (rounded down to 0.1 L).
-//   3. If Clean Storage holds less than 2 L, the game ends: "The drought wins." (end screen
-//      with the run's stats, Restart / Quit).
+//   3. If Clean Storage holds less than 2 L, the game ends: "The drought wins." The GameOver
+//      scene shows the run's stats with Play Again / Main Menu / Quit (SceneFlow).
 //   4. Otherwise the player wakes at the hub, drinks 2 L from Clean Storage and has
 //      50 HYD (60 with E3 Water Discipline). The rest of the unbanked water is banked
 //      (no Safe Return bonus), and THEN the clock jumps 30 s (the last R11.2 cost; done
@@ -22,7 +22,6 @@
 
 using System.Collections;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace TheLastDrop
 {
@@ -168,42 +167,26 @@ namespace TheLastDrop
             rot = p != null ? p.transform.rotation : Quaternion.identity;
         }
 
-        // R11.4: the end. The game stays frozen (Collapsed state) behind the end screen.
+        // R11.4: the end. The game freezes and the GameOver scene shows the stats.
         void GameOver(float neededLitres)
         {
             IsGameOver = true;
             if (Game_Manager.instance != null) Game_Manager.instance.ChangeGameState(Game_Manager.GameState.Collapsed);
-            ShowEndScreen("THE DROUGHT WINS", $"You collapsed with less than {neededLitres:0.#} L at home.");
+            SceneFlow.ToGameOver("THE DROUGHT WINS",
+                EndBody($"You collapsed with less than {neededLitres:0.#} L at home."));
         }
 
-        /// <summary>Shows an end screen (game over or win) with the run's stats and Restart / Quit.</summary>
-        public static void ShowEndScreen(string title, string firstLine)
-        {
-            SimpleHud.SetFade(0f);
-            string body = (string.IsNullOrEmpty(firstLine) ? "" : firstLine + "\n\n") + RunStats.Summary();
-            SimpleHud.ShowPanel(title, body,
-                ("Restart", new System.Action(Restart)),
-                ("Quit", new System.Action(Quit)));
-        }
+        /// <summary>The end screens' text: <paramref name="firstLine"/>, then the run's stats (R11.7).</summary>
+        public static string EndBody(string firstLine) =>
+            (string.IsNullOrEmpty(firstLine) ? "" : firstLine + "\n\n") + RunStats.Summary();
 
-        /// <summary>Starts a new run: deletes the save (not in Demo mode) and reloads the scene, skipping the title screen.</summary>
+        /// <summary>Starts a new run (a new Demo run in Demo mode) through the loading screen.</summary>
         public static void Restart()
         {
-            // A Demo run doesn't touch the full game's save; the next run skips the title screen.
-            if (!BalanceProvider.UseDemo) SaveManager.DeleteSave();
-            MainMenu.SkipMenuOnce = true;
-            Time.timeScale = 1f;
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            SceneFlow.StartGame(BalanceProvider.UseDemo ? SceneFlow.StartMode.Demo : SceneFlow.StartMode.NewGame);
         }
 
         /// <summary>Quits the game (stops Play mode in the editor).</summary>
-        public static void Quit()
-        {
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-#else
-            Application.Quit();
-#endif
-        }
+        public static void Quit() => SceneFlow.Quit();
     }
 }

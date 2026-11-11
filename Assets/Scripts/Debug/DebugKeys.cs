@@ -2,6 +2,8 @@
 // DebugKeys.cs
 // Every debug key in the game goes through this one script, so they can all be
 // switched off with one checkbox: GameBalance > Mode > "Enable Debug Keys" (team rule).
+// They only work while the game is being played (not on the title, win, game over or
+// pause screens, or during the collapse fade): see InGameplay.
 //
 //   Key | Does
 //   ----+------------------------------------------------------------------
@@ -74,6 +76,28 @@ namespace TheLastDrop
         /// <summary>True when GameBalance allows debug keys.</summary>
         public bool KeysOn => balance != null && balance.enableDebugKeys;
 
+        /// <summary>
+        /// True while the game itself is being played: not behind the title screen, the win or
+        /// game over screen, the plain pause panel, the collapse fade, or the pause menu. Debug
+        /// keys do nothing outside play (so F5 can't overwrite the save from the title screen).
+        /// Menus (Tab, map, notes) and minigames count as play.
+        /// </summary>
+        public static bool InGameplay
+        {
+            get
+            {
+                if (MainMenu.IsOpen || MainMenu.IsFrozen || SimpleHud.PanelOpen || WinScreen.HasWon)
+                    return false;
+                if (CollapseManager.Instance != null && CollapseManager.Instance.IsGameOver)
+                    return false;
+                var gm = Game_Manager.instance;
+                if (gm != null && (gm.currentGameState == Game_Manager.GameState.Collapsed ||
+                                   gm.currentGameState == Game_Manager.GameState.Paused))
+                    return false;
+                return true;
+            }
+        }
+
         void Update()
         {
             if (!KeysOn)
@@ -81,6 +105,7 @@ namespace TheLastDrop
                 ShowDebugInfo = false; // debug keys off = no debug HUD either
                 return;
             }
+            if (!InGameplay) return; // title / end / pause screens: no debug keys
             var kb = Keyboard.current;
             if (kb == null) return;
 

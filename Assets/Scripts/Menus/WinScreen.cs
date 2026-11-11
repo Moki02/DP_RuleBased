@@ -1,20 +1,20 @@
 // ============================================================================
 // WinScreen.cs
-// The ending screen for a win. GateManager calls WinScreen.Show(day) when the player wins
-// an exit gate's valve (a zone 2 exit lock, or in Demo mode a zone 1 exit = Lock 1).
-// It shows, on the same end screen as game over (CollapseManager.ShowEndScreen):
+// The ending for a win. GateManager calls WinScreen.Show(day) when the player walks out
+// through an opened exit gate (a zone 2 exit, or in Demo mode a zone 1 exit = Lock 1).
+// It loads the Win scene (SceneFlow.ToWin), which shows:
 //   - the ending title for that day (GDD ending titles table):
 //       day 15 or earlier "Water Keeper", 16 to 22 "Survivor", 23 or later "Barely Made It";
 //     in Demo mode always "Demo complete" (R13.4);
 //   - "You escaped on day N", plus any secondary goal badges (map 100%, every skill);
 //   - the run's stats (RunStats.Summary: day, map %, litres, items bought, collapses, R11.7);
-//   - Restart and Quit.
-// The game is frozen behind it. Debug key F8 wins at once (to test this screen).
+//   - Play Again, Main Menu and Quit.
+// Debug key F8 wins at once (to test the Win scene).
 //
 // DESIGN RULES: R11.6, R11.7, ending titles table and secondary goals (section 11), R13.4.
 //
-// Restart (CollapseManager.Restart) starts a new run straight away, skipping the title
-// screen; in Demo mode it starts another demo and leaves the full game's save alone.
+// Play Again starts a new run; after a Demo it starts another demo and leaves the full
+// game's save alone.
 //
 // HOW TO USE: nothing to place; GateManager calls Show. The title days are in
 // GameBalance > Ending screen.
@@ -64,8 +64,8 @@ namespace TheLastDrop
             if (badges.Count > 0) line += "\nBadges: " + string.Join(", ", badges);
 
             Debug.Log($"[WinScreen] The player escaped on day {day} (R11.6): \"{title}\".");
-            MainMenu.Freeze();
-            CollapseManager.ShowEndScreen(title.ToUpperInvariant(), line);
+            MainMenu.Freeze();   // nothing moves while the Win scene loads
+            SceneFlow.ToWin(title.ToUpperInvariant(), CollapseManager.EndBody(line));
         }
 
         // Secondary goals (section 11, no gameplay effect). Each is read defensively

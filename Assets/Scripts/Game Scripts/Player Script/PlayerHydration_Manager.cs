@@ -97,6 +97,9 @@ public class PlayerHydration_Manager : MonoBehaviour, ISaveable
     /// <summary>True while drinking from the canteen (Q held).</summary>
     public bool IsDrinking { get; private set; }
 
+    // The last frame the hub tap's "Drink" ran (so Q + E at the tap isn't double speed).
+    private int lastTapDrinkFrame = -10;
+
     /// <summary>Seconds of Sick left (0 = not sick).</summary>
     public float SickSecondsLeft => sickTimer;
 
@@ -279,6 +282,9 @@ public class PlayerHydration_Manager : MonoBehaviour, ISaveable
         var kb = Keyboard.current;
         if (kb == null || !kb.qKey.isPressed) return;
         if (Game_Manager.instance != null && !Game_Manager.instance.CanControlPlayer()) return;
+        // Already drinking at the hub tap (E held at "Drink") this frame or the last one: the tap
+        // wins, so holding E and Q together doesn't drink at double speed (and saves the canteen).
+        if (Time.frameCount - lastTapDrinkFrame <= 1) return;
 
         var stats = player.playerStats_Manager;
         float roomInHyd = stats.player_MaxHydration - stats.player_Hydration;
@@ -345,6 +351,7 @@ public class PlayerHydration_Manager : MonoBehaviour, ISaveable
     /// <summary>Hub tap (R2.4): drink straight from Clean Storage at the drinking rate, stopping at full HYD.</summary>
     public void DrinkFromCleanStorage(float deltaTime)
     {
+        lastTapDrinkFrame = Time.frameCount; // Q drinking from the canteen waits while this runs
         float hydPerL = HydPerLiter;
         float amountNeeded =
             (player.playerStats_Manager.player_MaxHydration - player.playerStats_Manager.player_Hydration)

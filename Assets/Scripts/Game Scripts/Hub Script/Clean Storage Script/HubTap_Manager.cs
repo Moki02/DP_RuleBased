@@ -7,6 +7,9 @@
 // DESIGN RULES: R2.4 (at the tap: drink from Clean Storage at the R2.3 rate, or refill the
 // canteen at 1 L/s). Not yet: the Rationing event closing the tap (Rationing isn't built).
 //
+// It also writes how much water is in the tank under the tank's name text, e.g.
+// "Clean Storage / 10.0 / 25.0 L" (a floating label is made if the prefab has no name text).
+//
 // HOW TO USE: on the Clean Storage prefab. Its child "tap points" (HubTapPoint_Manager, one
 // set to Drink and one to Refill) find this script on their parent by themselves.
 // HOW TO EDIT: nothing to tune here. Rates are in GameBalance > Hydration (drinkRate,
@@ -15,17 +18,52 @@
 // ============================================================================
 
 using UnityEngine;
+using TMPro;
 
 /// <summary>Says when the hub tap can be used, and passes drink/refill on to the player's hydration.</summary>
 public class HubTap_Manager : MonoBehaviour
 {
+    [Header("Level Label (optional)")]
+    [Tooltip("The text over the tank. Empty = the child text that says \"Clean Storage\", or a new floating label.")]
+    public TMP_Text levelLabel;
+
     private Player_Manager player;
     private GameResources_Manager resources;
+    private string labelTitle = "Clean Storage";
 
     private void Start()
     {
         player = Player_Manager.instance;
-        resources = Game_Manager.instance.gameResources_Manager;
+        resources = Game_Manager.instance != null ? Game_Manager.instance.gameResources_Manager : null;
+
+        if (levelLabel == null)
+            levelLabel = HubPurifier_Manager.FindOrMakeLabel(transform, "Clean Storage");
+        if (levelLabel != null)
+            labelTitle = HubPurifier_Manager.FirstLine(levelLabel.text, "Clean Storage");
+
+        UpdateLabel();
+    }
+
+    private void Update()
+    {
+        UpdateLabel();
+    }
+
+    // "Clean Storage" + "10.0 / 25.0 L" (+ FULL / EMPTY), so the player can see the tank's level.
+    private void UpdateLabel()
+    {
+        if (levelLabel == null || resources == null)
+            return;
+
+        float stored = resources.cleanStorage;
+        float max = resources.cleanStorage_Max;
+        string state = stored >= max - 0.0001f ? "  FULL" : stored <= 0.0001f ? "  EMPTY" : "";
+
+        string text = labelTitle + "\n<size=70%>" + resources.FormatWater(stored) + " / " +
+                      resources.FormatWater(max) + state + "</size>";
+
+        if (levelLabel.text != text)
+            levelLabel.text = text;
     }
 
     /// <summary>True if there is clean water, the player isn't at full HYD, and isn't collapsed.</summary>

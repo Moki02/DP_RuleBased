@@ -51,6 +51,27 @@ namespace TheLastDrop
             return canvas;
         }
 
+        /// <summary>
+        /// Makes a copy of a UI prefab and returns its view script (the component holding the
+        /// links to its texts, buttons ...). Uses <paramref name="assigned"/> if one was dragged
+        /// in, otherwise the prefab at Resources/<paramref name="resourcePath"/>. Returns null if
+        /// there is neither (the caller then builds the default look in code).
+        /// </summary>
+        public static T InstantiateView<T>(GameObject assigned, string resourcePath, Transform parent) where T : Component
+        {
+            var prefab = assigned != null ? assigned : Resources.Load<GameObject>(resourcePath);
+            if (prefab == null) return null;
+            var go = Object.Instantiate(prefab, parent, false);
+            go.name = prefab.name;
+            var view = go.GetComponentInChildren<T>(true);
+            if (view == null)
+            {
+                Debug.LogWarning($"[UiBuilder] The prefab \"{prefab.name}\" has no {typeof(T).Name} on it. Using the built-in look instead.");
+                Object.Destroy(go);
+            }
+            return view;
+        }
+
         /// <summary>An empty rectangle that fills its parent.</summary>
         public static RectTransform Rect(string name, Transform parent)
         {

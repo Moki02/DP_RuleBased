@@ -1,13 +1,12 @@
 // ============================================================================
-// Minigame_Manager.cs  (class MinigameGate_Manager)
+// MinigameGate_Manager.cs
 // The team's first (Week 9) gate minigame: a triangle slides along a bar; press the timing
 // button while it is over the red area to fill the progress bar. A full bar opens the gate
 // for good. Used by the older Zone 1 scenes. The maze game uses ValveGate / LockBasin with
 // ValveTimingGame instead.
 //
-// NOTE: the class name (MinigameGate_Manager) is not the file name (Minigame_Manager), so
-// Unity can't add it from Add Component. Rename the file OR the class (not both) if you need
-// it on new objects; check old scenes for "Missing script" afterwards.
+// The file was renamed from Minigame_Manager.cs on 2026-11-12 so it matches the class name
+// (keep both the same, or Unity can't add it from Add Component).
 //
 // DESIGN RULES: R9.1 (the world keeps running: Minigame state, time scale 1). It has no
 // lose state, so R9.3 (-5 HYD) doesn't apply here.

@@ -1,12 +1,13 @@
 // ============================================================================
 // GateManager.cs
-// Sets up every gate in the maze when the game starts:
+// Sets up every gate in the maze when the game starts (and, since 2026-11-12, wins the game
+// when the player walks out through an opened exit gate: see Update):
 //   - each G gate (16 of them) gets a lock basin on its hub side (R8.9):
 //       hub gates 4 L, zone 1 exits 10 L, zone 2 exits 18 L,
 //     and a Valve Timing minigame whose difficulty grows with distance from the hub (R9.6);
-//     zone 2's 8 exits use the exit valve settings, and winning one wins the game (R11.6);
+//     zone 2's 8 exits use the exit valve settings; opening one and walking out wins (R11.6);
 //     in Demo mode (section 13) zone 1's exits become the exit instead: 8 L (Lock 1 of
-//     GameBalance_Demo) and the exit valve, and winning one shows "Demo complete" (R13.4);
+//     GameBalance_Demo) and the exit valve; walking out of one shows "Demo complete" (R13.4);
 //   - each V tile (8 of them) gets a ValveGate on its grate (R8.8).
 // It also tells the map which gates are open, opens the win screen (WinScreen), and, when
 // night falls, moves a player standing in a gate's doorway back to the hub side so the
@@ -49,7 +50,11 @@ namespace TheLastDrop
             {
                 if (basins[i] == null) continue;
                 var saved = SaveCodec.FindGate(data, i);
-                basins[i].RestoreState(saved != null ? saved.litres : 0f, saved != null && saved.open);
+                bool open = saved != null && saved.open;
+                basins[i].RestoreState(saved != null ? saved.litres : 0f, open);
+                // An exit gate opened before the save: walking out through it still wins.
+                if (open && basins[i].isExitGate && exitOuterRing.TryGetValue(basins[i], out int ring))
+                    openedExitRing = openedExitRing < 0 ? ring : Mathf.Min(openedExitRing, ring);
             }
             for (int i = 0; i < valves.Count; i++)
                 if (valves[i] != null) valves[i].SetOpenState(data.valvesWon != null && data.valvesWon.Contains(i));
@@ -81,6 +86,10 @@ namespace TheLastDrop
         readonly List<LockBasin_Manager> basins = new List<LockBasin_Manager>();
         readonly List<ValveGate> valves = new List<ValveGate>();
         readonly Dictionary<Vector2Int, LockBasin_Manager> basinByTile = new Dictionary<Vector2Int, LockBasin_Manager>();
+        // Exit gates: the ring of the gate's outermost tile. Walking out to it after the gate opens wins.
+        readonly Dictionary<LockBasin_Manager, int> exitOuterRing = new Dictionary<LockBasin_Manager, int>();
+        int openedExitRing = -1;   // -1 = no exit gate opened yet
+        bool escaped;
         GameBalance balance;
         GameClock_Manager clock;
 
@@ -170,6 +179,12 @@ namespace TheLastDrop
                 basinByTile[tile] = basin;
             }
             basin.Opened += OnBasinOpened;
+            if (exitGate)
+            {
+                int outer = maze.Grid.Ring(gate.InnerTile);
+                foreach (var tile in gate.Tiles) outer = Mathf.Max(outer, maze.Grid.Ring(tile));
+                exitOuterRing[basin] = outer;
+            }
             return basin;
         }
 
@@ -201,13 +216,32 @@ namespace TheLastDrop
                 : new Vector2Int(0, d.y > 0 ? 1 : -1);
         }
 
-        // A lock's valve was won. LockBasin_Manager has already put the game back to Exploring;
-        // WinScreen then freezes it behind the end screen (MainMenu.Freeze).
+        // A lock's valve was won. For an exit gate the player still has to walk out through it:
+        // Update wins once they reach the gate's outermost tile (they've left zone 2, or zone 1
+        // in Demo mode).
         void OnBasinOpened(LockBasin_Manager basin)
         {
             if (!basin.isExitGate) return;
+            int ring = exitOuterRing.TryGetValue(basin, out int r) ? r : 0;
+            openedExitRing = openedExitRing < 0 ? ring : Mathf.Min(openedExitRing, ring);
+            SimpleHud.Banner("THE EXIT IS OPEN", "Walk out through the gate to escape.", 5f);
+        }
+
+        void Update()
+        {
+            if (escaped || openedExitRing < 0 || maze == null || maze.Grid == null) return;
+            var player = Player_Manager.instance;
+            if (player == null) return;
+
+            // The player's ring as a decimal (tile centres are whole numbers).
+            Vector2 t = maze.WorldToGridFloat(player.transform.position);
+            var grid = maze.Grid;
+            float ring = Mathf.Max(Mathf.Abs(t.x - grid.CentreX), Mathf.Abs(t.y - grid.CentreY));
+            if (ring < openedExitRing - 0.3f) return;
+
+            escaped = true;
             int day = clock != null ? clock.Day : 1;
-            // The win screen with the ending title and stats (R11.6, R11.7). EscapePanel is no longer used.
+            // The Win scene with the ending title and stats (R11.6, R11.7).
             WinScreen.Show(day);
         }
 

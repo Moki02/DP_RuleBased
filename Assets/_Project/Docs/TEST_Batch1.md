@@ -29,7 +29,7 @@ Branch `batch1-survival-core`. About 15 minutes. Press **6** for the ×4 clock w
 - [ ] Win an orange valve grate. **Expected:** `+2.0 L unbanked (valve opened)`.
 
 ## Night (R8.20, R8.21)
-- [ ] Watch the last minute of day. **Expected:** `Lockdown in N s` bottom left; toasts at 60, 40, 20, 10 and 5 s.
+- [ ] Watch the last minute of day. **Expected:** `Lockdown in N s` bottom right; toasts at 60, 40, 20, 10 and 5 s.
 - [ ] Stay outside at night. **Expected:** HYD drops 4 per second; you collapse in ~25 s.
 
 ## Collapse and game over (R11)

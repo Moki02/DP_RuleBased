@@ -10,7 +10,7 @@
 // child, and pick which layers block the camera (walls). Player_Manager calls
 // HandleAllCamereActions every LateUpdate and fills in "Player" by itself.
 // HOW TO EDIT: look limits and collision size in the Inspector. Mouse sensitivity is the
-// 0.15 in HandleRotation. Follow smoothing is cameraSmoothSpeed below.
+// 0.15 in HandleRotation, times the player's setting (GameSettings.MouseSensitivity). Follow smoothing is cameraSmoothSpeed below.
 // ============================================================================
 
 using UnityEngine;
@@ -116,11 +116,13 @@ public class Player_Camera : MonoBehaviour
         // ELSE ROTATE REGULARLY
 
         // ROTATE LEFT AND RIGHT BASED ON HORIZONTAL MOVEMENT OF THE MOUSE (0.15 = SENSITIVITY)
+        // × the player's Mouse sensitivity from the Settings screen (1 = normal).
+        float sensitivity = 0.15f * TheLastDrop.GameSettings.MouseSensitivity;
         leftAndRightLookAngle +=
-          PlayerInput_Manager.instance.mouseHorizontalInput * 0.15f;
+          PlayerInput_Manager.instance.mouseHorizontalInput * sensitivity;
 
         upAndDownLookAngle -=
-            PlayerInput_Manager.instance.mouseVerticalInput * 0.15f;
+            PlayerInput_Manager.instance.mouseVerticalInput * sensitivity;
         // CLAMP THE UP AND DOWN LOOK ANGLE BETWEEN A MIN AND MAX VALUE
         upAndDownLookAngle = Mathf.Clamp(upAndDownLookAngle, minimumPivot, maximumPivot);
 

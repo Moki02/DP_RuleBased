@@ -8,7 +8,7 @@
 //   - banks unbanked water the moment the player walks into the hub, with the +10% Safe
 //     Return bonus if it's still daytime (R3.5), and shows "+X L banked"; what doesn't fit
 //     goes to the Raw Basin, then the spare jugs (GameResources_Manager.StoreHomeWater);
-//   - shows extra water text (unbanked, spare jugs, Sick, drinking) bottom left; HYD, canteen and storage are on the team HUD.
+//   - shows extra water text (spare jugs, Sick, drinking) bottom right; HYD, canteen and unbanked are on the team HUD, storage on the pot and tank labels.
 // SurvivalRules (bottom) are small helpers for minigame losses and rewards (R9.3, R8.8).
 //
 // DESIGN RULES: R2.4, R3.5, R8.2a, R8.8, R9.3.
@@ -137,10 +137,10 @@ namespace TheLastDrop
             if (res == null || p == null) return;
             var hyd = p.playerHydration_Manager;
 
-            // HYD, the canteen, Raw Basin and Clean Storage are shown by the team's Player HUD and
-            // Hub HUD, so this text only adds what those don't show.
+            // HYD, the canteen and the unbanked "+X L" are shown by the team's Player HUD; Raw Basin
+            // and Clean Storage by the labels on the boiling pot and the tank. This text only adds
+            // what those don't show (no "Unbanked" line: it sat on top of the team's "+X L").
             SimpleHud.SetLine("drinking", hyd != null && hyd.IsDrinking ? $"Drinking...  canteen {res.FormatWater(res.canteen)}" : null);
-            SimpleHud.SetLine("unbanked", res.unbankedWater > 0.0001f ? $"Unbanked +{res.FormatWater(res.unbankedWater)}" : null);
 
             SimpleHud.SetLine("jugs", res.spareJugs > 0.0001f ? $"Spare jugs {res.FormatWater(res.spareJugs)}" : null);
             SimpleHud.SetLine("sick", hyd != null && hyd.SickSecondsLeft > 0f ? $"SICK {Mathf.CeilToInt(hyd.SickSecondsLeft)} s (drain ×1.5)" : null);

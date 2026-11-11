@@ -23,10 +23,23 @@
 // R7.4 (permanent, no refunds, no confirm dialog).
 //
 // HOW TO USE: put this on the "Systems" object (the Build Playtest Scene menu does it).
-// It finds UpgradeManager, the map screen and the clock by itself and builds its own UI
-// when the game starts (1920 × 1080 design, same as the artists' canvas).
-// HOW TO EDIT: colours, every word players read, and where each card sits ("Build Layout"
-// and "Skills Layout") are in the Inspector. Layout lines look like
+// It finds UpgradeManager, the map screen and the clock by itself.
+//
+// THE LOOK IS A PREFAB WITH ITS OWN CANVAS (drag-and-drop slots under "UI prefabs"):
+//   Menu Prefab  - the whole menu (header, tabs, pages, detail panels, buttons). Empty =
+//                  Assets/Resources/UI/GameMenu.prefab. See GameMenuView.cs.
+//   Card Prefab  - one upgrade card, copied for every upgrade. Empty =
+//                  Assets/Resources/UI/UpgradeCard.prefab. See UpgradeCardUI.cs.
+//   Upgrade Icons - drag a sprite in next to an id (W1, E3 ...) to show it on that card and
+//                  in the detail panel.
+// If no prefab exists yet, the plain built-in look is used (Tools > The Last Drop >
+// Build UI Prefabs saves that look as the prefabs, for the artists to edit).
+//
+// HOW TO EDIT: the colours below are the STATE colours (card borders and chips, the open
+// tab, owned lines, messages) and the colours the prefab is first made with. The words that
+// change while playing (formats, chips, messages) are below too; fixed words (title, tab
+// names, labels) are in the prefab. Where each card sits ("Build Layout" and "Skills
+// Layout") is in the Inspector. Layout lines look like
 //     Water|W1:0:0,W4:0:1,W7:0:2
 // = column title, then id:lane:row for each card (lane = sub-column, row = level down).
 // ============================================================================
@@ -61,7 +74,29 @@ namespace TheLastDrop
         [Tooltip("Owned upgrades and Clean Storage.")] public UpgradeManager upgrades;
         [Tooltip("The map, shown as the Map page.")] public MapScreen mapScreen;
 
+        [Header("UI prefabs (drag and drop)")]
+        [Tooltip("The menu's look: a prefab with a Canvas and a GameMenuView on its root. Empty = Resources/UI/GameMenu.")]
+        public GameObject menuPrefab;
+        [Tooltip("One upgrade card: a prefab with an UpgradeCardUI on its root. Empty = Resources/UI/UpgradeCard.")]
+        public UpgradeCardUI cardPrefab;
+        [Tooltip("Icons for the cards and the detail panel. Drag a sprite in next to an id (W1, S2, E3 ...). Upgrades without one show their id.")]
+        public List<UpgradeIcon> upgradeIcons = new List<UpgradeIcon>();
+
+        /// <summary>A card icon for one upgrade id.</summary>
+        [System.Serializable]
+        public class UpgradeIcon
+        {
+            [Tooltip("The upgrade's id, e.g. W1.")] public string id;
+            [Tooltip("The picture shown on its card and in the detail panel.")] public Sprite icon;
+        }
+
+        /// <summary>Where the default prefabs live inside a Resources folder.</summary>
+        public const string MenuPrefabResource = "UI/GameMenu", CardPrefabResource = "UI/UpgradeCard";
+
         [Header("Colours")]
+        [Tooltip("On: the colours below are replaced at start by the black-and-white look (black background, " +
+                 "white text, grey panels / cards / borders, blue only for water). Off: the colours below are used.")]
+        public bool blackAndWhite = true;
         [Tooltip("#1B1713")] public Color screenColor = new Color32(27, 23, 19, 255);
         [Tooltip("#241F1A")] public Color panelColor = new Color32(36, 31, 26, 255);
         [Tooltip("#2A241E")] public Color cardColor = new Color32(42, 36, 30, 255);
@@ -74,7 +109,7 @@ namespace TheLastDrop
         [Tooltip("#8A6A2E: Needs bigger storage border.")] public Color biggerStorageBorder = new Color32(138, 106, 46, 255);
         [Tooltip("The 3 px ring around the selected card.")] public Color selectedRingColor = new Color32(242, 233, 220, 255);
 
-        [Header("Text: header")]
+        [Header("Text: header (fixed words: used when the prefab is first made)")]
         public string title = "BUILD AND SKILLS";
         public string buildTab = "BUILD", skillsTab = "SKILLS", mapTab = "MAP";
         public string storageLabel = "CLEAN STORAGE";
@@ -123,7 +158,7 @@ namespace TheLastDrop
         };
 
         // Design sizes in pixels (1920 × 1080).
-        const float HeaderHeight = 110f, Margin = 48f, DetailWidth = 340f, LanePitch = 160f, RowPitch = 196f, ColumnGap = 40f;
+        const float Margin = 48f, DetailWidth = 340f, LanePitch = 160f, RowPitch = 196f, ColumnGap = 40f;
 
         /// <summary>What the menu remembers (saved with the game).</summary>
         public MenuMemory Memory { get; private set; } = new MenuMemory();
@@ -132,12 +167,10 @@ namespace TheLastDrop
         public bool IsOpen => Memory.IsOpen;
 
         GameObject root;
-        RectTransform buildPage, skillsPage, mapPage;
-        readonly Dictionary<MenuPage, (Image underline, TextMeshProUGUI label)> tabs = new Dictionary<MenuPage, (Image, TextMeshProUGUI)>();
+        GameMenuView view;
+        readonly Dictionary<MenuPage, GameMenuView.Tab> tabs = new Dictionary<MenuPage, GameMenuView.Tab>();
         readonly Dictionary<string, UpgradeCardView> cards = new Dictionary<string, UpgradeCardView>();
         readonly List<(string parentId, Image line)> lines = new List<(string, Image)>();
-        TextMeshProUGUI storageText, dayText;
-        Image storageFill;
         Detail buildDetail, skillsDetail;
         string selected;
         float refreshTimer;
@@ -155,6 +188,7 @@ namespace TheLastDrop
                 enabled = false;
                 return;
             }
+            if (blackAndWhite) ApplyBlackAndWhite();
             BuildUI();
             upgrades.Changed += Refresh;
             root.SetActive(false);
@@ -163,6 +197,26 @@ namespace TheLastDrop
         void OnDestroy()
         {
             if (upgrades != null) upgrades.Changed -= Refresh;
+        }
+
+        /// <summary>
+        /// Black background, white text, grey panels / cards / borders; blue stays the water accent
+        /// (owned, Can buy, the storage bar). Warnings are light grey instead of amber.
+        /// (Also used by Tools > Build UI Prefabs to make the default prefabs.)
+        /// </summary>
+        public void ApplyBlackAndWhite()
+        {
+            screenColor = new Color32(10, 10, 10, 255);          // #0A0A0A
+            panelColor = new Color32(28, 28, 28, 255);           // #1C1C1C
+            cardColor = new Color32(38, 38, 38, 255);            // #262626
+            lineColor = new Color32(70, 70, 70, 255);            // #464646
+            textColor = Color.white;
+            mutedTextColor = new Color32(160, 160, 160, 255);    // #A0A0A0
+            waterBlue = new Color32(63, 169, 245, 255);          // #3FA9F5 (water accent)
+            canBuyBorder = new Color32(124, 196, 248, 255);      // #7CC4F8 (water accent)
+            warningAmber = new Color32(220, 220, 220, 255);      // #DCDCDC
+            biggerStorageBorder = new Color32(110, 110, 110, 255); // #6E6E6E
+            selectedRingColor = Color.white;
         }
 
         // ------------------------------------------------------------------ Keys
@@ -201,12 +255,15 @@ namespace TheLastDrop
         public void Press(MenuKey key)
         {
             bool wasOpen = IsOpen;
-            Memory.Press(key);
-            if (!wasOpen && IsOpen && !MenuState.Enter())
+            if (!wasOpen)
             {
-                Memory.IsOpen = false; // a minigame, pause or another screen is up: stay closed
-                return;
+                if (key == MenuKey.Esc) return; // Esc with the menu closed: nothing to do
+                // Ask first, so a key pressed while a note, minigame, pause or another screen is
+                // up does nothing at all: the player has to close the note before Tab / B / M
+                // work, and the page Tab opens next time doesn't change.
+                if (!MenuState.Enter()) return;
             }
+            Memory.Press(key);
             ApplyMemory(wasOpen);
         }
 
@@ -240,9 +297,9 @@ namespace TheLastDrop
                 return;
             }
             root.SetActive(true);
-            buildPage.gameObject.SetActive(Memory.Current == MenuPage.Build);
-            skillsPage.gameObject.SetActive(Memory.Current == MenuPage.Skills);
-            mapPage.gameObject.SetActive(Memory.Current == MenuPage.Map);
+            if (view.buildPage != null) view.buildPage.SetActive(Memory.Current == MenuPage.Build);
+            if (view.skillsPage != null) view.skillsPage.SetActive(Memory.Current == MenuPage.Skills);
+            if (view.mapPage != null) view.mapPage.SetActive(Memory.Current == MenuPage.Map);
             if (mapScreen != null)
             {
                 if (Memory.Current == MenuPage.Map) mapScreen.Show(); else mapScreen.Hide();
@@ -289,16 +346,17 @@ namespace TheLastDrop
             foreach (var kv in tabs)
             {
                 bool on = kv.Key == Memory.Current;
-                kv.Value.underline.enabled = on;
-                kv.Value.label.color = on ? waterBlue : mutedTextColor;
+                if (kv.Value.underline != null) kv.Value.underline.enabled = on;
+                if (kv.Value.label != null) kv.Value.label.color = on ? waterBlue : mutedTextColor;
             }
 
-            storageText.text = string.Format(storageFormat, logic.Stored, logic.Cap);
-            storageFill.fillAmount = logic.Cap > 0f ? logic.Stored / logic.Cap : 0f;
+            if (view.storageText != null) view.storageText.text = string.Format(storageFormat, logic.Stored, logic.Cap);
+            if (view.storageFill != null)
+                view.storageFill.anchorMax = new Vector2(logic.Cap > 0f ? Mathf.Clamp01(logic.Stored / logic.Cap) : 0f, view.storageFill.anchorMax.y);
             var balance = BalanceProvider.Current;
             int day = GameClock_Manager.Instance != null ? GameClock_Manager.Instance.Day : 1;
             string stage = balance != null ? balance.GetStage(day).displayName : "";
-            dayText.text = string.Format(dayFormat, day, stage.ToUpperInvariant());
+            if (view.dayText != null) view.dayText.text = string.Format(dayFormat, day, stage.ToUpperInvariant());
 
             foreach (var card in cards.Values)
                 card.Show(logic.GetCard(card.Id), card.Id == selected, this);
@@ -306,102 +364,66 @@ namespace TheLastDrop
                 line.color = logic.Owns(parentId) ? waterBlue : lineColor;
 
             var info = logic.Get(selected);
-            if (info != null) (info.Tab == UpgradeTab.Build ? buildDetail : skillsDetail).Show(info, this);
+            var detail = info == null ? null : (info.Tab == UpgradeTab.Build ? buildDetail : skillsDetail);
+            if (detail != null) detail.Show(info, this);
         }
 
         // ------------------------------------------------------------------ Building the UI
 
         void BuildUI()
         {
-            var canvas = UiBuilder.CreateCanvas("GameMenuCanvas", transform, 65);
-            root = canvas.gameObject;
-            var screen = UiBuilder.Rect("Menu", root.transform);
-            UiBuilder.Image("Background", screen, screenColor, blocksClicks: true);
+            // The menu prefab (dragged in, or Resources/UI/GameMenu), else the built-in look.
+            view = UiBuilder.InstantiateView<GameMenuView>(menuPrefab, MenuPrefabResource, transform);
+            if (view == null) view = GameMenuView.BuildDefault(transform, this);
+            var canvas = view.GetComponentInParent<Canvas>();
+            root = canvas != null ? canvas.gameObject : view.gameObject;
 
-            BuildHeader(screen);
+            AddTab(MenuPage.Build, view.buildTab);
+            AddTab(MenuPage.Skills, view.skillsTab);
+            AddTab(MenuPage.Map, view.mapTab);
+            if (view.toSkillsButton != null) view.toSkillsButton.onClick.AddListener(() => SwitchTo(MenuPage.Skills));
+            if (view.toBuildButton != null) view.toBuildButton.onClick.AddListener(() => SwitchTo(MenuPage.Build));
 
-            var pages = UiBuilder.Rect("Pages", screen);
-            UiBuilder.Fill(pages, Margin, Margin, HeaderHeight + 20f, 40f);
-            buildPage = UiBuilder.Rect("BuildPage", pages);
-            skillsPage = UiBuilder.Rect("SkillsPage", pages);
-            mapPage = UiBuilder.Rect("MapPage", pages);
+            // The card prefab (dragged in, or Resources/UI/UpgradeCard), else the built-in card.
+            var card = cardPrefab;
+            if (card == null)
+            {
+                var go = Resources.Load<GameObject>(CardPrefabResource);
+                if (go != null) card = go.GetComponent<UpgradeCardUI>();
+            }
 
-            buildDetail = BuildUpgradePage(buildPage, buildLayout, UpgradeTab.Build);
-            skillsDetail = BuildUpgradePage(skillsPage, skillsLayout, UpgradeTab.Skills);
+            BuildUpgradePage(view.buildCards, buildLayout, card);
+            BuildUpgradePage(view.skillsCards, skillsLayout, card);
+            buildDetail = view.buildDetail != null ? new Detail(view.buildDetail, UpgradeTab.Build, this) : null;
+            skillsDetail = view.skillsDetail != null ? new Detail(view.skillsDetail, UpgradeTab.Skills, this) : null;
 
-            // Page arrows on the outer edges of the card area (bottom, below the cards).
-            var next = UiBuilder.Button("ToSkills", buildPage, toSkills, 22f, cardColor, textColor, () => SwitchTo(MenuPage.Skills));
-            UiBuilder.Place((RectTransform)next.transform, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-(DetailWidth + 24f), 0f), new Vector2(150f, 52f));
-            var back = UiBuilder.Button("ToBuild", skillsPage, toBuild, 22f, cardColor, textColor, () => SwitchTo(MenuPage.Build));
-            UiBuilder.Place((RectTransform)back.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), Vector2.zero, new Vector2(150f, 52f));
-
-            if (mapScreen != null) mapScreen.HostIn(mapPage);
+            if (mapScreen != null && view.mapPage != null) mapScreen.HostIn((RectTransform)view.mapPage.transform);
             built = true;
         }
 
-        void BuildHeader(RectTransform screen)
+        void AddTab(MenuPage page, GameMenuView.Tab tab)
         {
-            var header = UiBuilder.Rect("Header", screen);
-            header.anchorMin = new Vector2(0f, 1f);
-            header.anchorMax = new Vector2(1f, 1f);
-            header.pivot = new Vector2(0.5f, 1f);
-            header.anchoredPosition = Vector2.zero;
-            header.sizeDelta = new Vector2(0f, HeaderHeight);
-
-            var titleText = UiBuilder.Text("Title", header, title, 34f, textColor, TextAlignmentOptions.Left);
-            titleText.fontStyle = FontStyles.Bold;
-            UiBuilder.Place(titleText.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(Margin, 0f), new Vector2(520f, 50f));
-
-            // Page tabs in the middle.
-            AddTab(header, MenuPage.Build, buildTab, -170f);
-            AddTab(header, MenuPage.Skills, skillsTab, 0f);
-            AddTab(header, MenuPage.Map, mapTab, 170f);
-
-            // Right side: day and close hint, and the Clean Storage meter to their left.
-            dayText = UiBuilder.Text("Day", header, "", 20f, textColor, TextAlignmentOptions.Right);
-            UiBuilder.Place(dayText.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-Margin, -24f), new Vector2(300f, 30f));
-            var hint = UiBuilder.Text("Close", header, closeHint, 18f, mutedTextColor, TextAlignmentOptions.Right);
-            UiBuilder.Place(hint.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-Margin, -60f), new Vector2(300f, 28f));
-
-            float meterX = -(Margin + 300f + 40f);
-            var label = UiBuilder.Text("StorageLabel", header, storageLabel, 15f, mutedTextColor, TextAlignmentOptions.Left);
-            UiBuilder.Place(label.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(meterX, -18f), new Vector2(260f, 22f));
-            storageText = UiBuilder.Text("Storage", header, "", 24f, textColor, TextAlignmentOptions.Left);
-            storageText.fontStyle = FontStyles.Bold;
-            UiBuilder.Place(storageText.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(meterX, -40f), new Vector2(260f, 32f));
-            var bar = UiBuilder.Image("StorageBar", header, lineColor);
-            UiBuilder.Place(bar.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(meterX, -78f), new Vector2(260f, 8f));
-            storageFill = UiBuilder.Image("Fill", bar.transform, waterBlue);
-            storageFill.sprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f));
-            storageFill.type = Image.Type.Filled;
-            storageFill.fillMethod = Image.FillMethod.Horizontal;
-
-            var divider = UiBuilder.Image("Divider", header, lineColor);
-            divider.rectTransform.anchorMin = new Vector2(0f, 0f);
-            divider.rectTransform.anchorMax = new Vector2(1f, 0f);
-            divider.rectTransform.pivot = new Vector2(0.5f, 0f);
-            divider.rectTransform.sizeDelta = new Vector2(0f, 2f);
-            divider.rectTransform.anchoredPosition = Vector2.zero;
+            if (tab == null) return;
+            if (tab.button != null) tab.button.onClick.AddListener(() => SwitchTo(page));
+            tabs[page] = tab;
         }
 
-        void AddTab(RectTransform header, MenuPage page, string label, float x)
+        /// <summary>The icon dragged in for an upgrade id (null if none).</summary>
+        public Sprite IconFor(string id)
         {
-            var button = UiBuilder.Button("Tab_" + page, header, label, 22f, new Color(0f, 0f, 0f, 0f), mutedTextColor, () => SwitchTo(page));
-            UiBuilder.Place((RectTransform)button.transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(x, 0f), new Vector2(150f, 48f));
-            var text = button.GetComponentInChildren<TextMeshProUGUI>();
-            text.fontStyle = FontStyles.Bold;
-            var underline = UiBuilder.Image("Underline", button.transform, waterBlue);
-            UiBuilder.Place(underline.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, new Vector2(110f, 3f));
-            tabs[page] = (underline, text);
+            foreach (var entry in upgradeIcons)
+                if (entry != null && entry.icon != null && string.Equals(entry.id?.Trim(), id, System.StringComparison.OrdinalIgnoreCase))
+                    return entry.icon;
+            return null;
         }
 
-        // One Build or Skills page: columns of cards with lines, plus the detail panel.
-        Detail BuildUpgradePage(RectTransform page, string[] layout, UpgradeTab tab)
+        // One Build or Skills page: columns of cards (from the layout list) with lines.
+        void BuildUpgradePage(GameMenuView.CardArea cardArea, string[] layout, UpgradeCardUI cardPrefabToUse)
         {
-            var area = UiBuilder.Rect("Cards", page);
-            UiBuilder.Fill(area, 0f, DetailWidth + 24f, 0f, 0f);
-            var lineLayer = UiBuilder.Rect("Lines", area);
-            var cardLayer = UiBuilder.Rect("CardLayer", area);
+            if (cardArea == null || cardArea.area == null) return;
+            var area = cardArea.area;
+            var lineLayer = cardArea.lineLayer != null ? cardArea.lineLayer : area;
+            var cardLayer = cardArea.cardLayer != null ? cardArea.cardLayer : area;
 
             // Work out each column's width (in lanes) so the whole set can be centred.
             var columns = new List<(string title, List<(string id, float lane, int row)> items, int lanes)>();
@@ -414,15 +436,21 @@ namespace TheLastDrop
             }
             totalWidth += ColumnGap * Mathf.Max(0, columns.Count - 1);
 
+            // The card area's design width (1920 × 1080 layout), so the columns are centred in it.
             float areaWidth = UiBuilder.ReferenceWidth - 2f * Margin - DetailWidth - 24f;
             float x = Mathf.Max(0f, (areaWidth - totalWidth) * 0.5f);
             var logic = upgrades.Logic;
 
             foreach (var col in columns)
             {
-                var heading = UiBuilder.Text("Column", area, col.title.ToUpperInvariant(), 20f, mutedTextColor);
-                heading.fontStyle = FontStyles.Bold;
-                UiBuilder.Place(heading.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(x, 0f), new Vector2(col.lanes * LanePitch, 30f));
+                var heading = view.columnHeadingTemplate != null
+                    ? Instantiate(view.columnHeadingTemplate, area, false)
+                    : UiBuilder.Text("Column", area, "", 20f, mutedTextColor);
+                heading.gameObject.name = "Column " + col.title;
+                heading.gameObject.SetActive(true);
+                heading.text = col.title.ToUpperInvariant();
+                UiBuilder.Place(heading.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(x, 0f),
+                                new Vector2(col.lanes * LanePitch, heading.rectTransform.sizeDelta.y > 0f ? heading.rectTransform.sizeDelta.y : 30f));
 
                 var placed = new Dictionary<string, Vector2>();
                 foreach (var (id, lane, row) in col.items)
@@ -433,7 +461,7 @@ namespace TheLastDrop
                     var centre = new Vector2(x + lane * LanePitch + UpgradeCardView.Width * 0.5f,
                                              -(48f + row * RowPitch + UpgradeCardView.Height * 0.5f));
                     string cardId = id;
-                    var card = new UpgradeCardView(info, logic.CostOf(info), cardLayer, this, () => Select(cardId));
+                    var card = new UpgradeCardView(info, logic.CostOf(info), cardLayer, this, cardPrefabToUse, IconFor(id), () => Select(cardId));
                     card.SetPosition(centre.x, centre.y);
                     cards[id] = card;
                     placed[id] = centre;
@@ -448,18 +476,26 @@ namespace TheLastDrop
 
                 x += col.lanes * LanePitch + ColumnGap;
             }
-
-            return new Detail(page, tab, this);
         }
 
-        // A 2 px line between two points (pixels from the top-left of the card area).
+        // A line between two points (pixels from the top-left of the card area), copied from the
+        // prefab's Line Template (its width = the line's thickness).
         Image MakeLine(RectTransform parent, Vector2 a, Vector2 b)
         {
-            var img = UiBuilder.Image("Line", parent, lineColor);
+            Image img;
+            float thickness = 2f;
+            if (view.lineTemplate != null)
+            {
+                img = Instantiate(view.lineTemplate, parent, false);
+                img.gameObject.SetActive(true);
+                thickness = Mathf.Max(1f, view.lineTemplate.rectTransform.sizeDelta.x);
+            }
+            else img = UiBuilder.Image("Line", parent, lineColor);
+            img.gameObject.name = "Line";
             var rt = img.rectTransform;
             Vector2 d = b - a;
-            UiBuilder.Place(rt, new Vector2(0f, 1f), new Vector2(0.5f, 0.5f), (a + b) * 0.5f, new Vector2(2f, d.magnitude));
-            // A 2 px tall-thin rectangle, turned to point from a to b.
+            UiBuilder.Place(rt, new Vector2(0f, 1f), new Vector2(0.5f, 0.5f), (a + b) * 0.5f, new Vector2(thickness, d.magnitude));
+            // A thin tall rectangle, turned to point from a to b.
             rt.localEulerAngles = new Vector3(0f, 0f, Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg - 90f);
             return img;
         }
@@ -487,78 +523,23 @@ namespace TheLastDrop
 
         // ------------------------------------------------------------------ Detail panel
 
-        /// <summary>The 340 px panel on the right of a Build or Skills page.</summary>
+        /// <summary>Fills a page's detail panel (UpgradeDetailView in the prefab) for the selected card.</summary>
         class Detail
         {
-            readonly TextMeshProUGUI iconId, group, name, effect, cost, needs, after, message;
-            readonly Button buy;
-            readonly TextMeshProUGUI buyLabel;
+            readonly UpgradeDetailView v;
             readonly GameMenu menu;
             readonly UpgradeTab tab;
             string shownId;
 
-            public Detail(RectTransform page, UpgradeTab tab, GameMenu m)
+            public Detail(UpgradeDetailView view, UpgradeTab tab, GameMenu m)
             {
+                v = view;
                 menu = m;
                 this.tab = tab;
-                var panel = UiBuilder.Image("Detail", page, m.panelColor).rectTransform;
-                panel.anchorMin = new Vector2(1f, 0f);
-                panel.anchorMax = new Vector2(1f, 1f);
-                panel.pivot = new Vector2(1f, 0.5f);
-                panel.offsetMin = new Vector2(-DetailWidth, 0f);
-                panel.offsetMax = Vector2.zero;
-
-                var icon = UiBuilder.Image("BigIcon", panel, m.lineColor);
-                UiBuilder.Place(icon.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(24f, -24f), new Vector2(96f, 96f));
-                iconId = UiBuilder.Text("Id", icon.transform, "", 34f, m.textColor, TextAlignmentOptions.Center);
-                iconId.fontStyle = FontStyles.Bold;
-
-                group = Line(panel, "Group", 16f, m.mutedTextColor, -136f, 24f);
-                group.fontStyle = FontStyles.Bold;
-                name = Line(panel, "Name", 28f, m.textColor, -160f, 72f);
-                name.fontStyle = FontStyles.Bold;
-                effect = Line(panel, "Effect", 19f, m.textColor, -236f, 120f);
-
-                Label(panel, m.costLabel, -370f);
-                cost = Value(panel, -370f);
-                Label(panel, m.needsLabel, -404f);
-                needs = Value(panel, -404f);
-                Label(panel, m.afterLabel, -438f);
-                after = Value(panel, -438f);
-                message = Line(panel, "Message", 18f, m.warningAmber, -484f, 64f);
-
-                buy = UiBuilder.Button("Buy", panel, "", 24f, m.waterBlue, m.screenColor, OnBuy);
-                UiBuilder.Place((RectTransform)buy.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 76f), new Vector2(DetailWidth - 48f, 56f));
-                var colors = buy.colors;
-                colors.disabledColor = new Color(0.35f, 0.35f, 0.35f, 0.6f);
-                buy.colors = colors;
-                buyLabel = buy.GetComponentInChildren<TextMeshProUGUI>();
-                buyLabel.fontStyle = FontStyles.Bold;
-
-                var note = UiBuilder.Text("NoRefunds", panel, m.noRefunds, 15f, m.mutedTextColor, TextAlignmentOptions.Center);
-                UiBuilder.Place(note.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 26f), new Vector2(DetailWidth - 48f, 40f));
+                if (v.buyButton != null) v.buyButton.onClick.AddListener(OnBuy);
             }
 
-            static TextMeshProUGUI Line(RectTransform p, string n, float size, Color c, float y, float h)
-            {
-                var t = UiBuilder.Text(n, p, "", size, c);
-                UiBuilder.Place(t.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(24f, y), new Vector2(DetailWidth - 48f, h));
-                return t;
-            }
-
-            void Label(RectTransform p, string text, float y)
-            {
-                var t = UiBuilder.Text("Label", p, text, 15f, menu.mutedTextColor);
-                t.fontStyle = FontStyles.Bold;
-                UiBuilder.Place(t.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(24f, y - 3f), new Vector2(120f, 28f));
-            }
-
-            TextMeshProUGUI Value(RectTransform p, float y)
-            {
-                var t = UiBuilder.Text("Value", p, "", 18f, menu.textColor);
-                UiBuilder.Place(t.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(150f, y), new Vector2(DetailWidth - 174f, 28f));
-                return t;
-            }
+            static void Set(TMP_Text t, string text) { if (t != null) t.text = text; }
 
             public void Show(UpgradeInfo info, GameMenu m)
             {
@@ -566,33 +547,47 @@ namespace TheLastDrop
                 var logic = m.upgrades.Logic;
                 var card = logic.GetCard(info.Id);
 
-                iconId.text = info.Id;
-                group.text = (info.Group ?? "").ToUpperInvariant();
-                name.text = info.Name;
-                effect.text = info.Tooltip;
-                cost.text = string.Format(m.litresFormat, card.Cost);
+                var icon = m.IconFor(info.Id);
+                if (v.bigIcon != null && icon != null) { v.bigIcon.sprite = icon; v.bigIcon.color = Color.white; v.bigIcon.preserveAspect = true; }
+                else if (v.bigIcon != null && v.bigIcon.sprite != null && IsUpgradeIcon(m, v.bigIcon.sprite)) { v.bigIcon.sprite = null; v.bigIcon.color = m.lineColor; }
+                if (v.iconIdText != null) { v.iconIdText.text = info.Id; v.iconIdText.gameObject.SetActive(icon == null); }
+
+                Set(v.groupText, (info.Group ?? "").ToUpperInvariant());
+                Set(v.nameText, info.Name);
+                Set(v.effectText, info.Tooltip);
+                Set(v.costText, string.Format(m.litresFormat, card.Cost));
 
                 string mark = m.FontHas(m.ownedMark) ? m.ownedMark : m.ownedMarkFallback;
                 var parts = new List<string>();
                 foreach (var need in info.Needs) parts.Add(logic.Owns(need) ? need + mark : need);
-                needs.text = parts.Count == 0 ? m.needsNone : string.Join(", ", parts);
-                after.text = card.State == CardState.Owned ? "-" : string.Format(m.afterFormat, Mathf.Max(0f, logic.Stored - card.Cost));
+                Set(v.needsText, parts.Count == 0 ? m.needsNone : string.Join(", ", parts));
+                Set(v.afterText, card.State == CardState.Owned ? "-" : string.Format(m.afterFormat, Mathf.Max(0f, logic.Stored - card.Cost)));
 
                 bool hereOk = m.upgrades.CanBuyHere;
+                string message;
+                Color color;
                 switch (card.State)
                 {
-                    case CardState.Owned: message.text = m.msgOwned; message.color = m.waterBlue; break;
-                    case CardState.Locked: message.text = string.Format(m.msgLocked, card.MissingId); message.color = m.mutedTextColor; break;
-                    case CardState.NeedsBiggerStorage: message.text = m.msgBiggerStorage; message.color = m.warningAmber; break;
-                    case CardState.ShortOfWater: message.text = string.Format(m.msgShort, card.ShortBy); message.color = m.warningAmber; break;
+                    case CardState.Owned: message = m.msgOwned; color = m.waterBlue; break;
+                    case CardState.Locked: message = string.Format(m.msgLocked, card.MissingId); color = m.mutedTextColor; break;
+                    case CardState.NeedsBiggerStorage: message = m.msgBiggerStorage; color = m.warningAmber; break;
+                    case CardState.ShortOfWater: message = string.Format(m.msgShort, card.ShortBy); color = m.warningAmber; break;
                     default:
-                        message.text = hereOk ? m.msgCanBuy : m.msgNotAtHub;
-                        message.color = hereOk ? m.canBuyBorder : m.warningAmber;
+                        message = hereOk ? m.msgCanBuy : m.msgNotAtHub;
+                        color = hereOk ? m.canBuyBorder : m.warningAmber;
                         break;
                 }
+                if (v.messageText != null) { v.messageText.text = message; v.messageText.color = color; }
 
-                buyLabel.text = string.Format(tab == UpgradeTab.Build ? m.buyFormat : m.learnFormat, card.Cost);
-                buy.interactable = card.State == CardState.CanBuy && hereOk;
+                Set(v.buyLabel, string.Format(tab == UpgradeTab.Build ? m.buyFormat : m.learnFormat, card.Cost));
+                if (v.buyButton != null) v.buyButton.interactable = card.State == CardState.CanBuy && hereOk;
+            }
+
+            // True if this sprite is one of the upgrade icons (so a previous card's icon is cleared).
+            static bool IsUpgradeIcon(GameMenu m, Sprite s)
+            {
+                foreach (var e in m.upgradeIcons) if (e != null && e.icon == s) return true;
+                return false;
             }
 
             void OnBuy()

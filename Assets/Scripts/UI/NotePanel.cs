@@ -18,7 +18,9 @@
 // DESIGN RULES: R8.7 (notes and journal), R9.1 (the world doesn't pause).
 //
 // HOW TO USE: RoomContent adds this and calls OpenNote / ToggleJournal.
-// HOW TO EDIT: sizes and colours are the constants at the top.
+// HOW TO EDIT: THE LOOK IS A PREFAB WITH ITS OWN CANVAS: Assets/Resources/UI/NotePanel.prefab
+// (see NotePanelView.cs; Tools > The Last Drop > Build UI Prefabs makes it). If it's missing,
+// a plain black-and-white box is built in code.
 // ============================================================================
 
 using TMPro;
@@ -31,11 +33,11 @@ namespace TheLastDrop
     /// <summary>The note and journal panel.</summary>
     public class NotePanel : MonoBehaviour
     {
-        const int SortOrder = 70;   // above the map (60) and the Tab menu (65), below SimpleHud toasts (80)
-        static readonly Color BoxColor = new Color(0.08f, 0.07f, 0.06f, 0.96f);
-        static readonly Color TitleColor = new Color(0.95f, 0.91f, 0.86f);
-        static readonly Color BodyColor = new Color(0.86f, 0.82f, 0.76f);
-        static readonly Color HintColor = new Color(0.62f, 0.57f, 0.52f);
+        /// <summary>Where the default prefab lives inside a Resources folder.</summary>
+        public const string PrefabResource = "UI/NotePanel";
+
+        [Tooltip("The panel's look: a prefab with a Canvas and a NotePanelView on its root. Empty = Resources/UI/NotePanel.")]
+        public GameObject notePrefab;
 
         /// <summary>The frame a note was last closed on. The note object waits a frame so the same E press doesn't reopen it.</summary>
         public static int ClosedFrame { get; private set; } = -10;
@@ -45,7 +47,7 @@ namespace TheLastDrop
         Mode mode = Mode.Closed;
         int openedFrame;
         GameObject root;
-        TextMeshProUGUI titleText, bodyText, hintText;
+        TMP_Text titleText, bodyText, hintText;
         MapScreen map;
 
         /// <summary>True while a note is being read.</summary>
@@ -103,9 +105,9 @@ namespace TheLastDrop
         {
             mode = newMode;
             openedFrame = Time.frameCount;
-            titleText.text = title;
-            bodyText.text = body;
-            hintText.text = hint;
+            if (titleText != null) titleText.text = title;
+            if (bodyText != null) bodyText.text = body;
+            if (hintText != null) hintText.text = hint;
             root.SetActive(true);
         }
 
@@ -142,26 +144,13 @@ namespace TheLastDrop
 
         void Build()
         {
-            var canvas = UiBuilder.CreateCanvas("NoteCanvas", transform, SortOrder);
-            root = canvas.gameObject;
-
-            var box = UiBuilder.Image("Box", root.transform, BoxColor, blocksClicks: true).rectTransform;
-            UiBuilder.Place(box, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1240f, 900f));
-
-            titleText = UiBuilder.Text("Title", box, "", 40f, TitleColor);
-            titleText.fontStyle = FontStyles.Bold;
-            UiBuilder.Place(titleText.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -36f), new Vector2(1140f, 56f));
-
-            bodyText = UiBuilder.Text("Body", box, "", 25f, BodyColor);
-            bodyText.overflowMode = TextOverflowModes.Truncate;
-            UiBuilder.Place(bodyText.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -110f), new Vector2(1140f, 680f));
-
-            hintText = UiBuilder.Text("Hint", box, "", 20f, HintColor, TextAlignmentOptions.BottomLeft);
-            UiBuilder.Place(hintText.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(50f, 30f), new Vector2(800f, 40f));
-
-            var close = UiBuilder.Button("Close", box, "Close", 26f, new Color(0.25f, 0.21f, 0.17f), TitleColor, Close);
-            UiBuilder.Place((RectTransform)close.transform, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-50f, 24f), new Vector2(200f, 56f));
-
+            var view = UiBuilder.InstantiateView<NotePanelView>(notePrefab, PrefabResource, transform);
+            if (view == null) view = NotePanelView.BuildDefault(transform);
+            root = view.panel != null ? view.panel : view.gameObject;
+            titleText = view.titleText;
+            bodyText = view.bodyText;
+            hintText = view.hintText;
+            if (view.closeButton != null) view.closeButton.onClick.AddListener(Close);
             root.SetActive(false);
         }
     }
