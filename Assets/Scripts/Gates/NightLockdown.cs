@@ -1,11 +1,11 @@
 // ============================================================================
 // NightLockdown.cs
-// The night lockdown, playtest version. When night starts, every gate closes (its
-// collider comes back and it looks shut); at dawn they reopen. A player who is outside
-// the hub and outside every room at night gets a "caught outside at night" line in
-// the Console instead of losing health.
+// The night lockdown. When night starts, every gate closes (its collider comes back and
+// it looks shut); at dawn they reopen. Warnings play 60, 40, 20, 10 and 5 s before it
+// (R8.20). A player outside the hub and every room at night loses 4 HYD per second
+// (R8.21); with GameBalance > Survival On off it only writes a Console line, as before.
 //
-// DESIGN RULES: R8.19 (night lockdown), R8.21 and R8.23 (gates close at night and
+// DESIGN RULES: R8.19 (night lockdown), R8.20 (warnings), R8.21 and R8.23 (gates close at night and
 // reopen at dawn).
 //
 // HOW TO USE: put this on the "Systems" object and drag the Maze object (with the
@@ -102,11 +102,60 @@ namespace TheLastDrop
 
         void Update()
         {
+            UpdateWarnings();
             if (!IsLocked) return;
+
+            // R8.21: outside the hub and every room, HYD drains 4 per second.
+            var player = Player_Manager.instance;
+            var balance = BalanceProvider.Current;
+            if (player != null && balance != null && balance.survivalOn && maze != null && maze.Grid != null &&
+                player.playerHydration_Manager != null && Time.timeScale > 0f &&
+                !IsSheltered(player.transform.position))
+                player.playerHydration_Manager.LoseHydration(balance.lockdownDrain * Time.deltaTime);
+
             checkTimer -= Time.deltaTime;
             if (checkTimer > 0f) return;
             checkTimer = checkInterval;
             CheckPlayer();
+        }
+
+        // ------------------------------------------------------------------ R8.20 warnings
+
+        float lastSecondsLeft = -1f;
+
+        // A countdown line on the HUD in the last minute of daylight, and a message at each
+        // warning time, more urgent each time.
+        void UpdateWarnings()
+        {
+            var balance = BalanceProvider.Current;
+            if (clock == null || clock.Clock == null || balance == null) return;
+
+            if (clock.IsNight)
+            {
+                SimpleHud.SetLine("lockdown", $"LOCKDOWN  {Mathf.CeilToInt(clock.Clock.SecondsLeftInPhase)} s to dawn" +
+                                              (PlayerOutside ? "  - get to shelter! -" + balance.lockdownDrain.ToString("0") + " HYD/s" : ""));
+                lastSecondsLeft = -1f;
+                return;
+            }
+
+            float left = clock.Clock.SecondsLeftInPhase;
+            float first = 0f;
+            if (balance.lockdownWarnings != null)
+                foreach (var w in balance.lockdownWarnings) first = Mathf.Max(first, w);
+            SimpleHud.SetLine("lockdown", left <= first ? $"Lockdown in {Mathf.CeilToInt(left)} s" : null);
+
+            if (lastSecondsLeft >= 0f && balance.lockdownWarnings != null)
+            {
+                foreach (var w in balance.lockdownWarnings)
+                {
+                    if (lastSecondsLeft > w && left <= w)
+                    {
+                        string urgency = w <= 10f ? "!!! " : w <= 20f ? "!! " : "";
+                        SimpleHud.Toast($"{urgency}Lockdown in {w:0} s: get to the hub or a room", 3f);
+                    }
+                }
+            }
+            lastSecondsLeft = left;
         }
 
         // Logs once each time the player is (or steps) outside the hub and the rooms at night.
@@ -117,7 +166,10 @@ namespace TheLastDrop
 
             bool outside = !IsSheltered(player.transform.position);
             if (outside && !PlayerOutside)
-                Debug.LogWarning("[NightLockdown] Caught outside at night! (Playtest: no health loss, this is only a log.)", player);
+            {
+                Debug.LogWarning("[NightLockdown] Caught outside at night!", player);
+                SimpleHud.Toast("Caught outside at night! Find the hub or a room.", 4f);
+            }
             PlayerOutside = outside;
         }
 

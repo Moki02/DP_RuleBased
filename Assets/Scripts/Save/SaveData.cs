@@ -19,7 +19,7 @@ namespace TheLastDrop
 {
     /// <summary>One save file's contents.</summary>
     [Serializable]
-    public class SaveData
+    public partial class SaveData
     {
         [Tooltip("Save format number. Files with another number are rejected.")]
         public int version;

@@ -99,8 +99,18 @@ namespace TheLastDrop
         public bool Reveal(Vector2Int worldTile)
         {
             if (!grid.InBounds(worldTile.x, worldTile.y)) return false;
-            return RevealLocal(grid.WorldToLocal(worldTile));
+            Vector2Int local = grid.WorldToLocal(worldTile);
+            if (!RevealLocal(local)) return false;
+            TileSeen?.Invoke(local);
+            return true;
         }
+
+        /// <summary>
+        /// Fired when the player SEES a tile for the first time (walking or looking ahead), with
+        /// its CSV (local) position. Not fired by loading a save or by debug key 0, so rewards
+        /// that listen to it (R8.2a, R8.2) are never paid twice.
+        /// </summary>
+        public event System.Action<Vector2Int> TileSeen;
 
         /// <summary>Reveals a CSV (local) tile. Used by Reveal and by loading a save.</summary>
         public bool RevealLocal(Vector2Int local)

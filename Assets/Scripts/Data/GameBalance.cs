@@ -20,7 +20,7 @@ using UnityEngine;
 namespace TheLastDrop
 {
     [CreateAssetMenu(fileName = "GameBalance", menuName = "The Last Drop/Game Balance")]
-    public class GameBalance : ScriptableObject
+    public partial class GameBalance : ScriptableObject
     {
         // ------------------------------------------------------------------ Mode
         [Header("Mode")]
@@ -33,7 +33,7 @@ namespace TheLastDrop
         public bool enableDebugKeys = true;
 
         [Tooltip("How many maze zones are used. Full game 3, Demo mode 1 (Lock 1 becomes the exit).")]
-        [Range(1, 3)] public int zoneCount = 3;
+        [Range(1, 3)] public int zoneCount = 2;
 
         [Tooltip("Multiplies every Build item and skill cost. Full game 1, Demo mode 0.5 (rounded up).")]
         [Min(0f)] public float skillCostMultiplier = 1f;
@@ -114,7 +114,7 @@ namespace TheLastDrop
 
         // ------------------------------------------------------------------ Sources (section 4)
         [Header("Sources")]
-        [Min(0f)] public float pumpLitersPerStroke = 0.2f;
+        [Min(0f)] public float pumpLitersPerStroke = 0.3f;
         [Tooltip("Seconds between strokes. Greased Handle skill: 0.35.")]
         [Min(0.01f)] public float pumpStrokeInterval = 0.5f;
 
@@ -203,7 +203,7 @@ namespace TheLastDrop
                 new EventWeights(35, 20, 10, 0, 10, 0, 5, 20)),
             new StageSettings("Drought", 5, 1.25f, 0.15f, 0.05f, 6.5f, 1.4f, 0.85f,
                 new EventWeights(15, 25, 15, 15, 10, 5, 5, 10)),
-            new StageSettings("State of Calamity", 9, 1.4f, 0.05f, 0.08f, 7.5f, 1.6f, 0.75f,
+            new StageSettings("State of Calamity", 12, 1.4f, 0.05f, 0.08f, 7.5f, 1.6f, 0.75f,
                 new EventWeights(5, 30, 15, 15, 10, 10, 10, 5)),
         };
 
@@ -329,7 +329,7 @@ namespace TheLastDrop
         [Header("Events")]
         [Tooltip("The daily event fires at a random time between these two values (s into the day).")]
         [Min(0f)] public float eventWindowMin = 40f;
-        [Min(0f)] public float eventWindowMax = 200f;
+        [Min(0f)] public float eventWindowMax = 260f;
 
         [Header("Thunderstorm")]
         [Min(0f)] public float stormWarn = 20f;
@@ -492,7 +492,9 @@ namespace TheLastDrop
         {
             if (eventWindowMax < eventWindowMin) eventWindowMax = eventWindowMin;
             if (dehydratedAt > thirstyAt) dehydratedAt = thirstyAt;
-            if (dayLengthSeconds > 0f && eventWindowMax > dayLengthSeconds) eventWindowMax = dayLengthSeconds;
+            // A whole day is daylight + night (240 + 60 = 300 s); events roll up to 260 s into it (R10.4).
+            float wholeDay = dayLengthSeconds + nightLockdownSeconds;
+            if (wholeDay > 0f && eventWindowMax > wholeDay) eventWindowMax = wholeDay;
             // The maze parts must go outwards in order: hub, then zone 1, then zone 2.
             if (zone1MaxRing < hubMaxRing) zone1MaxRing = hubMaxRing;
             if (zone2MaxRing < zone1MaxRing) zone2MaxRing = zone1MaxRing;

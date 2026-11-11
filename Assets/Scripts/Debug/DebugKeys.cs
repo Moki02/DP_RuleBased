@@ -14,6 +14,9 @@
 //    F9 | Load the save
 //   8 and 9 are kept free: they're reserved for drought stage and events.
 //
+// Other systems add their own keys without editing this file:
+//     DebugKeys.Register(Key.Digit8, "next drought stage", () => ...);
+//
 // DESIGN RULES: none (testing only).
 //
 // HOW TO USE: put this on the "Systems" object. It finds the systems it needs by itself.
@@ -23,6 +26,8 @@
 // "Debug Clean Storage Liters", both in GameBalance.
 // ============================================================================
 
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -41,6 +46,14 @@ namespace TheLastDrop
         public static bool ShowDebugInfo { get; set; }
 
         GameBalance balance;
+
+        static readonly Dictionary<Key, (string label, Action action)> extraKeys = new Dictionary<Key, (string, Action)>();
+
+        /// <summary>Adds a debug key (replaces any earlier one on the same key). Works only while debug keys are on.</summary>
+        public static void Register(Key key, string label, Action action) => extraKeys[key] = (label, action);
+
+        /// <summary>Removes a debug key added with Register.</summary>
+        public static void Unregister(Key key) => extraKeys.Remove(key);
 
         void Start()
         {
@@ -105,6 +118,14 @@ namespace TheLastDrop
             {
                 if (SaveManager.Instance != null) SaveManager.Instance.Load();
                 else Missing("F9", nameof(SaveManager));
+            }
+
+            // Keys other systems registered (8 drought stage, 9 event, ...). Copy first: an action may register keys.
+            foreach (var kv in new List<KeyValuePair<Key, (string label, Action action)>>(extraKeys))
+            {
+                if (!kb[kv.Key].wasPressedThisFrame) continue;
+                Debug.Log($"[DebugKeys] {kv.Key}: {kv.Value.label}", this);
+                kv.Value.action?.Invoke();
             }
         }
 

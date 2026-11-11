@@ -192,6 +192,16 @@ namespace TheLastDrop
             return added;
         }
 
+        /// <summary>
+        /// Sets the litres in Clean Storage (kept between 0 and the cap) WITHOUT firing Changed.
+        /// GameResources_Manager uses this every frame (purifier, tap, banking); the menu
+        /// refreshes on its own timer, so it doesn't need an event for every drop.
+        /// </summary>
+        public void SetStoredQuiet(float litres)
+        {
+            Stored = Math.Max(0f, Math.Min(litres, Cap));
+        }
+
         /// <summary>Loading a save: sets the owned ids (in buy order) and the stored water.</summary>
         public void Restore(IEnumerable<string> ownedIds, float stored)
         {

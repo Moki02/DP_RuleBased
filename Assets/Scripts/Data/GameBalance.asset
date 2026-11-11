@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isDemoMode: 0
   enableDebugKeys: 1
-  zoneCount: 3
+  zoneCount: 2
   skillCostMultiplier: 1
-  allowBuyingAnywhere: 1
+  allowBuyingAnywhere: 0
   debugCleanStorageLiters: 50
   collapseEndsGame: 0
   dayLengthSeconds: 240
@@ -47,7 +47,7 @@ MonoBehaviour:
   startClean: 10
   startCanteen: 2
   startRaw: 0
-  pumpLitersPerStroke: 0.2
+  pumpLitersPerStroke: 0.3
   pumpStrokeInterval: 0.5
   suctionLimit: 7
   pumpByDepth:
@@ -177,7 +177,7 @@ MonoBehaviour:
       grassFire: 5
       calm: 10
   - displayName: State of Calamity
-    startDay: 9
+    startDay: 12
     heatMult: 1.4
     rainChance: 0.05
     evaporation: 0.08
@@ -272,7 +272,7 @@ MonoBehaviour:
   leakIntervalStart: 1.2
   leakIntervalEnd: 0.6
   eventWindowMin: 40
-  eventWindowMax: 200
+  eventWindowMax: 260
   stormWarn: 20
   stormSeconds: 60
   stormDrainMult: 0.5

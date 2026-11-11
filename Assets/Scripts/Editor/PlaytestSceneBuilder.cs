@@ -53,6 +53,11 @@ namespace TheLastDrop
         const string PausePrefab = "Assets/Prefabs/Game Prefab/UI/Player Pause.prefab";
         const string ValvePanelPrefab = "Assets/Prefabs/UI/ValveTimingPanel.prefab";
         const string LockBasinPrefab = "Assets/Prefabs/Game Prefab/PlaceHolder/Models/Lock Basin.prefab";
+        const string PumpPrefab = "Assets/Prefabs/Game Prefab/With Model/HandPump.prefab";
+        const string PotPrefab = "Assets/Prefabs/Game Prefab/With Model/BoilingPot.prefab";
+        const string StoragePrefab = "Assets/Prefabs/Game Prefab/With Model/Clean Storage.prefab";
+        /// <summary>Name of the object that holds the hub's pump, boiling pot and Clean Storage tap.</summary>
+        public const string HubStationsName = "HubStations";
 
         /// <summary>Name of the object that holds the playtest managers.</summary>
         public const string SystemsName = "Systems";
@@ -108,6 +113,7 @@ namespace TheLastDrop
             AddPhase3(systems, builder);
             AddPhase4(scene, systems, builder, gameManager, balance);
             AddPhase5(systems, builder, balance);
+            AddHubStations(scene, builder);  // the survival half: pump, boiling pot, tap
             GetOrAdd<SaveManager>(systems); // Phase 6: saving
             GetOrAdd<DebugHud>(systems);    // Phase 7: F1 debug HUD
 
@@ -174,11 +180,11 @@ namespace TheLastDrop
             player.transform.SetPositionAndRotation(spawn, Quaternion.identity);
             cam.transform.SetPositionAndRotation(spawn, Quaternion.identity);
 
-            // Water does nothing in this scene.
+            // The real game: hydration is on (GameBalance > Survival On also forces this at Play).
             var hydration = player.GetComponent<PlayerHydration_Manager>();
             if (hydration != null)
             {
-                hydration.hydrationOff = true;
+                hydration.hydrationOff = false;
                 PrefabUtility.RecordPrefabInstancePropertyModifications(hydration);
             }
         }
@@ -276,11 +282,11 @@ namespace TheLastDrop
 
         static void AddPhase4(Scene scene, GameObject systems, MazeBuilder builder, GameObject gameManager, GameBalance balance)
         {
-            // Infinite canteen: pouring into basins never runs out (water does nothing in this scene).
+            // The real game: the canteen runs out (GameBalance > Survival On also forces this at Play).
             var resources = gameManager.GetComponent<GameResources_Manager>();
             if (resources != null)
             {
-                resources.infiniteCanteen = true;
+                resources.infiniteCanteen = false;
                 PrefabUtility.RecordPrefabInstancePropertyModifications(resources);
             }
 
@@ -333,14 +339,37 @@ namespace TheLastDrop
             menu.upgrades = upgrades;
             menu.mapScreen = systems.GetComponent<MapScreen>();
 
-            // The playtest lets you buy anywhere (the rule is: only at the hub, R7.2).
-            if (!balance.allowBuyingAnywhere)
-            {
-                balance.allowBuyingAnywhere = true;
-                EditorUtility.SetDirty(balance);
-                AssetDatabase.SaveAssets();
-                Debug.Log("[PlaytestSceneBuilder] GameBalance: 'Allow Buying Anywhere' turned on for the playtest.");
-            }
+            // Buying works only at the hub (R7.2). "Allow Buying Anywhere" on GameBalance is left as
+            // it is, so a tester can still tick it by hand.
+        }
+
+        // ------------------------------------------------------------------ The hub's water stations
+
+        // The team's hand pump, boiling pot and Clean Storage (drink / refill tap) prefabs, placed
+        // inside the base around the spawn the first time. After that they stay where you put them.
+        static void AddHubStations(Scene scene, MazeBuilder builder)
+        {
+            var existing = FindRoot(scene, HubStationsName);
+            bool fresh = existing == null;
+            var root = existing != null ? existing : new GameObject(HubStationsName);
+
+            var pump = EnsurePrefab(scene, PumpPrefab, root.transform);
+            var pot = EnsurePrefab(scene, PotPrefab, root.transform);
+            var storage = EnsurePrefab(scene, StoragePrefab, root.transform);
+            if (!fresh) return;
+
+            // The spawn is the centre tile (47, 47); the base runs 6 tiles each way. Put the
+            // stations 3 tiles from the spawn, west, north and east, so the player sees them.
+            var c = builder.Grid != null ? builder.Grid.Centre : new Vector2Int(47, 47);
+            Place(pump, builder.GridToWorld(c.x - 3, c.y), 90f);
+            Place(pot, builder.GridToWorld(c.x, c.y - 3), 180f);
+            Place(storage, builder.GridToWorld(c.x + 3, c.y), -90f);
+        }
+
+        static void Place(GameObject go, Vector3 position, float yaw)
+        {
+            if (go == null) return;
+            go.transform.SetPositionAndRotation(position, Quaternion.Euler(0f, yaw, 0f));
         }
 
         static T Find<T>(GameObject root, string objName) where T : Component

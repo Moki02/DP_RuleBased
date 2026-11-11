@@ -43,7 +43,7 @@ MonoBehaviour:
   startClean: 15
   startCanteen: 2
   startRaw: 0
-  pumpLitersPerStroke: 0.2
+  pumpLitersPerStroke: 0.3
   pumpStrokeInterval: 0.5
   suctionLimit: 7
   pumpByDepth:

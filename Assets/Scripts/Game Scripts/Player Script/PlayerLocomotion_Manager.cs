@@ -85,12 +85,22 @@ public class PlayerLocomotion_Manager : MonoBehaviour
             movementSpeed = player_RunningSpeed;
         }
 
+        var balance = TheLastDrop.BalanceProvider.Current;
+
+        // Dehydrated: walk × 0.75 (M5 Marathoner removes it).
         if (hydration != null &&
             hydration.currentHydrationState ==
             PlayerHydration_Manager.HydrationState.Dehydrated)
         {
-            movementSpeed *= 0.75f;
+            float slow = balance != null ? balance.dehydratedSpeedMult : 0.75f;
+            movementSpeed *= TheLastDrop.Skills.F("dehydratedWalkMult", slow);
         }
+
+        // R5.4 Jerry Can: slower while carrying more than 6 L (checks the water, not the container).
+        var res = GameResources_Manager.instance;
+        float heavyMult = TheLastDrop.Skills.F("heavySpeedMult", 1f);
+        if (res != null && heavyMult < 1f && balance != null && res.canteen > balance.heavyCarryThreshold)
+            movementSpeed *= heavyMult;
 
         if (moveAmount > 0)
         {

@@ -158,11 +158,13 @@ namespace TheLastDrop
             {
                 case MinigameResult.Won:
                     LogWater($"won: +{Reward:0.#} L water reward (R8.8)");
+                    if (!IsOpen) SurvivalRules.Reward(Reward, "valve opened");   // R8.8: once, into unbanked water
                     Open();
                     break;
                 case MinigameResult.Lost:   // R9.3 (HYD cost goes on On Failed later)
                     jammedUntil = Time.time + (balance != null ? balance.minigameLockout : 10f);
                     LogWater($"lost: -{(balance != null ? balance.minigameFailHyd : 0f):0.#} HYD (R9.3), minigame locked for {(balance != null ? balance.minigameLockout : 10f):0.#} s");
+                    SurvivalRules.MinigameLost();   // R9.3: -5 HYD
                     onFailed.Invoke();
                     break;
                 case MinigameResult.Quit:   // R9.2
@@ -213,7 +215,7 @@ namespace TheLastDrop
         void LogWater(string what)
         {
             if (logWaterChanges)
-                Debug.Log($"[ValveGate] {name} {what}. (Playtest: water does nothing, this is only a log.)", this);
+                Debug.Log($"[ValveGate] {name} {what}.", this);
         }
 
         /// <summary>

@@ -11,14 +11,17 @@
 //   V2 Landmarks       maxMarkers 8         -> MapRevealTracker
 //   V3 Keen Eyes       revealDiagonals true -> MapRevealTracker
 //   S2/S3/S6 storage   cleanStorageCap      -> Clean Storage size (UpgradeLogic)
-// Effects STORED but not used yet (the future system that will read each one):
-//   pumpStrokeInterval, pumpUsesDeepTable          -> HubPump_Manager (hand pump)
+//   S1/S4/S7 canteen   canteenCapacity      -> GameResources_Manager.canteen_Max (below)
+//   S5/S8 Raw Basin    rawBasinCap          -> GameResources_Manager.rawBasin_Max (below)
+//   W1 Greased Handle  pumpStrokeInterval   -> HubPump_Manager
+//   E1-E5, M3-M5       drain / drinking / Sick / collapse -> PlayerHydration_Manager,
+//                      PlayerLocomotion_Manager, CollapseManager, LockBasin_Manager (pour)
+//   S7 Jerry Can       heavySpeedMult       -> PlayerLocomotion_Manager
+// Effects STORED for later systems (they read them with Skills.F / Skills.B):
+//   pumpUsesDeepTable                               -> drought stages (water table)
 //   unlockSource, catchArea, stillRate, solarStillCount, wellRate -> water sources
-//   canteenCapacity, heavySpeedMult                 -> canteen / carrying
-//   cleanCoverFactor, rawBasinCap                    -> storage and evaporation
+//   cleanCoverFactor                                 -> evaporation
 //   purifierRate, ripenDays, sodisBatch, muddyPoolRefill -> purifiers
-//   drainMultAll, drainMultMove, thirstySprintMult, dehydratedWalkMult, hydPerLiter,
-//   wakeHyd, sickDuration, keepCanteenOnCollapse, drinkPourRateMult -> PlayerHydration_Manager
 //   gatesOnMap, sectionRewardMult, sectionMappedFrac -> map rewards (sections)
 // Any script can read an effect with: UpgradeManager.Instance.GetFloat("walkSpeed", 4f).
 //
@@ -162,16 +165,23 @@ namespace TheLastDrop
                 player.playerStats_Manager.player_RunningSpeed = Logic.GetFloat("sprintSpeed", balance.sprintSpeed);
             }
             // V1, V2, V3: MapRevealTracker asks this manager each time (see its LookAheadTiles etc.).
+
+            // Carry and Raw Basin sizes (S1 / S4 / S7 canteen, S5 / S8 basin). R5.1: water already
+            // stored moves into the new container, so only the size changes.
+            var res = GameResources_Manager.instance;
+            if (res != null)
+            {
+                float baseCanteen = balance.canteenTiers != null && balance.canteenTiers.Length > 0 ? balance.canteenTiers[0].capacity : 2f;
+                float baseRaw = balance.rawBasinTiers != null && balance.rawBasinTiers.Length > 0 ? balance.rawBasinTiers[0].capacity : 15f;
+                res.canteen_Max = Mathf.Max(baseCanteen, Logic.GetFloat("canteenCapacity", baseCanteen));
+                res.rawBasin_Max = Mathf.Max(baseRaw, Logic.GetFloat("rawBasinCap", baseRaw));
+            }
         }
 
-        // The HUD and the rest of the team's code read Clean Storage from GameResources_Manager,
-        // so copy the numbers there. In the playtest this manager is the one that changes them.
-        void SyncResources()
-        {
-            var res = GameResources_Manager.instance;
-            if (res == null || Logic == null) return;
-            res.cleanStorage = Logic.Stored;
-            res.cleanStorage_Max = Logic.Cap;
-        }
+        // Clean Storage now lives in one place only: Logic.Stored. GameResources_Manager reads and
+        // writes it through this manager (see GameResources_Manager.cleanStorage), so nothing needs
+        // copying any more. Before, this copied the number across and wiped any water the purifier
+        // had added since the last purchase.
+        void SyncResources() { }
     }
 }

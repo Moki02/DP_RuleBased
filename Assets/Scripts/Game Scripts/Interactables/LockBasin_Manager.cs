@@ -173,7 +173,7 @@ public class LockBasin_Manager : Interactable_Manager, INightLockable
         }
 
         // Pour from the canteen (an infinite canteen gives without running out).
-        float wanted = Mathf.Min(pourRate * deltaTime, basin_MaxWater - Lock.Litres);
+        float wanted = Mathf.Min(pourRate * Skills.F("drinkPourRateMult", 1f) * deltaTime, basin_MaxWater - Lock.Litres); // M4 Quick Hands
         float taken = resources.TakeCanteenWater(wanted);
         Lock.Pour(taken);
         basin_Water = Lock.Litres;
@@ -222,7 +222,8 @@ public class LockBasin_Manager : Interactable_Manager, INightLockable
                 break;
             case MinigameResult.Lost:
                 Debug.Log($"[LockBasin] {name}: valve lost: -{failHydLog:0.#} HYD (R9.3), " +
-                          $"minigame locked for {lockoutSeconds:0.#} s. The water stays. (Playtest: only a log.)", this);
+                          $"minigame locked for {lockoutSeconds:0.#} s. The water stays.", this);
+                SurvivalRules.MinigameLost();
                 break;
         }
     }
