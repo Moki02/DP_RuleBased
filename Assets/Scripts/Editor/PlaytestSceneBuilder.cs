@@ -141,6 +141,8 @@ namespace TheLastDrop
             var go = FindRoot(scene, SystemsName) ?? new GameObject(SystemsName);
             var provider = GetOrAdd<BalanceProvider>(go);
             provider.balance = balance;
+            // Demo mode asset for the main menu's Demo button (R13.1).
+            provider.demoBalance = AssetDatabase.LoadAssetAtPath<GameBalance>("Assets/Scripts/Data/GameBalance_Demo.asset");
             return go;
         }
 
