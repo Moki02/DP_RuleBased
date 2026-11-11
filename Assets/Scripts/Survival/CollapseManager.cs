@@ -110,6 +110,9 @@ namespace TheLastDrop
             if (death != null) death.ReviveAt(pos, rot, wakeHyd);
             else if (Game_Manager.instance != null) Game_Manager.instance.ChangeGameState(Game_Manager.GameState.Exploring);
 
+            // The rest of the unbanked water is home now (R3.5), but with no Safe Return bonus.
+            if (SurvivalDirector.Instance != null) SurvivalDirector.Instance.Bank(false);
+
             SimpleHud.SetFade(0f);
             string kept = Skills.B("keepCanteenOnCollapse", false) ? "canteen kept (Second Wind)" : $"-{lostCanteen:0.0} L canteen";
             SimpleHud.Banner("YOU COLLAPSED", $"{kept}, -{lostUnbanked:0.0} L unbanked, -{clockCost:0} s. You drank {wakeLitres:0.#} L at home.", 5f);

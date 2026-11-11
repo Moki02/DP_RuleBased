@@ -27,12 +27,17 @@ namespace TheLastDrop
         [Tooltip("How often the HUD text refreshes, in seconds.")]
         [Min(0.02f)] public float hudInterval = 0.15f;
 
+        /// <summary>The director in this scene (null in old scenes).</summary>
+        public static SurvivalDirector Instance { get; private set; }
+
         GameBalance balance;
         MazeBuilder maze;
         MapRevealTracker tracker;
         MapReveal subscribedReveal;
         bool wasAtHub = true;
         float hudTimer;
+
+        void Awake() => Instance = this;
 
         void Start()
         {
@@ -44,6 +49,7 @@ namespace TheLastDrop
 
         void OnDestroy()
         {
+            if (Instance == this) Instance = null;
             if (subscribedReveal != null) subscribedReveal.TileSeen -= OnTileSeen;
         }
 
@@ -91,17 +97,21 @@ namespace TheLastDrop
         void CheckBanking()
         {
             bool atHub = PlayerAtHub();
-            if (atHub && !wasAtHub) Bank();
+            if (atHub && !wasAtHub) Bank(true);
             wasAtHub = atHub;
         }
 
-        void Bank()
+        /// <summary>
+        /// Banks the unbanked water now (the player is at the hub). <paramref name="allowBonus"/> = false
+        /// skips the Safe Return bonus (used after a collapse: being carried home isn't a safe return).
+        /// </summary>
+        public void Bank(bool allowBonus)
         {
             var res = GameResources_Manager.instance;
             if (res == null || res.unbankedWater <= 0.0001f) return;
 
             float carried = res.unbankedWater;
-            bool beforeLockdown = GameClock_Manager.Instance == null || !GameClock_Manager.Instance.IsNight;
+            bool beforeLockdown = allowBonus && (GameClock_Manager.Instance == null || !GameClock_Manager.Instance.IsNight);
             float bonus = beforeLockdown && balance != null ? carried * balance.safeReturnBonus : 0f;
             res.unbankedWater = 0f;
             float toJugs = res.StoreHomeWater(carried + bonus);
