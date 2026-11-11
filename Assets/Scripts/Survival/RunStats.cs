@@ -7,7 +7,10 @@
 // DESIGN RULES: R11.7 (ending screen stats).
 //
 // HOW TO USE: added to the game scene by itself. Anything that brings water into the
-// game calls RunStats.AddCollected(litres).
+// game calls RunStats.AddCollected(litres) once, when the water first appears (pump,
+// sources, rewards, new tiles, the Safe Return bonus). Moving water between containers
+// (banking, purifying, the tap) is NOT counted again.
+// HOW TO EDIT: nothing to tune. The end screen text is in Summary().
 // ============================================================================
 
 using UnityEngine;

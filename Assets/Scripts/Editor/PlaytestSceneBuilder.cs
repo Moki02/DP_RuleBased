@@ -363,14 +363,16 @@ namespace TheLastDrop
             // The spawn is the centre tile (47, 47); the base runs 6 tiles each way. Put the
             // stations 3 tiles from the spawn, west, north and east, so the player sees them.
             var c = builder.Grid != null ? builder.Grid.Centre : new Vector2Int(47, 47);
-            Place(pump, builder.GridToWorld(c.x - 3, c.y), 90f);
-            Place(pot, builder.GridToWorld(c.x, c.y - 3), 180f);
-            Place(storage, builder.GridToWorld(c.x + 3, c.y), -90f);
+            Place(pump, root.transform, builder.GridToWorld(c.x - 3, c.y), 90f);
+            Place(pot, root.transform, builder.GridToWorld(c.x, c.y - 3), 180f);
+            Place(storage, root.transform, builder.GridToWorld(c.x + 3, c.y), -90f);
         }
 
-        static void Place(GameObject go, Vector3 position, float yaw)
+        // Moves a station only if it was just added under HubStations. A pump, pot or tap that
+        // someone already placed elsewhere in the scene (EnsurePrefab finds it anywhere) stays put.
+        static void Place(GameObject go, Transform root, Vector3 position, float yaw)
         {
-            if (go == null) return;
+            if (go == null || go.transform.parent != root) return;
             go.transform.SetPositionAndRotation(position, Quaternion.Euler(0f, yaw, 0f));
         }
 

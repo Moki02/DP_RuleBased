@@ -28,7 +28,7 @@ namespace TheLastDrop
         public bool isDemoMode = false;
 
         [Tooltip("Debug keys on (Scope and roles > Developer handoff): 0 reveal map, 5 turn zone 2, 6 clock × speed, " +
-                 "7 +Clean Storage, F1 debug HUD, F5 save, F9 load. 8 and 9 are kept for drought stage and events. " +
+                 "7 +Clean Storage, 4 toggle rain, 8 next drought stage, 9 next event, F1 debug HUD, F5 save, F8 win now, F9 load. " +
                  "Turn off for the final build.")]
         public bool enableDebugKeys = true;
 
@@ -45,7 +45,8 @@ namespace TheLastDrop
         [Tooltip("Debug key 7 adds this many litres to Clean Storage (never past its size).")]
         [Min(0f)] public float debugCleanStorageLiters = 50f;
 
-        [Tooltip("OPEN QUESTION in the GDD: should one collapse end the game? Off = wake at the hub (R11.1-R11.3).")]
+        [Tooltip("NOT USED by the code: a collapse never ends the game on its own; only R11.4 (less than " +
+                 "2 L at home) does. Keep it off (GDD Developer handoff).")]
         public bool collapseEndsGame = false;
 
         // ------------------------------------------------------------------ Clock (R1.5)
@@ -264,7 +265,7 @@ namespace TheLastDrop
         public float[] milestonePercents = { 0.25f, 0.5f, 0.75f, 1f };
         public float[] milestoneRewards = { 10f, 15f, 20f, 30f };
 
-        [Tooltip("First-open reward for a minigame gate, per zone: [0] zone 1, [1] zone 2, [2] zone 3. The playtest only logs it.")]
+        [Tooltip("First-open reward for a minigame (valve) gate in litres, per zone: [0] zone 1, [1] zone 2, [2] zone 3 (R8.8). Paid once into unbanked water.")]
         public float[] gateReward = { 2f, 2f, 3f };
 
         [Tooltip("Share of unbanked water lost on collapse (R11.2).")]
@@ -279,7 +280,7 @@ namespace TheLastDrop
 
         // ------------------------------------------------------------------ Minigames (section 9)
         [Header("Minigames")]
-        [Tooltip("HYD lost when a minigame is lost (R9.3). The playtest only logs it.")]
+        [Tooltip("HYD lost when a minigame is lost (R9.3). Applied by SurvivalRules.MinigameLost.")]
         [Min(0f)] public float minigameFailHyd = 5f;
         [Tooltip("Seconds a gate's minigame stays locked after a loss (R9.3).")]
         [Min(0f)] public float minigameLockout = 10f;   // s

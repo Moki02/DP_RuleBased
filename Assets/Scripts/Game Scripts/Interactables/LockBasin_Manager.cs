@@ -6,7 +6,8 @@
 //   OFF (old scenes, as before): when the basin is full the gate opens.
 //   ON  (maze playtest, R8.9):   when the basin is full the prompt says "Press [E] to open
 //        the valve" and the Valve Timing minigame starts. Win: the gate opens for good.
-//        Lose: the water stays, but the minigame is locked for 10 s (R9.3). Esc: no penalty.
+//        Lose: -5 HYD (SurvivalRules.MinigameLost); the water stays, but the minigame is
+//        locked for 10 s (R9.3). Esc: no penalty.
 //        At night the gate is shut even if it was opened, and reopens at dawn (R8.21, R8.23).
 //
 // The rules themselves live in GateLockLogic (plain C#, tested). Water poured stays in the
@@ -18,6 +19,8 @@
 // HOW TO USE: the Lock Basin prefab has this. In the maze playtest GateManager places one
 // per gate and fills in every field; you don't set anything by hand. In an old scene,
 // drag the gate wall into "Gate Object" and set "Basin Max Water".
+// Pouring takes water from the canteen at the pour rate (×1.5 with M4 Quick Hands).
+//
 // HOW TO EDIT: litres and pour rate come from GameBalance in the maze playtest. The prompt
 // texts are under "Text (what the player reads)".
 // ============================================================================
@@ -60,7 +63,7 @@ public class LockBasin_Manager : Interactable_Manager, INightLockable
     public float difficultyT = -1f;
     [Tooltip("Seconds the minigame stays locked after a loss (R9.3).")]
     public float lockoutSeconds = 10f;
-    [Tooltip("HYD the player would lose for a lost minigame (R9.3). The playtest only logs it.")]
+    [Tooltip("Only for the Console line: HYD lost for a lost minigame (R9.3). The real cost is GameBalance > Minigame Fail Hyd, applied by SurvivalRules.MinigameLost.")]
     public float failHydLog = 5f;
     [Tooltip("True for zone 2's exit gates: winning one is the game's win (R11.6).")]
     public bool isExitGate = false;

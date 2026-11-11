@@ -11,7 +11,10 @@
 // HOW TO USE: put this on the "Systems" object and drag the Maze object (with the
 // MazeBuilder) into "Maze". Anything that should close at night implements
 // INightLockable; this script finds them all when night starts.
-// HOW TO EDIT: the night length is "Night Lockdown Seconds" in GameBalance.
+// HOW TO EDIT: the night length is "Night Lockdown Seconds" in GameBalance; the warning times
+// and the 4 HYD/s drain are in GameBalance > Survival loop ("Lockdown Warnings", "Lockdown Drain").
+// R8.20 also asks for a siren and a flash of the water bar: not made yet (the warnings are
+// toasts and a HUD countdown line for now).
 // TESTING TIP: untick "Gates Enabled" on the MazeBuilder to walk through gates by day;
 // they still appear at night, so you can watch the lockdown work.
 // ============================================================================

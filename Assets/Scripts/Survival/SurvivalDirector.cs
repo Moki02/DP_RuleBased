@@ -1,10 +1,13 @@
 // ============================================================================
 // SurvivalDirector.cs
 // Ties the survival loop together in the maze game:
-//   - turns survival on (hydration drains, the canteen runs out) when GameBalance says so;
-//   - pays 0.03 L of unbanked water for every new floor or room tile seen (R8.2a);
+//   (GameBalance > Survival On itself is applied by GameResources_Manager and
+//    PlayerHydration_Manager: drain on, canteen runs out.)
+//   - pays 0.03 L of unbanked water for every new floor or room tile seen (R8.2a), using
+//     MapReveal.TileSeen (not fired by loading a save or by debug key 0, so never paid twice);
 //   - banks unbanked water the moment the player walks into the hub, with the +10% Safe
-//     Return bonus if it's still daytime (R3.5), and shows "+X L banked";
+//     Return bonus if it's still daytime (R3.5), and shows "+X L banked"; what doesn't fit
+//     goes to the Raw Basin, then the spare jugs (GameResources_Manager.StoreHomeWater);
 //   - shows the water numbers as plain text on the left of the screen.
 // SurvivalRules (bottom) are small helpers for minigame losses and rewards (R9.3, R8.8).
 //
@@ -55,9 +58,11 @@ namespace TheLastDrop
 
         void Update()
         {
-            // The map tracker makes its MapReveal in Start, so subscribe once it exists.
-            if (subscribedReveal == null && tracker != null && tracker.Reveal != null)
+            // The map tracker makes its MapReveal in Start, so subscribe once it exists
+            // (and move over if it's ever replaced, so a tile is never paid by two of them).
+            if (tracker != null && tracker.Reveal != null && tracker.Reveal != subscribedReveal)
             {
+                if (subscribedReveal != null) subscribedReveal.TileSeen -= OnTileSeen;
                 subscribedReveal = tracker.Reveal;
                 subscribedReveal.TileSeen += OnTileSeen;
             }

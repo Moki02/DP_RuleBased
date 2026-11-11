@@ -4,6 +4,10 @@
 // jump survives F5 / F9. The stage itself comes from the saved day, so it isn't stored.
 // Same SaveData class, split over files so each feature adds its own fields.
 //
+// Written by StageManager.
+//
+// DESIGN RULES: R11.8 (saving), R10.1.
+//
 // HOW TO EDIT: add fields here; old saves without them load with these defaults.
 // ============================================================================
 

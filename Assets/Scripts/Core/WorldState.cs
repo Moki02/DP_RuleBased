@@ -17,6 +17,7 @@
 // HOW TO USE: read WorldState.StageIndex, WorldState.IsRaining, ... from any script.
 // Owners set their facts in Start or later, never in Awake (the scene-load reset could
 // run after an Awake and wipe it).
+// HOW TO EDIT: nothing to tune; stage numbers are in GameBalance > Drought stages.
 // ============================================================================
 
 using UnityEngine;

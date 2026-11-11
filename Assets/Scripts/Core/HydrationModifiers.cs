@@ -13,7 +13,10 @@
 // DESIGN RULES: R2.1.
 //
 // HOW TO USE: Add(key, function) once (in Start); Remove(key) in OnDestroy.
-// Using the same key again replaces the old one.
+// Using the same key again replaces the old one. Keys in use: "stage" (StageManager),
+// EventManager.ModifierKey (Thunderstorm / Heatwave). Skills E1 / E2 are applied by
+// PlayerHydration_Manager itself. The F1 debug HUD lists them all (Describe).
+// HOW TO EDIT: nothing to tune here; each system's numbers are in GameBalance.
 // ============================================================================
 
 using System;

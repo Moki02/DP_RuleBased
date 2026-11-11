@@ -1,8 +1,14 @@
 // ============================================================================
 // UpgradeManager.cs
 // Owns the Build and Skills state in the scene: what's owned and how much water is in
-// Clean Storage (UpgradeLogic does the rules). Applies the effects this scene can show
-// and keeps the HUD's Clean Storage numbers (GameResources_Manager) in step.
+// Clean Storage (UpgradeLogic does the rules). Applies the effects this scene can show.
+// Clean Storage has ONE owner, UpgradeLogic.Stored: GameResources_Manager.cleanStorage
+// reads and writes that same number (nothing keeps a second copy), and this script saves it.
+//
+// START ORDER: Awake makes the UpgradeLogic (Clean Storage starts at GameBalance > Start
+// Clean), using BalanceProvider.Current, which is set first (BalanceProvider runs its Awake
+// before every other script). Start applies the effects (canteen and Raw Basin sizes,
+// speeds). A save is loaded later (SaveManager waits two frames), so it overwrites all this.
 //
 // Effects WIRED in the playtest:
 //   M1 Light Sandals   walkSpeed 4.4        -> PlayerStats_Manager walking speed

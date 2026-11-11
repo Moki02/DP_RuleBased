@@ -5,6 +5,7 @@
 //   - zone 2's turn (0 / 90 / 180 / 270°);
 //   - the player's tile (x, y), ring, maze part and the tile code under them;
 //   - Clean Storage;
+//   - HYD, the drain per second and every drain multiplier (stage, event ...; R2.1);
 //   - the nearest gate or valve: its state, litres and difficulty t.
 // F1 also shows the minigame's debug line (t, band, speed) while a minigame is open.
 //
@@ -105,6 +106,20 @@ namespace TheLastDrop
             if (upgrades != null && upgrades.Logic != null)
                 sb.AppendLine($"Clean Storage: {upgrades.Logic.Stored:0.0} / {upgrades.Logic.Cap:0} L   " +
                               $"at hub: {(upgrades.PlayerAtHub ? "yes" : "no")}   owned: {upgrades.Logic.Owned.Count}");
+
+            // HYD drain and every multiplier in HydrationModifiers (R2.1), to check the drought and events.
+            var hyd = player != null ? player.playerHydration_Manager : null;
+            if (hyd != null && player.playerStats_Manager != null)
+            {
+                var ctx = new DrainContext
+                {
+                    InHub = hyd.IsInsideHub(),
+                    Day = clock != null ? clock.Day : 1
+                };
+                string mods = HydrationModifiers.Describe(ctx);
+                sb.AppendLine($"HYD {player.playerStats_Manager.player_Hydration:0.0}   drain {hyd.LastDrainPerSecond:0.00}/s" +
+                              (string.IsNullOrEmpty(mods) ? "" : $"   [{mods}]"));
+            }
 
             if (player != null) AppendNearestGate(player.transform.position);
             return sb.ToString();

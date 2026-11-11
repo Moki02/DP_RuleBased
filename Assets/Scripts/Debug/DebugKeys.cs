@@ -12,10 +12,16 @@
 //    F1 | Debug HUD on/off (also the minigame's t / band / speed line)
 //    F5 | Save now
 //    F9 | Load the save
-//   8 and 9 are kept free: they're reserved for drought stage and events.
+//   Added by other systems with Register (they work only while debug keys are on too):
+//    4  | Toggle rain (Sources/WaterSources.cs)
+//    8  | Next drought stage (Drought/StageManager.cs)
+//    9  | Next event: Thunderstorm > Heatwave > Calm (Events/EventManager.cs)
+//    F8 | Win now, to test the ending screen (Menus/WinScreen.cs)
 //
 // Other systems add their own keys without editing this file:
-//     DebugKeys.Register(Key.Digit8, "next drought stage", () => ...);
+//     DebugKeys.Register(Key.Digit8, "next drought stage", () => ...);   // in Start
+//     DebugKeys.Unregister(Key.Digit8);                                   // in OnDestroy
+// Pick a key nobody uses yet (check this table): registering a used key replaces it.
 //
 // DESIGN RULES: none (testing only).
 //
