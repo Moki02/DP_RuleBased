@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29d73f8fa29a3af478b6ddd67f6b6253, type: 3}
+  m_Name: W2
+  m_EditorClassIdentifier: Assembly-CSharp::TheLastDrop.UpgradeData
+  id: W2
+  displayName: Rain Catcher
+  tab: 0
+  group: Water
+  costLiters: 15
+  prerequisiteIds: []
+  priority: 0
+  tooltip: "Unlocks the Rain Catcher (4 m\xB2). Fills the Raw Basin while it rains."
+  effects:
+  - field: unlockSource
+    value: RainCatcher
+    note: 
+  - field: catchArea
+    value: 4
+    note: "m\xB2"

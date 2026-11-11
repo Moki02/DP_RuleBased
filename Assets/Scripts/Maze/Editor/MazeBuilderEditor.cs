@@ -7,7 +7,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-namespace DryLabyrinth.Maze.EditorTools
+namespace TheLastDrop
 {
     [CustomEditor(typeof(MazeBuilder))]
     public class MazeBuilderEditor : Editor
@@ -31,7 +31,11 @@ namespace DryLabyrinth.Maze.EditorTools
                 EditorGUILayout.HelpBox(
                     $"{g.Width} x {g.Height} tiles = {g.Width * builder.TileSize:0} x {g.Height * builder.TileSize:0} m (tile {builder.TileSize} m)\n" +
                     $"Walls {g.Count(TileType.Wall)}   Floor {g.Count(TileType.Floor)}   Gates {g.Count(TileType.Gate)}   " +
-                    $"Doors {g.Count(TileType.Door)}   Room tiles {g.Count(TileType.Room)}   Base tiles {g.Count(TileType.Spawn)}\n" +
+                    $"Doors {g.Count(TileType.Door) + g.Count(TileType.TimedDoor)}   Valves {g.Count(TileType.Valve)}   " +
+                    $"Room tiles {g.Count(TileType.Room)}   Base tiles {g.Count(TileType.Spawn)}\n" +
+                    (builder.splitForZone2Rotation
+                        ? $"Split mode: {g.Gates.Count} gates, {g.Valves.Count} valves, {g.Rooms.Count} rooms; zone 2 goes under Zone2Pivot.\n"
+                        : "") +
                     (builder.tileSet == null
                         ? "No Tile Set: ProBuilder grey-box."
                         : $"Tile Set: {builder.tileSet.name}, {builder.tileSet.wallMode} mode (empty lists use grey-box).") +

@@ -14,14 +14,18 @@
 //
 // For the exit valve (R11.6), set Location to Exit Valve and keep this component disabled
 // until the Exit Lock is full; the lock script then enables it.
+//
+// Maze playtest: GateManager adds one of these to every V tile's grate, with "Use Custom
+// Settings" on and the difficulty worked out from the valve's ring (ValveDifficulty, R9.6).
+// It also logs the HYD cost of a loss (R9.3) and the water reward of a win (R8.8); in the
+// playtest those are only log lines.
 
 using UnityEngine;
 using UnityEngine.Events;
-using DryLabyrinth.Data;
 
-namespace DryLabyrinth.Minigames
+namespace TheLastDrop
 {
-    public class ValveGate : Interactable_Manager
+    public class ValveGate : Interactable_Manager, INightLockable
     {
         [Header("Valve gate")]
         public GameBalance balance;
@@ -30,6 +34,24 @@ namespace DryLabyrinth.Minigames
         public ValveLocation location = ValveLocation.Zone1;
 
         public string promptMessage = "Press [E] to turn the valve";
+
+        [Tooltip("On: use Custom Settings below instead of the Location row (the maze playtest sets this).")]
+        public bool useCustomSettings = false;
+
+        [Tooltip("Band width (degrees), needle speed (degrees/second), hits to win and misses to lose for this valve.")]
+        public ValveTimingSettings customSettings;
+
+        [Tooltip("Difficulty t (0-1) shown on the F1 debug line. -1 = not known.")]
+        public float difficultyT = -1f;
+
+        [Tooltip("Which GameBalance.gateReward entry this valve pays when first opened: 0 zone 1, 1 zone 2, 2 zone 3.")]
+        public int rewardZoneIndex = 0;
+
+        [Tooltip("Write the HYD cost of a loss and the reward of a win to the Console (the playtest doesn't apply them).")]
+        public bool logWaterChanges = true;
+
+        /// <summary>Called when the valve opens for good, with this valve.</summary>
+        public event System.Action<ValveGate> Opened;
 
         [Tooltip("Hide the gate's renderers when it opens. Untick if On Opened plays an animation instead.")]
         public bool hideWhenOpen = true;
@@ -118,7 +140,10 @@ namespace DryLabyrinth.Minigames
                 Debug.LogError("[ValveGate] No ValveTimingGame in the scene.", this);
                 return;
             }
-            if (!game.Begin(location, OnResult)) return;
+            bool started = useCustomSettings && customSettings != null
+                ? game.Begin(customSettings, OnResult, difficultyT)
+                : game.Begin(location, OnResult);
+            if (!started) return;
 
             activeGame = true;
             SetPlayingState(true);
@@ -132,10 +157,12 @@ namespace DryLabyrinth.Minigames
             switch (result)
             {
                 case MinigameResult.Won:
+                    LogWater($"won: +{Reward:0.#} L water reward (R8.8)");
                     Open();
                     break;
                 case MinigameResult.Lost:   // R9.3 (HYD cost goes on On Failed later)
                     jammedUntil = Time.time + (balance != null ? balance.minigameLockout : 10f);
+                    LogWater($"lost: -{(balance != null ? balance.minigameFailHyd : 0f):0.#} HYD (R9.3), minigame locked for {(balance != null ? balance.minigameLockout : 10f):0.#} s");
                     onFailed.Invoke();
                     break;
                 case MinigameResult.Quit:   // R9.2
@@ -165,8 +192,9 @@ namespace DryLabyrinth.Minigames
         {
             if (IsOpen) return;
             IsOpen = true;
-            ApplySolid(false);
+            ApplySolid(lockdownClosed); // opened at night (e.g. loading a save): stays shut until dawn
             onOpened.Invoke();
+            Opened?.Invoke(this);
         }
 
         /// <summary>For the night lockdown script later (R8.21 / R8.23): true closes an opened gate,
@@ -176,6 +204,31 @@ namespace DryLabyrinth.Minigames
             lockdownClosed = closed;
             if (IsOpen) ApplySolid(closed);
         }
+
+        // Water reward for first opening this valve (GameBalance.gateReward), 0 if not set.
+        float Reward => balance != null && balance.gateReward != null && balance.gateReward.Length > 0
+            ? balance.gateReward[Mathf.Clamp(rewardZoneIndex, 0, balance.gateReward.Length - 1)]
+            : 0f;
+
+        void LogWater(string what)
+        {
+            if (logWaterChanges)
+                Debug.Log($"[ValveGate] {name} {what}. (Playtest: water does nothing, this is only a log.)", this);
+        }
+
+        /// <summary>
+        /// Loading a save: sets the valve open or shut without events or log lines.
+        /// An open valve stays shut until dawn if it's night.
+        /// </summary>
+        public void SetOpenState(bool open)
+        {
+            IsOpen = open;
+            jammedUntil = 0f;
+            ApplySolid(!open || lockdownClosed);
+        }
+
+        /// <summary>Called by NightLockdown at night start (true) and at dawn (false).</summary>
+        public void SetNightLock(bool locked) => SetLockdown(locked);
 
         void ApplySolid(bool solid)
         {

@@ -1,10 +1,10 @@
 // GameBalance.cs
-// Every tunable number in Dry Labyrinth lives here, so the designer can retune the game
+// Every tunable number in The Last Drop lives here, so the designer can retune the game
 // in the Inspector without touching code. Values match the GDD (Rules tab, section 12
 // "Balance sheet", plus sections 4, 5, 6, 9, 10, 11 and 13).
 //
 // How to use:
-//   1. Right-click in the Project window > Create > Dry Labyrinth > Game Balance.
+//   1. Right-click in the Project window > Create > The Last Drop > Game Balance.
 //      Name it "GameBalance". It starts with the full-game values from the GDD.
 //   2. Create a second one named "GameBalance_Demo", select it, click the "⋮" menu in the
 //      Inspector header and choose "Apply Demo Mode preset" (GDD Rules section 13).
@@ -17,9 +17,9 @@
 using System;
 using UnityEngine;
 
-namespace DryLabyrinth.Data
+namespace TheLastDrop
 {
-    [CreateAssetMenu(fileName = "GameBalance", menuName = "Dry Labyrinth/Game Balance")]
+    [CreateAssetMenu(fileName = "GameBalance", menuName = "The Last Drop/Game Balance")]
     public class GameBalance : ScriptableObject
     {
         // ------------------------------------------------------------------ Mode
@@ -27,22 +27,39 @@ namespace DryLabyrinth.Data
         [Tooltip("True only on the GameBalance_Demo asset (GDD Rules section 13).")]
         public bool isDemoMode = false;
 
-        [Tooltip("Debug keys 6, 7, 8, 9, 0 (Scope and roles > Developer handoff). Turn off for the final build.")]
+        [Tooltip("Debug keys on (Scope and roles > Developer handoff): 0 reveal map, 5 turn zone 2, 6 clock × speed, " +
+                 "7 +Clean Storage, F1 debug HUD, F5 save, F9 load. 8 and 9 are kept for drought stage and events. " +
+                 "Turn off for the final build.")]
         public bool enableDebugKeys = true;
 
         [Tooltip("How many maze zones are used. Full game 3, Demo mode 1 (Lock 1 becomes the exit).")]
         [Range(1, 3)] public int zoneCount = 3;
 
-        [Tooltip("Multiplies every skill cost. Full game 1, Demo mode 0.5 (rounded up).")]
+        [Tooltip("Multiplies every Build item and skill cost. Full game 1, Demo mode 0.5 (rounded up).")]
         [Min(0f)] public float skillCostMultiplier = 1f;
+
+        [Tooltip("Playtest: buy Build items and skills anywhere in the maze. Off = only at the hub (R7.2). " +
+                 "The Build Playtest Scene menu turns this on.")]
+        public bool allowBuyingAnywhere = false;
+
+        [Tooltip("Debug key 7 adds this many litres to Clean Storage (never past its size).")]
+        [Min(0f)] public float debugCleanStorageLiters = 50f;
 
         [Tooltip("OPEN QUESTION in the GDD: should one collapse end the game? Off = wake at the hub (R11.1-R11.3).")]
         public bool collapseEndsGame = false;
 
         // ------------------------------------------------------------------ Clock (R1.5)
         [Header("Clock")]
-        [Tooltip("Real seconds per in-game day.")]
+        [Tooltip("Daylight: real seconds from dawn until the night lockdown starts (R1.5). " +
+                 "A whole day is this plus Night Lockdown Seconds (240 + 60 = 300 s).")]
         [Min(1f)] public float dayLengthSeconds = 240f;
+
+        [Tooltip("Night lockdown: real seconds from the start of the night until the next dawn (R8.19). " +
+                 "Every gate is closed during this time (R8.21, R8.23).")]
+        [Min(0f)] public float nightLockdownSeconds = 60f;
+
+        [Tooltip("Debug key 6 makes the clock run this many times faster (press again for normal speed).")]
+        [Min(1f)] public float debugClockSpeed = 4f;
 
         [Tooltip("Clock time lost when the player collapses (R11.2).")]
         [Min(0f)] public float collapseClockPenalty = 30f;
@@ -192,13 +209,51 @@ namespace DryLabyrinth.Data
 
         // ------------------------------------------------------------------ Maze and mapping (section 8)
         [Header("Maze and mapping")]
+        [Tooltip("Size of one maze tile in metres (GDD: 4 m). The builder places tile (x, y) at x × this on X and (last row − y) × this on Z.")]
         [Min(0.1f)] public float cellSize = 4f;         // m
+        [Tooltip("OLD: from the 41-cell layout. Not used any more; the maze size now comes from the CSV (95 × 95).")]
         [Min(1)] public int gridSize = 41;              // cells per side
+
+        // ------------------------------------------------------------------ Maze layout (rings)
+        // A tile's "ring" is how many steps it is from the centre tile, counting diagonal steps
+        // as one: ring = max(|x − centre|, |y − centre|). Each part of the maze is a band of rings.
+        [Header("Maze layout (2-layer map, GDD R8.24)")]
+        [Tooltip("Height of grey-box walls and of the invisible wall colliders, in metres (GDD: 10 to 12 m).")]
+        [Min(0.5f)] public float wallHeight = 11f;
+
+        [Tooltip("Last ring of the hub (rings 0 to this). The hub is the 13 × 13 base plus its 3-tile wall with 4 gates.")]
+        [Min(0)] public int hubMaxRing = 9;
+
+        [Tooltip("Last ring of zone 1, including its outer wall with the 4 exit gates. Zone 1 never turns.")]
+        [Min(0)] public int zone1MaxRing = 27;
+
+        [Tooltip("Last ring of zone 2, the part that turns. Rings after this are the outer wall with zone 2's 8 exit gates.")]
+        [Min(0)] public int zone2MaxRing = 44;
+
+        [Tooltip("Zone 2 turns 90 degrees clockwise at the start of the night lockdown of every Nth day (R8.24). " +
+                 "2 = the nights of days 2, 4, 6 ...")]
+        [Min(1)] public int zone2DaysBetweenTurns = 2;
+        [Tooltip("OLD: circle reveal in metres. Not used any more; the map now uses the tile rules R8.1a to R8.1d (fields below).")]
         [Min(0f)] public float revealRadius = 8f;       // m
+        [Tooltip("OLD: circle reveal with Trail Sense, in metres. Not used any more (see Map Look Ahead Tiles Trail Sense).")]
         [Min(0f)] public float revealRadiusTrailSense = 14f;
+        [Tooltip("Share of a section's tiles (0-1) that counts as 'mapped' for the section reward. Not used in the playtest.")]
         [Range(0f, 1f)] public float sectionMappedPct = 0.75f;
+        [Tooltip("Map markers the player can place with F (R8.4).")]
         [Min(0)] public int markerLimit = 3;
+        [Tooltip("REFERENCE ONLY: the real V2 Landmarks value is the \"maxMarkers\" effect in BuildAndSkills_Effects.csv (8). Keep the two the same.")]
         [Min(0)] public int markerLimitLandmarks = 8;
+
+        [Header("Map reveal (R8.1a to R8.1d)")]
+        [Tooltip("R8.1b: tiles revealed ahead of the player, in the camera's facing direction (north/east/south/west).")]
+        [Min(0)] public int mapLookAheadTiles = 2;
+        [Tooltip("REFERENCE ONLY: the real V1 Trail Sense value is the \"lookAheadTiles\" effect in BuildAndSkills_Effects.csv (4). Keep the two the same.")]
+        [Min(0)] public int mapLookAheadTilesTrailSense = 4;
+        [Tooltip("Off = the look-ahead only happens when the player steps onto a new tile (the rule as written). " +
+                 "On = it also happens when the player turns the camera while standing still.")]
+        public bool mapLookAheadWhenTurning = false;
+        [Tooltip("How long revealed zone 2 tiles flash the first time the map opens after zone 2 turned, in seconds.")]
+        [Min(0f)] public float mapTurnFlashSeconds = 2f;
 
         // ------------------------------------------------------------------ Rewards
         [Header("Rewards (go to unbanked water)")]
@@ -209,7 +264,7 @@ namespace DryLabyrinth.Data
         public float[] milestonePercents = { 0.25f, 0.5f, 0.75f, 1f };
         public float[] milestoneRewards = { 10f, 15f, 20f, 30f };
 
-        [Tooltip("First-open reward for a minigame gate, per zone.")]
+        [Tooltip("First-open reward for a minigame gate, per zone: [0] zone 1, [1] zone 2, [2] zone 3. The playtest only logs it.")]
         public float[] gateReward = { 2f, 2f, 3f };
 
         [Tooltip("Share of unbanked water lost on collapse (R11.2).")]
@@ -217,16 +272,38 @@ namespace DryLabyrinth.Data
 
         // ------------------------------------------------------------------ Lock basins
         [Header("Lock basins")]
-        [Tooltip("Liters to fill each lock: [0] Lock 1, [1] Lock 2, [2] Exit Lock. Demo mode uses only [0].")]
+        [Tooltip("Litres to fill each lock basin (R8.9): [0] hub gates, [1] zone 1 exits, [2] zone 2 exits. Demo mode uses only [0].")]
         public float[] lockLiters = { 4f, 10f, 18f };
+        [Tooltip("Litres per second poured from the canteen into a lock basin while E is held.")]
         [Min(0f)] public float pourRate = 1f;           // L/s
 
         // ------------------------------------------------------------------ Minigames (section 9)
         [Header("Minigames")]
+        [Tooltip("HYD lost when a minigame is lost (R9.3). The playtest only logs it.")]
         [Min(0f)] public float minigameFailHyd = 5f;
+        [Tooltip("Seconds a gate's minigame stays locked after a loss (R9.3).")]
         [Min(0f)] public float minigameLockout = 10f;   // s
 
-        [Tooltip("Valve Timing per gate location: [0] zone 1, [1] zone 2, [2] zone 3, [3] exit valve.")]
+        [Header("Valve Timing difficulty by distance from the hub (R9.6)")]
+        [Tooltip("t = clamp01((ring − this) / Ring Span). The ring is that of the gate's tile nearest the centre. At this ring t = 0 (easiest).")]
+        public int valveDifficultyRingStart = 9;
+        [Tooltip("How many rings it takes for t to go from 0 to 1 (hardest). 35 = from the hub wall to the edge of zone 2.")]
+        [Min(1)] public int valveDifficultyRingSpan = 35;
+        [Tooltip("Green band width at t = 0, in degrees.")]
+        [Min(1f)] public float valveBandAtHub = 30f;
+        [Tooltip("How many degrees the band shrinks by t = 1. Band = Band At Hub − this × t.")]
+        [Min(0f)] public float valveBandShrink = 15f;
+        [Tooltip("Needle speed at t = 0, in degrees per second.")]
+        [Min(1f)] public float valveSpeedAtHub = 120f;
+        [Tooltip("How many degrees per second the needle gains by t = 1. Speed = Speed At Hub + this × t.")]
+        [Min(0f)] public float valveSpeedGain = 80f;
+        [Tooltip("Hits needed to win a normal gate or valve.")]
+        [Min(1)] public int valveHitsToWin = 3;
+        [Tooltip("Misses that lose a normal gate or valve.")]
+        [Min(1)] public int valveMissesToLose = 3;
+
+        [Tooltip("Valve Timing rows: [3] is the EXIT VALVE, used by zone 2's 8 exit gates (12°, 220°/s, 4 hits, 3 misses). " +
+                 "[0] to [2] are the old per-zone rows, still used by hand-placed ValveGates in the old scenes.")]
         public ValveTimingSettings[] valveTiming =
         {
             new ValveTimingSettings(30f, 120f, 3, 3),
@@ -319,6 +396,12 @@ namespace DryLabyrinth.Data
             return Evaluate(hasDeepSetCylinder ? deepSetPumpByDepth : pumpByDepth, depth);
         }
 
+        /// <summary>The exit valve's Valve Timing settings (row [3]), used by zone 2's exit gates (R11.6).</summary>
+        public ValveTimingSettings ExitValveSettings => valveTiming[Mathf.Min(3, valveTiming.Length - 1)];
+
+        /// <summary>The ring limits of the hub, zone 1 and zone 2, packed for <see cref="MazeGrid"/>.</summary>
+        public MazeRings GetMazeRings() => new MazeRings(hubMaxRing, zone1MaxRing, zone2MaxRing);
+
         /// <summary>Wake-up HYD after a collapse (R11.3).</summary>
         public float GetWakeHyd(float currentHydPerLiter) => Mathf.Min(hydMax, wakeLiters * currentHydPerLiter);
 
@@ -410,6 +493,9 @@ namespace DryLabyrinth.Data
             if (eventWindowMax < eventWindowMin) eventWindowMax = eventWindowMin;
             if (dehydratedAt > thirstyAt) dehydratedAt = thirstyAt;
             if (dayLengthSeconds > 0f && eventWindowMax > dayLengthSeconds) eventWindowMax = dayLengthSeconds;
+            // The maze parts must go outwards in order: hub, then zone 1, then zone 2.
+            if (zone1MaxRing < hubMaxRing) zone1MaxRing = hubMaxRing;
+            if (zone2MaxRing < zone1MaxRing) zone2MaxRing = zone1MaxRing;
         }
     }
 

@@ -1,5 +1,5 @@
 // MazeTileSet.cs
-// The art for one zone. Make one per zone (Create > Dry Labyrinth > Maze Tile Set) and drop
+// The art for one zone. Make one per zone (Create > The Last Drop > Maze Tile Set) and drop
 // it on the MazeBuilder. Any list left empty falls back to a ProBuilder grey-box piece, so
 // the artists can swap pieces in one at a time.
 //
@@ -21,7 +21,7 @@
 using System;
 using UnityEngine;
 
-namespace DryLabyrinth.Maze
+namespace TheLastDrop
 {
     public enum WallMode { Blocks, Faces }
 
@@ -60,7 +60,7 @@ namespace DryLabyrinth.Maze
         public Vector3 Scale => scale == Vector3.zero ? Vector3.one : scale; // new list entries can start at zero
     }
 
-    [CreateAssetMenu(fileName = "MazeTileSet", menuName = "Dry Labyrinth/Maze Tile Set")]
+    [CreateAssetMenu(fileName = "MazeTileSet", menuName = "The Last Drop/Maze Tile Set")]
     public class MazeTileSet : ScriptableObject
     {
         [Header("Walls")]
@@ -91,6 +91,10 @@ namespace DryLabyrinth.Maze
         public MazePiece[] gates = new MazePiece[0];
         [Tooltip("D tiles. Room and hallway doors use the same pieces. Modelled for a corridor running along Z.")]
         public MazePiece[] doors = new MazePiece[0];
+
+        [Tooltip("V tiles: the valve grate that blocks a corridor until its minigame is won (R8.8). " +
+                 "Modelled for a corridor running along Z. Empty = an orange grey-box grate.")]
+        public MazePiece[] valves = new MazePiece[0];
 
         [Header("Floors (optional)")]
         [Tooltip("Placed on every walkable tile. Empty = one big grey-box floor.")]

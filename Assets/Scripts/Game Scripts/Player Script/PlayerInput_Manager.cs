@@ -162,5 +162,13 @@ public class PlayerInput_Manager : MonoBehaviour
                 Game_Manager.GameState.Paused
             );
         }
+        // Esc again resumes (added for the maze playtest). Before, the only way out of the
+        // pause was the Resume button, so a scene whose pause menu couldn't be seen or
+        // clicked (no Canvas or no EventSystem) stayed frozen for good.
+        else if (Game_Manager.instance.currentGameState ==
+                 Game_Manager.GameState.Paused)
+        {
+            Game_Manager.instance.ResumeGame();
+        }
     }
 }

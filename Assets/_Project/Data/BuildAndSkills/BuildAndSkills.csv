@@ -1,0 +1,35 @@
+Id,Name,Tab,Group,CostLiters,Needs,Priority,Tooltip
+W1,Greased Handle,Build,Water,8,,Must,Pump strokes every 0.35 s instead of 0.5 s.
+W2,Rain Catcher,Build,Water,15,,Must,Unlocks the Rain Catcher (4 m²). Fills the Raw Basin while it rains.
+W3,Bigger Roof,Build,Water,20,W2,Must,Rain Catcher area 8 m².
+W8,Wide Roof,Build,Water,60,W3,Nice,Rain Catcher area 16 m².
+W4,Deep-Set Cylinder,Build,Water,20,W1,Must,The hand pump keeps working at Stage 4 (60%).
+W5,Solar Still,Build,Water,30,W2,Must,Unlocks the Solar Still. Clean water straight to storage; stronger as the drought worsens.
+W6,Second Still,Build,Water,50,W5,Nice,Two stills; output doubles.
+W7,Deep Well,Build,Water,120,W4|S3,Must,"Unlocks the Deep Well. Always on, barely touched by the drought."
+S1,Water Jug,Build,Carry,10,,Must,Canteen holds 4 L.
+S4,Hydration Pack,Build,Carry,30,S1,Must,Canteen holds 6 L.
+S7,Jerry Can,Build,Carry,70,S4,Nice,Canteen holds 10 L; you move 10% slower while it holds more than 6 L.
+S2,Plastic Drum,Build,Hub storage,15,,Must,"Clean Storage 50 L, covered (half evaporation)."
+S3,Ferrocement Tank,Build,Hub storage,35,S2,Must,"Clean Storage 150 L, covered."
+S6,Underground Cistern,Build,Hub storage,150,S3,Nice,Clean Storage 300 L; loses a tenth as much to evaporation.
+S5,Bigger Basin,Build,Hub storage,10,,Must,Raw Basin 40 L.
+S8,Concrete Basin,Build,Hub storage,45,S5,Nice,Raw Basin 100 L.
+P1,Biosand Filter,Build,Purification,20,,Must,Purifier 0.4 L/s once ripe (2 days).
+P2,SODIS Bottles,Build,Purification,25,,Nice,Extra purifier on the hub roof: 8 L every 90 s of sun.
+P3,Chlorine Tablets,Build,Purification,35,P1,Nice,Fill the canteen at muddy pools (30 s to treat).
+E1,Salakot,Skills,Endurance,12,,Must,All hydration drain × 0.9.
+E2,Steady Breath,Skills,Endurance,20,E1,Must,Walking and sprinting drain × 0.85.
+E3,Water Discipline,Skills,Endurance,25,E2,Nice,Each liter drunk gives 30 HYD; wake at 60 HYD after a collapse.
+E4,Iron Stomach,Skills,Endurance,30,E1,Nice,Sick lasts 15 s instead of 30.
+E5,Second Wind,Skills,Endurance,50,E3,Nice,A collapse no longer empties the canteen.
+M1,Light Sandals,Skills,Pathfinder,15,,Must,Walk 4.4 m/s.
+M2,Long Stride,Skills,Pathfinder,35,M1,Nice,Sprint 7.3 m/s.
+M3,Pacing,Skills,Pathfinder,30,M1,Nice,Thirsty no longer raises sprint drain.
+M4,Quick Hands,Skills,Pathfinder,20,M1,Nice,Drink and pour 50% faster.
+M5,Marathoner,Skills,Pathfinder,50,M2|M3,Nice,No walk slowdown when Dehydrated.
+V1,Trail Sense,Skills,Scout,15,,Must,The map looks 4 tiles ahead instead of 2.
+V2,Landmarks,Skills,Scout,15,V1,Nice,5 more map markers; gates show on the map.
+V3,Keen Eyes,Skills,Scout,30,V1,Nice,Entering a tile reveals all 8 neighbours.
+V4,Surveyor,Skills,Scout,25,V1,Nice,Section rewards × 1.5.
+V5,Cartographer,Skills,Scout,40,V3|V4,Nice,A section counts as mapped at 60%.

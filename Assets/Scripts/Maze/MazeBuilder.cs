@@ -1,7 +1,19 @@
+// ============================================================================
 // MazeBuilder.cs
-// Builds a maze zone from the designer's CSV layout. Walls, gates, doors, room and base
-// areas and the player spawn are all generated; artists only place props (grass, trees,
-// rocks) by hand.
+// Builds a maze from the designer's CSV layout. Walls, gates, doors, valve grates, room
+// and base areas and the player spawn are all generated; artists only place props (grass,
+// trees, rocks) by hand.
+//
+// DESIGN RULES: GDD maze tab (tile codes), R8.8 (valve grates), R8.24 to R8.28 (zone 2 turns).
+//
+// 2-LAYER MAP (Playtest_Maze): tick "Split For Zone 2 Rotation". The builder then makes:
+//   _Generated/Maze_Static  - hub, zone 1 and the outer wall (never move, marked static)
+//   _Generated/Zone2Pivot   - everything in zone 2 (rings 28 to 44), NOT static, so it can turn.
+//                             The pivot sits on the centre tile, so turning it +90 degrees on Y
+//                             turns zone 2 one step clockwise (seen from above).
+// Put this object at world position (188, 0, 188) with "Center On Transform" on. Then tile
+// (x, y) lands at world (x × 4, 0, (94 - y) × 4): the CSV reads like a top-down map, north = +Z.
+// Tile size and wall height come from GameBalance when it's assigned.
 //
 // How to use:
 //   1. Export the zone tab from Google Sheets (File > Download > CSV) into Assets/Maps.
@@ -15,20 +27,28 @@
 // This works instantly, in the editor or in Play mode, with no rebuild.
 //
 // IMPORTANT: "Build maze" deletes and recreates _Generated. Never put props inside it.
-// Keep props in their own GameObject (for example "Zone1_Props").
+// Keep props in their own GameObject (for example "Zone1_Props"). Props that must turn with
+// zone 2 go under a child of Zone2Pivot after building... and are lost on the next build, so
+// ask the developer before doing that.
+// ============================================================================
 
+using System;
 using System.Collections.Generic;
 using System.Text;
-using DryLabyrinth.Data;
 using UnityEngine;
 using UnityEngine.ProBuilder;
 
-namespace DryLabyrinth.Maze
+namespace TheLastDrop
 {
-    public class MazeBuilder : MonoBehaviour
+    public class MazeBuilder : MonoBehaviour, INightLockable
     {
+        /// <summary>Name of the child that holds everything the builder makes.</summary>
         public const string GeneratedRootName = "_Generated";
-        const string GatesName = "Gates", DoorsName = "Doors";
+        /// <summary>Name of the part that never moves (split mode only).</summary>
+        public const string StaticRootName = "Maze_Static";
+        /// <summary>Name of the part that turns with zone 2 (split mode only).</summary>
+        public const string Zone2PivotName = "Zone2Pivot";
+        const string GatesName = "Gates", DoorsName = "Doors", ValvesName = "Valves";
 
         [Header("Layout")]
         [Tooltip("CSV exported from the zone's Google Sheet tab.")]
@@ -40,8 +60,13 @@ namespace DryLabyrinth.Maze
         [Tooltip("Art for this zone (Synty or kitbashed prefabs). Leave empty for ProBuilder grey-box.")]
         public MazeTileSet tileSet;
 
+        [Tooltip("2-layer map only: build zone 2 under its own Zone2Pivot so it can turn (R8.24). " +
+                 "Needs GameBalance (for the ring limits) and a square CSV with an odd size. " +
+                 "Leave off for the old single-zone scenes.")]
+        public bool splitForZone2Rotation = false;
+
         [Header("Testing")]
-        [Tooltip("Untick to hide every gate (G) so you can walk the whole maze. No rebuild needed.")]
+        [Tooltip("Untick to hide every gate (G) so you can walk the whole maze. No rebuild needed. They still appear during the night lockdown.")]
         public bool gatesEnabled = true;
 
         [Tooltip("Untick to hide every door (D). No rebuild needed.")]
@@ -54,7 +79,8 @@ namespace DryLabyrinth.Maze
         [Tooltip("Metres per tile (GDD: 4 m for testing).")]
         [Min(0.5f)] public float tileSize = 4f;
 
-        [Tooltip("Wall height in metres for grey-box walls and the generated wall collision (GDD: 10 to 12 m).")]
+        [Tooltip("Wall height in metres for grey-box walls and the generated wall collision (GDD: 10 to 12 m). " +
+                 "Ignored when GameBalance is set (GameBalance > Wall Height is used instead).")]
         [Min(0.5f)] public float wallHeight = 11f;
 
         [Tooltip("Put the centre of the maze on this GameObject's position. Off = top-left tile at the position.")]
@@ -78,16 +104,34 @@ namespace DryLabyrinth.Maze
         public Material doorMaterial;
         public Material roomMaterial;
         public Material spawnMaterial;
+        [Tooltip("Valve grates (V tiles) in grey-box. Empty = orange, the map's valve colour.")]
+        public Material valveMaterial;
 
         [Header("Runtime")]
         [Tooltip("Build on Play if the maze hasn't been built in the editor yet.")]
         public bool buildOnStartIfEmpty = true;
 
+        /// <summary>The loaded layout. Null until LoadGrid() or Build() has run.</summary>
         public MazeGrid Grid { get; private set; }
+        /// <summary>Where the player starts (centre of the S tiles).</summary>
         public Transform PlayerSpawn { get; private set; }
+        /// <summary>Split mode: the object that turns zone 2. Null otherwise.</summary>
+        public Transform Zone2Pivot { get; private set; }
+        /// <summary>Split mode: the parent of the hub, zone 1 and the outer wall. Null otherwise.</summary>
+        public Transform StaticRoot { get; private set; }
+        /// <summary>Every room and base area the builder made.</summary>
         public readonly List<MazeArea> Areas = new List<MazeArea>();
 
+        /// <summary>Metres per tile (GameBalance.cellSize when set).</summary>
         public float TileSize => balance != null ? balance.cellSize : tileSize;
+        /// <summary>Wall height in metres (GameBalance.wallHeight when set).</summary>
+        public float WallHeight => balance != null ? balance.wallHeight : wallHeight;
+
+        // While building one part of the maze, only tiles where this says true are built.
+        // In the normal (not split) mode it lets every tile through.
+        Func<int, int, bool> inPart = AllTiles;
+        bool markPartStatic = true;
+        static bool AllTiles(int x, int y) => true;
 
         enum Anchor { Block, Face, Passage, Floor, Pillar }
 
@@ -127,16 +171,30 @@ namespace DryLabyrinth.Maze
             return new Vector3(ox + x * ts, 0f, oz - y * ts);
         }
 
+        /// <summary>Tile centre at floor level, in world space (metres).</summary>
         public Vector3 GridToWorld(int x, int y) => transform.TransformPoint(GridToLocal(x, y));
 
+        /// <summary>
+        /// The tile under a world position. This is the "world" tile (where things are right now),
+        /// so for zone 2 use Grid.WorldToLocal to get the CSV tile.
+        /// </summary>
         public Vector2Int WorldToGrid(Vector3 world)
+        {
+            Vector2 t = WorldToGridFloat(world);
+            return new Vector2Int(Mathf.RoundToInt(t.x), Mathf.RoundToInt(t.y));
+        }
+
+        /// <summary>
+        /// Like WorldToGrid but without rounding: (10.5, 3.2) means halfway between tiles 10 and 11.
+        /// Tile centres are whole numbers. Used to draw the player smoothly on the map.
+        /// </summary>
+        public Vector2 WorldToGridFloat(Vector3 world)
         {
             Vector3 local = transform.InverseTransformPoint(world);
             Vector3 origin = GridToLocal(0, 0);
             float ts = TileSize;
-            return new Vector2Int(
-                Mathf.RoundToInt((local.x - origin.x) / ts),
-                Mathf.RoundToInt((origin.z - local.z) / ts));
+            // x grows to the east (+X); y grows to the south, which is -Z (row 0 is the north edge).
+            return new Vector2((local.x - origin.x) / ts, (origin.z - local.z) / ts);
         }
 
         /// <summary>Grid direction (x right, y down the sheet) to a local-space direction.</summary>
@@ -144,25 +202,55 @@ namespace DryLabyrinth.Maze
 
         // ------------------------------------------------------------------ Testing toggles
 
+        bool nightLocked;
+
+        /// <summary>Night lockdown (NightLockdown calls this): gates hidden for testing come back while it is night.</summary>
+        public void SetNightLock(bool locked)
+        {
+            nightLocked = locked;
+            ApplyTestToggles();
+        }
+
         /// <summary>Shows or hides all gates and doors. Called on build, on Play, and when the boxes are ticked.</summary>
         public void ApplyTestToggles()
         {
             var root = transform.Find(GeneratedRootName);
             if (root == null) return;
-            var gates = root.Find(GatesName);
-            var doors = root.Find(DoorsName);
-            if (gates != null && gates.gameObject.activeSelf != gatesEnabled) gates.gameObject.SetActive(gatesEnabled);
-            if (doors != null && doors.gameObject.activeSelf != doorsEnabled) doors.gameObject.SetActive(doorsEnabled);
+            // In split mode there is a Gates (and Doors) folder in each part, so check them all.
+            foreach (var partRoot in PartRoots(root))
+            {
+                SetActive(partRoot.Find(GatesName), gatesEnabled || nightLocked);
+                SetActive(partRoot.Find(DoorsName), doorsEnabled);
+            }
+
+            static void SetActive(Transform t, bool on)
+            {
+                if (t != null && t.gameObject.activeSelf != on) t.gameObject.SetActive(on);
+            }
+        }
+
+        // The folders that hold Floor, Walls, Gates ...: _Generated itself (normal mode), or
+        // Maze_Static and Zone2Pivot (split mode).
+        static IEnumerable<Transform> PartRoots(Transform root)
+        {
+            yield return root;
+            var s = root.Find(StaticRootName);
+            if (s != null) yield return s;
+            var z = root.Find(Zone2PivotName);
+            if (z != null) yield return z;
         }
 
         // ------------------------------------------------------------------ Build
 
+        /// <summary>Reads the CSV into Grid (and the ring limits from GameBalance). False if there's no CSV.</summary>
         public bool LoadGrid()
         {
             Grid = layoutCsv != null ? MazeGrid.FromCsv(layoutCsv.text, layoutCsv.name) : null;
+            if (Grid != null && balance != null) Grid.Rings = balance.GetMazeRings();
             return Grid != null;
         }
 
+        /// <summary>Deletes the old maze and builds a new one from the CSV under _Generated.</summary>
         [ContextMenu("Build maze")]
         public void Build()
         {
@@ -172,33 +260,88 @@ namespace DryLabyrinth.Maze
                 return;
             }
 
+            bool split = splitForZone2Rotation;
+            if (split && balance == null)
+            {
+                Debug.LogError($"[MazeBuilder] {name}: 'Split For Zone 2 Rotation' needs GameBalance (for the ring limits).", this);
+                return;
+            }
+            if (split && !Grid.CanRotate)
+            {
+                Debug.LogError($"[MazeBuilder] {name}: zone 2 can only turn on a square CSV with an odd size; this one is {Grid.Width} x {Grid.Height}.", this);
+                return;
+            }
+
             Clear();
             fallbackMaterials.Clear();
             meshCache.Clear();
             Areas.Clear();
 
             var root = NewChild(GeneratedRootName, transform);
-            var floorRoot = NewChild("Floor", root);
-            var wallRoot = NewChild("Walls", root);
-            var gateRoot = NewChild(GatesName, root);
-            var doorRoot = NewChild(DoorsName, root);
-            var areaRoot = NewChild("Areas", root);
+            var counts = new BuildCounts();
 
-            BuildFloor(floorRoot);
-            int wallObjects = BuildWalls(wallRoot);
-            if (generateWallColliders) BuildWallColliders(NewChild("WallColliders", root));
-            int gates = BuildPassages(gateRoot, TileType.Gate);
-            int doors = BuildPassages(doorRoot, TileType.Door);
-            BuildAreas(areaRoot, TileType.Room, MazeArea.Kind.Room);
-            BuildAreas(areaRoot, TileType.Spawn, MazeArea.Kind.Base);
+            if (!split)
+            {
+                // Old single-zone scenes: everything straight under _Generated, as before.
+                BuildPart(root, AllTiles, isStatic: true, withFloorSlab: true, counts);
+            }
+            else
+            {
+                StaticRoot = NewChild(StaticRootName, root);
+                BuildPart(StaticRoot, (x, y) => !Grid.IsInZone2(x, y), isStatic: true, withFloorSlab: true, counts);
+
+                // Zone 2 is built with the pivot still at the builder's origin, so every piece can
+                // use the normal tile positions. Afterwards the pivot moves onto the centre tile and
+                // its folders move back by the same amount: nothing changes in the world, but the
+                // pivot's turning point is now the centre of the maze.
+                // The grey-box floor slab stays in Maze_Static: turning maps floor to floor, so one
+                // flat slab under the whole maze is always correct.
+                Zone2Pivot = NewChild(Zone2PivotName, root);
+                BuildPart(Zone2Pivot, (x, y) => Grid.IsInZone2(x, y), isStatic: false, withFloorSlab: false, counts);
+                Vector3 centre = GridToLocal(Grid.CentreX, Grid.CentreY);
+                Zone2Pivot.localPosition = centre;
+                foreach (Transform child in Zone2Pivot) child.localPosition -= centre;
+            }
+
+            inPart = AllTiles;
+            markPartStatic = true;
+
             BuildSpawn(root);
             ApplyTestToggles();
 
             Debug.Log($"[MazeBuilder] Zone {zone} built: {Grid.Width} x {Grid.Height} tiles, " +
-                      $"{Grid.Count(TileType.Wall)} wall tiles as {wallObjects} objects, {gates} gate tiles, " +
-                      $"{doors} door tiles, {Areas.Count} areas.", this);
+                      $"{Grid.Count(TileType.Wall)} wall tiles as {counts.wallObjects} objects, {counts.gates} gate tiles, " +
+                      $"{counts.doors} door tiles, {counts.valves} valve grates, {Areas.Count} areas" +
+                      (split ? ", zone 2 under Zone2Pivot." : "."), this);
         }
 
+        class BuildCounts { public int wallObjects, gates, doors, valves; }
+
+        /// <summary>Builds one part of the maze (only tiles where <paramref name="filter"/> is true) under <paramref name="partRoot"/>.</summary>
+        void BuildPart(Transform partRoot, Func<int, int, bool> filter, bool isStatic, bool withFloorSlab, BuildCounts counts)
+        {
+            inPart = filter;
+            markPartStatic = isStatic; // static objects can't move at runtime, so zone 2 must not be static
+
+            BuildFloor(NewChild("Floor", partRoot), withFloorSlab);
+            counts.wallObjects += BuildWalls(NewChild("Walls", partRoot));
+            if (generateWallColliders) BuildWallColliders(NewChild("WallColliders", partRoot));
+            var gateRoot = NewChild(GatesName, partRoot);
+            var doorRoot = NewChild(DoorsName, partRoot);
+            var valveRoot = NewChild(ValvesName, partRoot);
+            counts.gates += BuildPassages(gateRoot, TileType.Gate);
+            counts.doors += BuildPassages(doorRoot, TileType.Door);
+            counts.doors += BuildPassages(doorRoot, TileType.TimedDoor);
+            counts.valves += BuildPassages(valveRoot, TileType.Valve);
+            var areaRoot = NewChild("Areas", partRoot);
+            BuildAreas(areaRoot, TileType.Room, MazeArea.Kind.Room);
+            BuildAreas(areaRoot, TileType.Spawn, MazeArea.Kind.Base);
+        }
+
+        // True if this tile is a wall AND belongs to the part being built right now.
+        bool IsWallHere(int x, int y) => Grid.IsWall(x, y) && inPart(x, y);
+
+        /// <summary>Deletes everything the builder made (the _Generated child).</summary>
         [ContextMenu("Clear maze")]
         public void Clear()
         {
@@ -207,6 +350,8 @@ namespace DryLabyrinth.Maze
             if (Application.isPlaying) Destroy(root.gameObject);
             else DestroyImmediate(root.gameObject);
             PlayerSpawn = null;
+            Zone2Pivot = null;
+            StaticRoot = null;
             Areas.Clear();
         }
 
@@ -216,13 +361,15 @@ namespace DryLabyrinth.Maze
             var root = transform.Find(GeneratedRootName);
             if (root == null) return;
             PlayerSpawn = root.Find("PlayerSpawn");
+            Zone2Pivot = root.Find(Zone2PivotName);
+            StaticRoot = root.Find(StaticRootName);
             Areas.Clear();
             Areas.AddRange(root.GetComponentsInChildren<MazeArea>(true));
         }
 
         // ------------------------------------------------------------------ Floor
 
-        void BuildFloor(Transform parent)
+        void BuildFloor(Transform parent, bool withSlab)
         {
             bool hasFloor = tileSet != null && MazeTileSet.HasAny(tileSet.floors);
             bool hasRoom = tileSet != null && MazeTileSet.HasAny(tileSet.roomFloors);
@@ -234,7 +381,7 @@ namespace DryLabyrinth.Maze
                 for (int x = 0; x < Grid.Width; x++)
                 {
                     var t = Grid.Get(x, y);
-                    if (t == TileType.Wall) continue;
+                    if (t == TileType.Wall || !inPart(x, y)) continue;
                     MazePiece[] list = tileSet.floors;
                     if (t == TileType.Room && hasRoom) list = tileSet.roomFloors;
                     else if (t == TileType.Spawn && hasSpawn) list = tileSet.spawnFloors;
@@ -243,6 +390,8 @@ namespace DryLabyrinth.Maze
                 }
                 if (hasFloor) return; // every walkable tile has art
             }
+
+            if (!withSlab) return;
 
             // One grey-box slab under the whole zone; top surface at y = 0.
             float ts = TileSize;
@@ -264,7 +413,7 @@ namespace DryLabyrinth.Maze
             for (int y = 0; y < Grid.Height; y++)
             for (int x = 0; x < Grid.Width; x++)
             {
-                if (!Grid.IsWall(x, y)) continue;
+                if (!IsWallHere(x, y)) continue;
                 Vector3 centre = GridToLocal(x, y);
 
                 if (useBlocks)
@@ -280,7 +429,12 @@ namespace DryLabyrinth.Maze
                 // Faces: one panel on each side that looks into a walkable tile.
                 for (int d = 0; d < 4; d++)
                 {
-                    if (!Grid.IsWalkable(x + Dirs[d].x, y + Dirs[d].y)) continue;
+                    int nx = x + Dirs[d].x, ny = y + Dirs[d].y;
+                    // A wall on the border with another part (for example zone 1's outer wall next
+                    // to zone 2) gets a panel on that side even if a wall is there now: after zone
+                    // 2 turns, a corridor may end up on that side and the wall must not look hollow.
+                    bool facesOtherPart = Grid.InBounds(nx, ny) && !inPart(nx, ny);
+                    if (!Grid.IsWalkable(nx, ny) && !facesOtherPart) continue;
                     Vector3 dir = DirToLocal(Dirs[d]);
                     var piece = MazeTileSet.Pick(tileSet.wallFaces, MazeTileSet.Hash(x, y, d + 1));
                     if (PlaceWallArt(piece, parent, centre + dir * TileSize * 0.5f, Quaternion.LookRotation(dir),
@@ -308,6 +462,7 @@ namespace DryLabyrinth.Maze
             for (int y = 0; y < Grid.Height; y++)
             for (int x = 0; x < Grid.Width; x++)
             {
+                if (!inPart(x, y)) continue;
                 bool wall = Grid.IsWall(x, y);
                 for (int c = 0; c < 4; c++)
                 {
@@ -345,8 +500,8 @@ namespace DryLabyrinth.Maze
             int objects = 0;
             foreach (var r in WallRects(mergeGreyboxWalls))
             {
-                var go = CreateBox($"Wall_{r.xMin}_{r.yMin}", parent, RectCentre(r, wallHeight * 0.5f),
-                                   RectSize(r, wallHeight), mat, solid);
+                var go = CreateBox($"Wall_{r.xMin}_{r.yMin}", parent, RectCentre(r, WallHeight * 0.5f),
+                                   RectSize(r, WallHeight), mat, solid);
                 MarkStatic(go);
                 objects++;
             }
@@ -359,8 +514,8 @@ namespace DryLabyrinth.Maze
             {
                 var go = new GameObject($"WallCollider_{r.xMin}_{r.yMin}");
                 go.transform.SetParent(parent, false);
-                go.transform.localPosition = RectCentre(r, wallHeight * 0.5f);
-                go.AddComponent<BoxCollider>().size = RectSize(r, wallHeight);
+                go.transform.localPosition = RectCentre(r, WallHeight * 0.5f);
+                go.AddComponent<BoxCollider>().size = RectSize(r, WallHeight);
                 MarkStatic(go);
             }
         }
@@ -373,11 +528,11 @@ namespace DryLabyrinth.Maze
             for (int y = 0; y < Grid.Height; y++)
             for (int x = 0; x < Grid.Width; x++)
             {
-                if (used[x, y] || !Grid.IsWall(x, y)) continue;
+                if (used[x, y] || !IsWallHere(x, y)) continue;
                 int x1 = x, y1 = y;
                 if (merge)
                 {
-                    while (x1 + 1 < Grid.Width && Grid.IsWall(x1 + 1, y) && !used[x1 + 1, y]) x1++;
+                    while (x1 + 1 < Grid.Width && IsWallHere(x1 + 1, y) && !used[x1 + 1, y]) x1++;
                     while (y1 + 1 < Grid.Height && RowIsFreeWall(x, x1, y1 + 1, used)) y1++;
                 }
                 for (int yy = y; yy <= y1; yy++)
@@ -391,7 +546,7 @@ namespace DryLabyrinth.Maze
         bool RowIsFreeWall(int x0, int x1, int y, bool[,] used)
         {
             for (int x = x0; x <= x1; x++)
-                if (!Grid.IsWall(x, y) || used[x, y]) return false;
+                if (!IsWallHere(x, y) || used[x, y]) return false;
             return true;
         }
 
@@ -405,34 +560,42 @@ namespace DryLabyrinth.Maze
 
         // ------------------------------------------------------------------ Gates and doors
 
-        /// <summary>Gates and doors. Returns the number of tiles.</summary>
+        /// <summary>Gates (G), doors (D and T) and valve grates (V). Returns the number of tiles.</summary>
         int BuildPassages(Transform parent, TileType type)
         {
             int count = 0;
             float ts = TileSize;
             bool isGate = type == TileType.Gate;
-            MazePiece[] list = tileSet == null ? null : (isGate ? tileSet.gates : tileSet.doors);
+            bool isValve = type == TileType.Valve;
+
+            MazePiece[] list = null;
+            if (tileSet != null) list = isGate ? tileSet.gates : isValve ? tileSet.valves : tileSet.doors;
+            string labelStart = isGate ? "Gate" : isValve ? "Valve" : type == TileType.TimedDoor ? "TimedDoor" : "Door";
+            int hashSalt = isGate ? 13 : isValve ? 19 : 17;
 
             for (int y = 0; y < Grid.Height; y++)
             for (int x = 0; x < Grid.Width; x++)
             {
-                if (Grid.Get(x, y) != type) continue;
+                if (Grid.Get(x, y) != type || !inPart(x, y)) continue;
                 count++;
 
                 // Walls on the left and right = the corridor runs north-south (along Z).
                 bool runsAlongZ = Grid.IsWall(x - 1, y) && Grid.IsWall(x + 1, y);
                 var rot = runsAlongZ ? Quaternion.identity : Quaternion.Euler(0f, 90f, 0f);
-                string label = $"{(isGate ? "Gate" : "Door")}_{x}_{y}";
+                string label = $"{labelStart}_{x}_{y}";
 
-                var piece = MazeTileSet.Pick(list, MazeTileSet.Hash(x, y, isGate ? 13 : 17));
+                var piece = MazeTileSet.Pick(list, MazeTileSet.Hash(x, y, hashSalt));
                 if (PlacePiece(piece, parent, GridToLocal(x, y), rot, Anchor.Passage, label) != null) continue;
 
                 // Grey-box: a solid slab across the corridor, filling the tile's width.
+                // Gates are full wall height; doors and valve grates are a 3 m slab.
                 float thick = isGate ? 0.5f : 0.3f;
-                float height = isGate ? wallHeight : Mathf.Min(3f, wallHeight);
+                float height = isGate ? WallHeight : Mathf.Min(3f, WallHeight);
                 var size = runsAlongZ ? new Vector3(ts, height, thick) : new Vector3(thick, height, ts);
-                var colour = isGate ? new Color(0.31f, 0.64f, 0.88f) : new Color(0.88f, 0.54f, 0.24f);
-                var mat = isGate ? Mat(gateMaterial, "Gate", colour) : Mat(doorMaterial, "Door", colour);
+                Material mat;
+                if (isGate) mat = Mat(gateMaterial, "Gate", new Color(0.31f, 0.64f, 0.88f));       // blue
+                else if (isValve) mat = Mat(valveMaterial, "Valve", new Color(0.95f, 0.50f, 0.10f)); // orange
+                else mat = Mat(doorMaterial, "Door", new Color(0.88f, 0.54f, 0.24f));
                 CreateBox(label, parent, GridToLocal(x, y) + Vector3.up * height * 0.5f, size, mat, true);
             }
             return count;
@@ -445,8 +608,9 @@ namespace DryLabyrinth.Maze
             int index = 0;
             foreach (var r in Grid.FindRegions(type))
             {
-                index++;
-                var size = RectSize(r, wallHeight);
+                index++; // counted before the part check, so room names stay unique across parts
+                if (!inPart(r.xMin + r.width / 2, r.yMin + r.height / 2)) continue;
+                var size = RectSize(r, WallHeight);
                 var go = NewChild(kind == MazeArea.Kind.Room ? $"Room_{index}" : "Base", parent).gameObject;
                 go.transform.localPosition = RectCentre(r, 0f);
 
@@ -457,7 +621,7 @@ namespace DryLabyrinth.Maze
 
                 var trigger = go.AddComponent<BoxCollider>();
                 trigger.isTrigger = true;
-                trigger.center = Vector3.up * wallHeight * 0.5f;
+                trigger.center = Vector3.up * WallHeight * 0.5f;
                 trigger.size = size;
 
                 // Tinted floor patch so rooms and the base are easy to see in grey-box.
@@ -693,10 +857,12 @@ namespace DryLabyrinth.Maze
             return m;
         }
 
-        static void MarkStatic(GameObject go)
+        // Static objects are faster to draw but Unity won't let them move in Play mode, so
+        // zone 2 (which turns) is never marked static.
+        void MarkStatic(GameObject go)
         {
 #if UNITY_EDITOR
-            if (!Application.isPlaying) go.isStatic = true;
+            if (!Application.isPlaying && markPartStatic) go.isStatic = true;
 #endif
         }
     }

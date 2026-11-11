@@ -5,7 +5,7 @@
 
 using UnityEngine;
 
-namespace DryLabyrinth.Maze
+namespace TheLastDrop
 {
     public class MazeArea : MonoBehaviour
     {

@@ -1,0 +1,45 @@
+Id,Field,Value,Note
+W1,pumpStrokeInterval,0.35,s (was 0.5)
+W2,unlockSource,RainCatcher,
+W2,catchArea,4,m²
+W3,catchArea,8,m²
+W8,catchArea,16,m²
+W4,pumpUsesDeepTable,true,right-hand column of the water table
+W5,unlockSource,SolarStill,
+W5,stillRate,0.02,L/s × sun factor
+W6,solarStillCount,2,
+W7,unlockSource,DeepWell,
+W7,wellRate,0.08,L/s × stage factor
+S1,canteenCapacity,4,L
+S4,canteenCapacity,6,L
+S7,canteenCapacity,10,L
+S7,heavySpeedMult,0.9,while carrying > 6 L
+S2,cleanStorageCap,50,L
+S2,cleanCoverFactor,0.5,evaporation ×
+S3,cleanStorageCap,150,L
+S3,cleanCoverFactor,0.5,evaporation ×
+S6,cleanStorageCap,300,L
+S6,cleanCoverFactor,0.1,evaporation ×
+S5,rawBasinCap,40,L
+S8,rawBasinCap,100,L
+P1,purifierRate,0.4,L/s when ripe
+P1,ripenDays,50% / 75% / 100%,buy day / next day / after
+P2,sodisBatch,8,L every 90 s of sun
+P3,muddyPoolRefill,true,"30 s treat time, 5 tablets max"
+E1,drainMultAll,0.9,×
+E2,drainMultMove,0.85,× walking and sprinting
+E3,hydPerLiter,30,HYD per L (was 25)
+E3,wakeHyd,60,HYD after a collapse
+E4,sickDuration,15,s (was 30)
+E5,keepCanteenOnCollapse,true,
+M1,walkSpeed,4.4,m/s (was 4)
+M2,sprintSpeed,7.3,m/s (was 6.5)
+M3,thirstySprintMult,1.0,× (was 1.5)
+M4,drinkPourRateMult,1.5,×
+M5,dehydratedWalkMult,1.0,× (was 0.75)
+V1,lookAheadTiles,4,tiles (was 2)
+V2,maxMarkers,8,(was 3)
+V2,gatesOnMap,true,
+V3,revealDiagonals,true,8 neighbours
+V4,sectionRewardMult,1.5,×
+V5,sectionMappedFrac,0.6,(was 0.75)

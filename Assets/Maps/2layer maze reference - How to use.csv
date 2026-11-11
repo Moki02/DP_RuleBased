@@ -1,0 +1,32 @@
+2-layer maze reference (hub + zone 1 + zone 2)
+"Built 2026-11-08 from the 4 zone 2 drawings (0°, 90°, 180°, 270°). Each Map tab is the whole 95 × 95 maze in that orientation."
+
+Coordinates
+"Cell A1 is tile (x 0, y 0). Column = x (A = 0 … CQ = 94). Row number − 1 = y (row 1 = y 0, row 95 = y 94). The hub centre is tile (47, 47)."
+"The Map tabs have no headers on purpose, so File > Download > CSV gives the grid loader a clean 95 × 95 grid."
+
+Codes
+"(blank) floor · W wall · G gate (every G is a lock basin) · R room floor (safe at lockdown) · S base / spawn · V valve icon from the drawing (minigame gate, NEW code: the loader must learn it or treat it as floor + a gate prefab)"
+"Lock values: hub gates 4 L, zone 1 exits 10 L, zone 2 exits 18 L (zone 2 exits are the game exits)."
+
+Which tiles turn
+"Only zone 2 turns: tiles where MAX(|x − 47|, |y − 47|) is 28 to 44. That is x or y in 3–19 or 75–91, outside zone 1. The hub, zone 1 and the 3-tile outer wall (with the 8 exit gates) never move."
+
+"Turn formula (sheet coordinates, y counts down the rows)"
+"90° clockwise:  new x = 94 − y,  new y = x"
+"180°:           new x = 94 − x,  new y = 94 − y"
+"270° (= 90° counter-clockwise):  new x = y,  new y = 94 − x"
+"Check: valve at (60, 15) on the 0° map is at (79, 60) on the 90° map, (34, 79) on 180° and (15, 34) on 270°. Try it on the Rotation calc tab."
+
+When it turns (R8.24)
+"During the night lockdown of days 2, 4, 6 … Orientation on day d = 90 × MOD(INT((d − 1) / 2), 4). Days 1–2 = 0°, 3–4 = 90°, 5–6 = 180°, 7–8 = 270°, 9–10 = 0° again. See the Schedule tab."
+
+Coding it in Unity (two options)
+"Option A, move the objects: parent every zone 2 tile (walls, floor, rooms, valves, props) under one pivot at the centre tile, world position (47 × TileSize, 0, 47 × TileSize) = (188, 0, 188) at 4 m. Each turn, add 90° to the pivot's Y rotation. Tile centres land exactly on tile centres."
+"Sign of the turn: if the loader puts row y at z = y × TileSize (row 0 at z = 0), the sheet is upside down when seen from above, so a sheet-clockwise turn is −90° on Y. If the loader flips rows (z = (94 − y) × TileSize), use +90°. Test with the valve check above."
+"Option B, move the data: keep 4 grids (load the 4 Map tabs as 4 CSVs) and swap zone 2 to the next one at lockdown; or rotate the grid array with the formula. Either way the map reveal grid must turn too (R8.28): apply the same formula to every revealed zone 2 tile, marker and note payload."
+A player inside a zone 2 room turns with it (R8.26): apply the same rotation to the player's position and facing.
+
+Checked
+"All 4 orientations: every zone 1 exit reaches every zone 2 exit (128 of 128 routes), also with the valve gates closed. No sealed-off floor in zone 2."
+"Zone 1 here is the drawn version, which differs from the Zone1_Map sheet in about 1 in 6 tiles (open question in the GDD)."

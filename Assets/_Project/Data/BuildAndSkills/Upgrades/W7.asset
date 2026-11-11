@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29d73f8fa29a3af478b6ddd67f6b6253, type: 3}
+  m_Name: W7
+  m_EditorClassIdentifier: Assembly-CSharp::TheLastDrop.UpgradeData
+  id: W7
+  displayName: Deep Well
+  tab: 0
+  group: Water
+  costLiters: 120
+  prerequisiteIds:
+  - W4
+  - S3
+  priority: 0
+  tooltip: Unlocks the Deep Well. Always on, barely touched by the drought.
+  effects:
+  - field: unlockSource
+    value: DeepWell
+    note: 
+  - field: wellRate
+    value: 0.08
+    note: "L/s \xD7 stage factor"

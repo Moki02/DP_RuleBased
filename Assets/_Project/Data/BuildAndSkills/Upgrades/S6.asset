@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29d73f8fa29a3af478b6ddd67f6b6253, type: 3}
+  m_Name: S6
+  m_EditorClassIdentifier: Assembly-CSharp::TheLastDrop.UpgradeData
+  id: S6
+  displayName: Underground Cistern
+  tab: 0
+  group: Hub storage
+  costLiters: 150
+  prerequisiteIds:
+  - S3
+  priority: 1
+  tooltip: Clean Storage 300 L; loses a tenth as much to evaporation.
+  effects:
+  - field: cleanStorageCap
+    value: 300
+    note: L
+  - field: cleanCoverFactor
+    value: 0.1
+    note: "evaporation \xD7"

@@ -59,6 +59,22 @@ public class Player_Camera : MonoBehaviour
         HandleCollision();
     }
 
+    /// <summary>
+    /// Turns the camera left/right by <paramref name="degrees"/> and snaps it onto the player.
+    /// Used when zone 2 turns and carries the player with it (Zone2Rotator, GDD R8.26), so the
+    /// player's view of the zone stays the same.
+    /// </summary>
+    public void TurnWithPlayer(float degrees)
+    {
+        leftAndRightLookAngle += degrees;
+        transform.rotation = Quaternion.Euler(0f, leftAndRightLookAngle, 0f);
+        if (player != null)
+        {
+            transform.position = player.transform.position;
+            cameraVelocity = Vector3.zero;
+        }
+    }
+
     private void HandleFollowTarget()
     {
         Vector3 targetCameraPosition = Vector3.SmoothDamp(transform.position, player.transform.position, ref cameraVelocity, cameraSmoothSpeed * Time.deltaTime);

@@ -16,8 +16,12 @@ MonoBehaviour:
   enableDebugKeys: 1
   zoneCount: 3
   skillCostMultiplier: 1
+  allowBuyingAnywhere: 1
+  debugCleanStorageLiters: 50
   collapseEndsGame: 0
   dayLengthSeconds: 240
+  nightLockdownSeconds: 60
+  debugClockSpeed: 4
   collapseClockPenalty: 30
   walkSpeed: 4
   sprintSpeed: 6.5
@@ -191,11 +195,20 @@ MonoBehaviour:
       calm: 5
   cellSize: 4
   gridSize: 41
+  wallHeight: 11
+  hubMaxRing: 9
+  zone1MaxRing: 27
+  zone2MaxRing: 44
+  zone2DaysBetweenTurns: 2
   revealRadius: 8
   revealRadiusTrailSense: 14
   sectionMappedPct: 0.75
   markerLimit: 3
   markerLimitLandmarks: 8
+  mapLookAheadTiles: 2
+  mapLookAheadTilesTrailSense: 4
+  mapLookAheadWhenTurning: 0
+  mapTurnFlashSeconds: 2
   sectionReward:
   - 2
   - 3
@@ -222,6 +235,14 @@ MonoBehaviour:
   pourRate: 1
   minigameFailHyd: 5
   minigameLockout: 10
+  valveDifficultyRingStart: 9
+  valveDifficultyRingSpan: 35
+  valveBandAtHub: 30
+  valveBandShrink: 15
+  valveSpeedAtHub: 120
+  valveSpeedGain: 80
+  valveHitsToWin: 3
+  valveMissesToLose: 3
   valveTiming:
   - bandWidth: 30
     needleSpeed: 120
@@ -240,10 +261,7 @@ MonoBehaviour:
     hitsToWin: 4
     missesToLose: 3
   valveBandMinMove: 40
-  pipeGridSize:
-  - 4
-  - 5
-  - 5
+  pipeGridSize: 040000000500000005000000
   pipeTimeLimit:
   - 45
   - 60

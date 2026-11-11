@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29d73f8fa29a3af478b6ddd67f6b6253, type: 3}
+  m_Name: E1
+  m_EditorClassIdentifier: Assembly-CSharp::TheLastDrop.UpgradeData
+  id: E1
+  displayName: Salakot
+  tab: 1
+  group: Endurance
+  costLiters: 12
+  prerequisiteIds: []
+  priority: 0
+  tooltip: "All hydration drain \xD7 0.9."
+  effects:
+  - field: drainMultAll
+    value: 0.9
+    note: "\xD7"

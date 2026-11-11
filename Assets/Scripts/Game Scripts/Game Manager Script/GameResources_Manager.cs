@@ -1,8 +1,20 @@
 using UnityEngine;
 using System;
+using TheLastDrop;
 
-public class GameResources_Manager : MonoBehaviour
+// Saving (added for the maze playtest, R11.8): this script saves the canteen. Clean Storage
+// is saved by UpgradeManager, which owns it in the playtest.
+public class GameResources_Manager : MonoBehaviour, ISaveable
 {
+    /// <summary>Restored after Build and Skills.</summary>
+    public int RestoreOrder => RestoreOrders.Resources;
+
+    /// <summary>Saves the canteen's litres.</summary>
+    public void Capture(SaveData data) => data.canteen = canteen;
+
+    /// <summary>Puts the canteen's litres back (never past its size).</summary>
+    public void Restore(SaveData data) => canteen = Mathf.Clamp(data.canteen, 0f, canteen_Max);
+
     public static GameResources_Manager instance;
 
     public event Action OnWaterFull;
@@ -10,6 +22,11 @@ public class GameResources_Manager : MonoBehaviour
     [Header("Canteen")]
     public float canteen = 2f;
     public float canteen_Max = 2f;
+
+    // Added for the maze playtest (Playtest_Maze ticks it): pouring into lock basins never empties the canteen.
+    [Tooltip("Playtest: the canteen never runs out. Taking water from it gives the water without lowering \"Canteen\". " +
+             "Untick to test with the real canteen amount above.")]
+    public bool infiniteCanteen = false;
 
     [Header("Raw Basin")]
     public float rawBasin = 0f;
@@ -82,6 +99,9 @@ public class GameResources_Manager : MonoBehaviour
 
     public float TakeCanteenWater(float amount)
     {
+        if (infiniteCanteen)
+            return Mathf.Max(0, amount);
+
         return RemoveWater(ref canteen, amount);
     }
 

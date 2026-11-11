@@ -47,6 +47,12 @@ public class PlayerHydration_Manager : MonoBehaviour
     public bool isPumping;
     public bool isPlayingMinigame;
 
+    // Playtest_Maze switch (added for the maze playtest): water does nothing to the player there.
+    [Header("Playtest")]
+    [Tooltip("Tick to switch hydration off: no drain, no drinking, no collapse. HYD stays where it is. " +
+             "The Playtest_Maze scene ticks this; leave it off in the real game scenes.")]
+    public bool hydrationOff = false;
+
     public event Action OnCollapsed;
 
     private bool collapseTriggered = false;
@@ -75,7 +81,7 @@ public class PlayerHydration_Manager : MonoBehaviour
 
     private void Update()
     {
-        if (Time.timeScale == 0 || resources == null)
+        if (Time.timeScale == 0 || resources == null || hydrationOff)
             return;
 
         UpdateHydrationState();
@@ -195,7 +201,7 @@ public class PlayerHydration_Manager : MonoBehaviour
 
     public void HandleDrinkAction()
     {
-        if (resources == null)
+        if (resources == null || hydrationOff)
             return;
 
         if (currentHydrationState == HydrationState.Collapsed)

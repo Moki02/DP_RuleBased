@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29d73f8fa29a3af478b6ddd67f6b6253, type: 3}
+  m_Name: W6
+  m_EditorClassIdentifier: Assembly-CSharp::TheLastDrop.UpgradeData
+  id: W6
+  displayName: Second Still
+  tab: 0
+  group: Water
+  costLiters: 50
+  prerequisiteIds:
+  - W5
+  priority: 1
+  tooltip: Two stills; output doubles.
+  effects:
+  - field: solarStillCount
+    value: 2
+    note: 

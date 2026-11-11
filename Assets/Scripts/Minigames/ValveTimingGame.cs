@@ -12,16 +12,21 @@
 //   Canvas), NOT on the panel itself: the panel is switched off between games.
 //   There is one of these in the scene; every ValveGate uses it through ValveTimingGame.Instance.
 //
+// Maze playtest: the maze gates call Begin(settings, ...) with settings from ValveDifficulty
+// (GDD R9.6) instead of a fixed row. While a game is open and F1 (debug HUD) is on, a line
+// at the top of the panel shows the difficulty t, band width and needle speed.
+// Sound hooks: drag clips into Hit/Miss Clip, or add listeners to On Hit / On Miss.
+//
 // Angles: 0 = straight up, -90 = far left, +90 = far right (degrees, clockwise positive).
 
 using System;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
+using UnityEngine.Events;
 using TMPro;
-using DryLabyrinth.Data;
 
-namespace DryLabyrinth.Minigames
+namespace TheLastDrop
 {
     /// <summary>Which row of GameBalance.valveTiming a gate uses.</summary>
     public enum ValveLocation { Zone1 = 0, Zone2 = 1, Zone3 = 2, ExitValve = 3 }
@@ -79,6 +84,16 @@ namespace DryLabyrinth.Minigames
         public AudioClip winClip;
         public AudioClip loseClip;
 
+        [Header("Hooks (sounds, effects)")]
+        [Tooltip("Called on every hit (the clunk). Add a sound or effect here.")]
+        public UnityEvent onHit = new UnityEvent();
+        [Tooltip("Called on every miss (the hiss). Add a sound or effect here.")]
+        public UnityEvent onMiss = new UnityEvent();
+
+        [Header("Debug (F1)")]
+        [Tooltip("Text for the F1 debug line. Empty = one is made at the top of the panel.")]
+        public TMP_Text debugText;
+
         [Header("Feel")]
         [Tooltip("Seconds the result stays on screen before the panel closes.")]
         [Min(0f)] public float endDelay = 0.6f;
@@ -102,6 +117,13 @@ namespace DryLabyrinth.Minigames
         float flashTimer;
         float wheelAngle, wheelTarget;
         int startFrame;
+        float currentT = -1f;
+
+        /// <summary>The settings of the game being played (null before the first game).</summary>
+        public ValveTimingSettings CurrentSettings => settings;
+
+        /// <summary>Difficulty t of the game being played (0-1), or -1 if not known.</summary>
+        public float CurrentT => currentT;
 
         void Awake()
         {
@@ -126,10 +148,26 @@ namespace DryLabyrinth.Minigames
         /// onFinished is called once with Won, Lost or Quit.</summary>
         public bool Begin(ValveLocation location, Action<MinigameResult> onFinished)
         {
-            if (playing) return false;
             if (balance == null || balance.valveTiming == null || balance.valveTiming.Length == 0)
             {
                 Debug.LogError("[ValveTimingGame] Assign a GameBalance asset with Valve Timing rows.", this);
+                return false;
+            }
+            int row = Mathf.Clamp((int)location, 0, balance.valveTiming.Length - 1);
+            return Begin(balance.valveTiming[row], onFinished);
+        }
+
+        /// <summary>
+        /// Starts a game with these exact settings (the maze gates use ValveDifficulty to make them,
+        /// GDD R9.6). <paramref name="difficultyT"/> is only shown on the F1 debug line (-1 = not known).
+        /// Returns false if a game is already running or setup is missing.
+        /// </summary>
+        public bool Begin(ValveTimingSettings gameSettings, Action<MinigameResult> onFinished, float difficultyT = -1f)
+        {
+            if (playing) return false;
+            if (gameSettings == null || balance == null)
+            {
+                Debug.LogError("[ValveTimingGame] Missing settings or GameBalance.", this);
                 return false;
             }
             if (needle == null || band == null || panel == null)
@@ -138,8 +176,8 @@ namespace DryLabyrinth.Minigames
                 return false;
             }
 
-            int row = Mathf.Clamp((int)location, 0, balance.valveTiming.Length - 1);
-            settings = balance.valveTiming[row];
+            settings = gameSettings;
+            currentT = difficultyT;
             this.onFinished = onFinished;
 
             hits = 0;
@@ -178,6 +216,7 @@ namespace DryLabyrinth.Minigames
             float dt = Time.deltaTime;   // the world doesn't pause (R9.1); the pause menu's timeScale does
 
             UpdateFeedback(dt);
+            UpdateDebugLine();
 
             if (ending)
             {
@@ -214,6 +253,7 @@ namespace DryLabyrinth.Minigames
                 hits++;
                 wheelTarget -= 360f / Mathf.Max(1, settings.hitsToWin);   // one notch clockwise
                 Play(hitClip);
+                onHit.Invoke();
                 if (hits >= settings.hitsToWin) { Finish(MinigameResult.Won, endDelay); return; }
                 bandCentre = RandomBandCentre(bandCentre);
             }
@@ -222,6 +262,7 @@ namespace DryLabyrinth.Minigames
                 misses++;
                 flashTimer = flashSeconds;
                 Play(missClip);
+                onMiss.Invoke();
                 if (misses >= settings.missesToLose) { Finish(MinigameResult.Lost, endDelay); return; }
             }
             RefreshAll();
@@ -294,6 +335,25 @@ namespace DryLabyrinth.Minigames
 
             if (counterText != null)
                 counterText.text = $"Hits {hits}/{settings.hitsToWin}   Misses {misses}/{settings.missesToLose}";
+        }
+
+        // F1 debug line: difficulty t, band width and needle speed of the game on screen.
+        void UpdateDebugLine()
+        {
+            bool show = DebugKeys.ShowDebugInfo;
+            if (debugText == null)
+            {
+                if (!show || panel == null) return;
+                debugText = UiBuilder.Text("DebugLine", panel.transform, "", 22f, Color.yellow);
+                UiBuilder.Place(debugText.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
+                                new Vector2(0f, -8f), new Vector2(900f, 34f));
+                debugText.alignment = TextAlignmentOptions.Top;
+            }
+            debugText.gameObject.SetActive(show);
+            if (!show || settings == null) return;
+            string t = currentT < 0f ? "exit valve" : $"t {currentT:0.000}";
+            debugText.text = $"[F1] {t}   band {settings.bandWidth:0.0}°   speed {settings.needleSpeed:0.0}°/s   " +
+                             $"win {settings.hitsToWin} hits / lose {settings.missesToLose} misses";
         }
 
         void SetPips(Image[] pips, int needed, int filled, Color onColor)

@@ -14,7 +14,11 @@ public class Game_Manager : MonoBehaviour
         Minigame,
         Paused,
         SkillTree,
-        Collapsed
+        Collapsed,
+        // Added for the maze playtest (map screen, Build and Skills menu, R7.1): the player can't
+        // move and the cursor is free, but the world keeps running (time scale stays 1).
+        // Kept last so saved scenes keep their old values.
+        Menu
     }
 
     [Header("Game State")]
@@ -58,6 +62,7 @@ public class Game_Manager : MonoBehaviour
                 break;
 
             case GameState.Minigame:
+            case GameState.Menu:
                 Time.timeScale = 1f;
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
@@ -65,6 +70,12 @@ public class Game_Manager : MonoBehaviour
 
             case GameState.Paused:
             case GameState.SkillTree:
+                // Added for the maze playtest: say so when the pause menu can't be seen, instead of
+                // leaving a frozen screen with no explanation. (UI only shows inside a Canvas.)
+                if (newState == GameState.Paused &&
+                    (pauseMenu == null || pauseMenu.GetComponentInParent<Canvas>(true) == null))
+                    Debug.LogWarning("[Game_Manager] Paused, but the pause menu isn't set or isn't inside a Canvas, " +
+                                     "so it can't be seen. Press Esc again to resume.", this);
                 Time.timeScale = 0f;
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
