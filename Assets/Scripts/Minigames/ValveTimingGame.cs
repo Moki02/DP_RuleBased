@@ -1,3 +1,4 @@
+// ============================================================================
 // ValveTimingGame.cs
 // The Valve Timing minigame (GDD Rules section 9, R9.1-R9.5). Logic only: the designer builds
 // the uGUI panel and drags its pieces into the slots below.
@@ -18,6 +19,16 @@
 // Sound hooks: drag clips into Hit/Miss Clip, or add listeners to On Hit / On Miss.
 //
 // Angles: 0 = straight up, -90 = far left, +90 = far right (degrees, clockwise positive).
+//
+// DESIGN RULES: R9.1 (the world doesn't pause: it uses Time.deltaTime, and the Minigame
+// state keeps time scale 1), R9.2 (Esc quits, no penalty), R9.3 (losing: the gate that
+// started the game takes 5 HYD through SurvivalRules.MinigameLost), R9.4, R9.6 (difficulty).
+//
+// HOW TO USE: the Build Playtest Scene menu puts it on Systems and fills the slots. Gates call
+// ValveTimingGame.Instance.Begin(...) and get Won / Lost / Quit back in their callback.
+// HOW TO EDIT: band width, needle speed, hits and misses are in GameBalance (Valve Timing rows,
+// Valve Band Min Move); the feel values (flash, wheel speed, end delay) are below.
+// ============================================================================
 
 using System;
 using UnityEngine;
@@ -31,10 +42,13 @@ namespace TheLastDrop
     /// <summary>Which row of GameBalance.valveTiming a gate uses.</summary>
     public enum ValveLocation { Zone1 = 0, Zone2 = 1, Zone3 = 2, ExitValve = 3 }
 
+    /// <summary>How a minigame ended: Won (gate opens), Lost (R9.3 penalty) or Quit (Esc, R9.2).</summary>
     public enum MinigameResult { Won, Lost, Quit }
 
+    /// <summary>Runs the Valve Timing minigame on the panel the designer built.</summary>
     public class ValveTimingGame : MonoBehaviour
     {
+        /// <summary>The one in this scene (null if there is none).</summary>
         public static ValveTimingGame Instance { get; private set; }
 
         /// <summary>True while a valve game is on screen. The player controller should ignore
@@ -44,6 +58,7 @@ namespace TheLastDrop
         const float DialHalf = 90f;   // the dial runs from -90 to +90
 
         [Header("Data")]
+        [Tooltip("Valve Timing rows and Valve Band Min Move. Empty = the game's current GameBalance (BalanceProvider).")]
         public GameBalance balance;
 
         [Header("UI you build (see setup notes)")]
@@ -73,16 +88,16 @@ namespace TheLastDrop
         [Tooltip("Shows e.g. \"Hits 1/3   Misses 0/3\".")]
         public TMP_Text counterText;
 
-        public Color pipOffColor = new Color(1f, 1f, 1f, 0.2f);
-        public Color hitPipColor = new Color(0.30f, 0.85f, 0.45f);
-        public Color missPipColor = new Color(0.90f, 0.25f, 0.20f);
+        [Tooltip("Colour of a pip not earned yet.")] public Color pipOffColor = new Color(1f, 1f, 1f, 0.2f);
+        [Tooltip("Colour of an earned hit pip.")] public Color hitPipColor = new Color(0.30f, 0.85f, 0.45f);
+        [Tooltip("Colour of a used miss pip.")] public Color missPipColor = new Color(0.90f, 0.25f, 0.20f);
 
         [Header("Optional audio")]
-        public AudioSource audioSource;
-        public AudioClip hitClip;    // clunk
-        public AudioClip missClip;   // hiss
-        public AudioClip winClip;
-        public AudioClip loseClip;
+        [Tooltip("Plays the clips below. Empty = no sound.")] public AudioSource audioSource;
+        [Tooltip("A hit (the clunk).")] public AudioClip hitClip;
+        [Tooltip("A miss (the hiss).")] public AudioClip missClip;
+        [Tooltip("The winning hit.")] public AudioClip winClip;
+        [Tooltip("The losing miss.")] public AudioClip loseClip;
 
         [Header("Hooks (sounds, effects)")]
         [Tooltip("Called on every hit (the clunk). Add a sound or effect here.")]
@@ -97,7 +112,9 @@ namespace TheLastDrop
         [Header("Feel")]
         [Tooltip("Seconds the result stays on screen before the panel closes.")]
         [Min(0f)] public float endDelay = 0.6f;
+        [Tooltip("Seconds the red miss flash takes to fade.")]
         [Min(0f)] public float flashSeconds = 0.3f;
+        [Tooltip("How strong the red miss flash starts (0 = invisible, 1 = solid).")]
         [Range(0f, 1f)] public float flashAlpha = 0.5f;
         [Tooltip("How fast the valve wheel catches up to its target angle.")]
         [Min(0.1f)] public float wheelTurnSpeed = 12f;
@@ -148,6 +165,7 @@ namespace TheLastDrop
         /// onFinished is called once with Won, Lost or Quit.</summary>
         public bool Begin(ValveLocation location, Action<MinigameResult> onFinished)
         {
+            if (balance == null) balance = BalanceProvider.Current;
             if (balance == null || balance.valveTiming == null || balance.valveTiming.Length == 0)
             {
                 Debug.LogError("[ValveTimingGame] Assign a GameBalance asset with Valve Timing rows.", this);
@@ -165,6 +183,7 @@ namespace TheLastDrop
         public bool Begin(ValveTimingSettings gameSettings, Action<MinigameResult> onFinished, float difficultyT = -1f)
         {
             if (playing) return false;
+            if (balance == null) balance = BalanceProvider.Current;   // slot left empty: use the game's GameBalance
             if (gameSettings == null || balance == null)
             {
                 Debug.LogError("[ValveTimingGame] Missing settings or GameBalance.", this);
@@ -351,7 +370,8 @@ namespace TheLastDrop
             }
             debugText.gameObject.SetActive(show);
             if (!show || settings == null) return;
-            string t = currentT < 0f ? "exit valve" : $"t {currentT:0.000}";
+            // -1 = the gate passed a fixed row (exit valve or an old ValveGate), not a t from R9.6.
+            string t = currentT < 0f ? "fixed row (no t)" : $"t {currentT:0.000}";
             debugText.text = $"[F1] {t}   band {settings.bandWidth:0.0}°   speed {settings.needleSpeed:0.0}°/s   " +
                              $"win {settings.hitsToWin} hits / lose {settings.missesToLose} misses";
         }

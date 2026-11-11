@@ -8,17 +8,21 @@
 // While playing, the game state is Minigame (player can't move, cursor free) and hydration
 // drains at the minigame rate (isPlayingMinigame), so the world keeps going (R9.1).
 //
-// Water cost/reward is NOT applied yet. Hook it up later through On Opened / On Failed:
-//   On Failed  -> take GameBalance.minigameFailHyd HYD (R9.3)
-//   On Opened  -> pay GameBalance.gateReward[zone] once (R8.8 / R9.4)
+// Water cost and reward are applied in code (SurvivalRules, in SurvivalDirector.cs):
+//   Lost -> -GameBalance.minigameFailHyd HYD (5, R9.3)
+//   Won  -> +GameBalance.gateReward[Reward Zone Index] litres of unbanked water, only the
+//           first time the valve opens (R8.8 / R9.4)
+// On Opened / On Failed are still there for sounds and animations.
 //
 // For the exit valve (R11.6), set Location to Exit Valve and keep this component disabled
 // until the Exit Lock is full; the lock script then enables it.
 //
 // Maze playtest: GateManager adds one of these to every V tile's grate, with "Use Custom
 // Settings" on and the difficulty worked out from the valve's ring (ValveDifficulty, R9.6).
-// It also logs the HYD cost of a loss (R9.3) and the water reward of a win (R8.8); in the
-// playtest those are only log lines.
+// It also logs the HYD cost of a loss (R9.3) and the water reward of a win (R8.8) when
+// "Log Water Changes" is ticked.
+//
+// DESIGN RULES: R8.8, R9.1 to R9.6, R8.21 / R8.23 (shut at night), R11.6 (exit valve).
 
 using UnityEngine;
 using UnityEngine.Events;
@@ -47,7 +51,7 @@ namespace TheLastDrop
         [Tooltip("Which GameBalance.gateReward entry this valve pays when first opened: 0 zone 1, 1 zone 2, 2 zone 3.")]
         public int rewardZoneIndex = 0;
 
-        [Tooltip("Write the HYD cost of a loss and the reward of a win to the Console (the playtest doesn't apply them).")]
+        [Tooltip("Also write the HYD cost of a loss and the reward of a win to the Console (they are applied either way).")]
         public bool logWaterChanges = true;
 
         /// <summary>Called when the valve opens for good, with this valve.</summary>
@@ -161,7 +165,7 @@ namespace TheLastDrop
                     if (!IsOpen) SurvivalRules.Reward(Reward, "valve opened");   // R8.8: once, into unbanked water
                     Open();
                     break;
-                case MinigameResult.Lost:   // R9.3 (HYD cost goes on On Failed later)
+                case MinigameResult.Lost:   // R9.3: -5 HYD and a 10 s lockout
                     jammedUntil = Time.time + (balance != null ? balance.minigameLockout : 10f);
                     LogWater($"lost: -{(balance != null ? balance.minigameFailHyd : 0f):0.#} HYD (R9.3), minigame locked for {(balance != null ? balance.minigameLockout : 10f):0.#} s");
                     SurvivalRules.MinigameLost();   // R9.3: -5 HYD

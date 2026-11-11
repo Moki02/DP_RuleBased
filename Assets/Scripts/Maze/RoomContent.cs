@@ -31,9 +31,10 @@
 // when Play starts, so Inspector changes made during Play are lost; to keep them, add
 // RoomContent to the Systems object in the scene by hand once (see RoomNotes.cs).
 //
-// SAVING AND DAWN: the dawn autosave and the cistern refill both listen to the clock's NewDay,
-// in no fixed order. Either way works: the save keeps the day of the last refill, and loading
-// refills straight away if that dawn's refill isn't in the save yet (RefillCisterns).
+// SAVING AND DAWN: the cisterns refill on the clock's NewDay; the dawn autosave runs one frame
+// later (SaveManager), so it already holds the refilled cisterns. As a safety net the save
+// also keeps the day of the last refill, and loading refills straight away if that dawn's
+// refill isn't in the save (RefillCisterns), so a refill is never lost or done twice.
 // ============================================================================
 
 using System.Collections.Generic;
