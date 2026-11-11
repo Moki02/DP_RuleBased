@@ -7,6 +7,10 @@
 // (MenuState.Enter), so the player can't move or look around and the cursor is free, but
 // time, hydration and the night keep going. Closing it (E, Esc or Close) puts the game back
 // to Exploring, which locks and hides the cursor again.
+// Keys: E or Esc close a note. Esc can't also pause the game, because the team's pause key
+// (PlayerInput_Manager) is handled before this script's Update and ignores the Menu state.
+// Tab / B / M can't open the Tab menu or the map over a note: MenuState.Enter() says no
+// while the game is already in the Menu state.
 // The journal opens on top of the map screen (J or the map's Journal button). The map
 // already holds the Menu state, so the journal doesn't change it; it closes with J, its
 // Close button, or when the map closes.

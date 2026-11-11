@@ -155,7 +155,9 @@ namespace TheLastDrop
                     else if (IsOpen && kb.escapeKey.wasPressedThisFrame) Close();
                 }
             }
-            // J opens the journal (R8.7), also when the map is a page of the Tab menu.
+            // J opens the journal (R8.7), also when the map is a page of the Tab menu. J only works
+            // while the map is on screen, and no other script uses J (Tab/B/M menu, F marker,
+            // E use, Q drink, digits and F-keys for debug).
             var keys = Keyboard.current;
             if (IsOpen && keys != null && keys.jKey.wasPressedThisFrame) JournalRequested?.Invoke();
             if (IsOpen) Redraw();

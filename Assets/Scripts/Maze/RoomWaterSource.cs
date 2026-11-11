@@ -25,11 +25,16 @@ namespace TheLastDrop
         [Tooltip("The player can use this from anywhere within this many metres (the interaction box is small).")]
         public float proximityRange = 2f;
 
+        // Works after zone 2 turns: the player's interaction code checks world positions every
+        // frame, and this object is a child of its room (under Zone2Pivot), so it moves with it.
+
         [Header("Text (what the player reads)")]
-        [Tooltip("{0} = litres left.")]
+        [Tooltip("Prompt while E can be held. {0} = litres left in the room.")]
         public string fillPrompt = "Hold [E] to fill canteen  ({0:0.0} L left)";
+        [Tooltip("Prompt when the canteen has no room left.")]
         public string canteenFullPrompt = "Canteen full";
 
+        // Hold E: Interact is called every frame while E is held.
         void Awake()
         {
             interactionType = InteractionType.Hold;

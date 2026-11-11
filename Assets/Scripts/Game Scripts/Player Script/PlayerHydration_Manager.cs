@@ -9,7 +9,13 @@
 //
 // Drinking (R2.3): HOLD Q to drink from the canteen at 0.5 L/s (×1.5 with M4 Quick Hands).
 // Each litre gives 25 HYD (30 with E3 Water Discipline). It stops at full HYD or an empty
-// canteen, so no water is wasted.
+// canteen, so no water is wasted. The water is handled ONLY by HandleHoldToDrink (reads the
+// Q key directly). Pressing Q also fires PlayerInput_Manager's "PlayerDrink" action, which
+// only plays the drink animation (HandleDrinkAction); the animation's event calls
+// DrinkFromCanteen, which is now empty on purpose, so water is never counted twice.
+//
+// Collapse (R11.1): at 0 HYD this fires OnCollapsed once. PlayerDeath_Manager (animation,
+// freeze) and CollapseManager (fade, costs, waking up) listen to it.
 //
 // DESIGN RULES: R2.1 to R2.5, the hydration states table, R11.1 (collapse at 0).
 //
@@ -24,9 +30,12 @@ using UnityEngine.InputSystem;
 using System;
 using TheLastDrop;
 
+/// <summary>The player's HYD: drain, states, drinking, Sick and collapse (R2.1 to R2.5, R11.1).</summary>
 public class PlayerHydration_Manager : MonoBehaviour, ISaveable
 {
+    /// <summary>The player's hydration (set in Awake).</summary>
     public static PlayerHydration_Manager instance;
+    [Tooltip("The Player_Manager on the same object (found by itself in Awake).")]
     public Player_Manager player;
     GameResources_Manager resources;
 
@@ -63,11 +72,15 @@ public class PlayerHydration_Manager : MonoBehaviour, ISaveable
     public float skillMultiplier = 1f;
 
     [Header("Hub Settings")]
+    [Tooltip("The hub's trigger box: inside it drain is halved (shade, R2.2). The Build Playtest Scene menu sets it.")]
     public BoxCollider hubArea;
+    [Tooltip("Old scenes: drain multiplier inside the hub (GameBalance > Hub Shade Mult wins when present).")]
     public float hubDrainMultiplier = 0.5f;
 
     [Header("Activity")]
+    [Tooltip("Set by the hand pump while E is held (pumping drain).")]
     public bool isPumping;
+    [Tooltip("Set by gates while a minigame is open (minigame drain, R9.1).")]
     public bool isPlayingMinigame;
 
     [Header("Playtest")]
@@ -75,6 +88,7 @@ public class PlayerHydration_Manager : MonoBehaviour, ISaveable
              "Turned off automatically when GameBalance > Survival On is ticked.")]
     public bool hydrationOff = false;
 
+    /// <summary>Fired once when HYD reaches 0 (R11.1).</summary>
     public event Action OnCollapsed;
 
     /// <summary>The drain per second worked out last frame (for the debug HUD).</summary>
@@ -184,12 +198,14 @@ public class PlayerHydration_Manager : MonoBehaviour, ISaveable
             currentHydrationState = HydrationState.Hydrated;
     }
 
+    /// <summary>False while Dehydrated or Collapsed (no sprinting).</summary>
     public bool CanSprint()
     {
         return currentHydrationState != HydrationState.Dehydrated &&
                currentHydrationState != HydrationState.Collapsed;
     }
 
+    /// <summary>True at 0 HYD.</summary>
     public bool IsCollapsed()
     {
         return currentHydrationState == HydrationState.Collapsed;
@@ -245,6 +261,7 @@ public class PlayerHydration_Manager : MonoBehaviour, ISaveable
         player.playerStats_Manager.ChangeHydration(-drain * Time.deltaTime);
     }
 
+    /// <summary>True while the player is inside the hub's box (shade, R2.2).</summary>
     public bool IsInsideHub()
     {
         if (hubArea == null)
@@ -275,10 +292,14 @@ public class PlayerHydration_Manager : MonoBehaviour, ISaveable
         IsDrinking = true;
     }
 
-    // Q pressed: plays the drink animation once (the water itself is handled by HandleHoldToDrink).
+    /// <summary>Q pressed (PlayerInput_Manager): plays the drink animation once. The water itself is handled by HandleHoldToDrink.</summary>
     public void HandleDrinkAction()
     {
         if (resources == null || hydrationOff)
+            return;
+
+        // Same rule as the drinking itself: not while a menu, minigame or pause is up.
+        if (Game_Manager.instance != null && !Game_Manager.instance.CanControlPlayer())
             return;
 
         if (currentHydrationState == HydrationState.Collapsed)
@@ -321,6 +342,7 @@ public class PlayerHydration_Manager : MonoBehaviour, ISaveable
         player.animator.CrossFade("Walking Blend Tree", 0.2f);
     }
 
+    /// <summary>Hub tap (R2.4): drink straight from Clean Storage at the drinking rate, stopping at full HYD.</summary>
     public void DrinkFromCleanStorage(float deltaTime)
     {
         float hydPerL = HydPerLiter;
@@ -335,6 +357,7 @@ public class PlayerHydration_Manager : MonoBehaviour, ISaveable
         player.playerStats_Manager.ChangeHydration(consumed * hydPerL);
     }
 
+    /// <summary>Hub tap (R2.4): refill the canteen from Clean Storage at 1 L/s.</summary>
     public void RefillFromHub(float deltaTime)
     {
         resources.RefillCanteen(RefillRate * deltaTime);
@@ -393,6 +416,7 @@ public class PlayerHydration_Manager : MonoBehaviour, ISaveable
     }
 
 
+    /// <summary>Waking up after a collapse: sets HYD (at least 1), clears Sick, pumping and minigame.</summary>
     public void ResetAfterRevive(float hydration)
     {
         player.playerStats_Manager.player_Hydration =

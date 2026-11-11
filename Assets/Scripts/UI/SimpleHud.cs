@@ -3,13 +3,18 @@
 // Plain TextMeshPro screen text that any system can use, with no prefab and no art:
 //
 //   SimpleHud.SetLine("canteen", "Canteen 1.5 / 2 L");   // a status line on the left (null removes it)
-//   SimpleHud.Toast("+3.0 L banked");                    // a short message at the top, fades out
+//   SimpleHud.Toast("+3.0 L banked");                    // a short message at the top for a few seconds (max 5 at once)
 //   SimpleHud.Banner("THUNDERSTORM", "Rain for 60 s");   // a big message in the middle for a few seconds
 //   SimpleHud.ShowPanel("THE DROUGHT WINS", "Day 14", ("Restart", Restart));  // full-screen panel with buttons
 //   SimpleHud.SetFade(1f);                               // black screen (0 = none)
 //
-// The canvas is made the first time anything is shown, in whatever scene is open.
-// Timers use real time, so messages still fade while the game is paused.
+// The canvas is made the first time anything is shown, in whatever scene is open, and goes
+// away with that scene. Timers use real time, so messages still disappear while the game is
+// frozen (time scale 0). The panel's buttons need an EventSystem in the scene (the Build
+// Playtest Scene menu adds one). Don't call these from OnDestroy: during a scene change that
+// would make a new canvas in the scene being closed.
+// Status line keys used so far: hyd, canteen, unbanked, clean, raw, jugs, sick
+// (SurvivalDirector), stage (StageManager), lockdown (NightLockdown), plus the other batches'.
 //
 // DESIGN RULES: none of its own. The artists can replace any of this later.
 //
@@ -197,11 +202,9 @@ namespace TheLastDrop
                 status.text = sb.ToString();
             }
 
-            if (toastList.Count > 0 && toastList[0].until <= Time.unscaledTime)
-            {
-                toastList.RemoveAll(t => t.until <= Time.unscaledTime);
+            // Toasts can have different lengths, so check them all (not only the oldest).
+            if (toastList.Count > 0 && toastList.RemoveAll(t => t.until <= Time.unscaledTime) > 0)
                 RefreshToasts();
-            }
 
             if (bannerTitle.gameObject.activeSelf && Time.unscaledTime >= bannerUntil)
             {

@@ -1,3 +1,4 @@
+// ============================================================================
 // MazeTileSet.cs
 // The art for one zone. Make one per zone (Create > The Last Drop > Maze Tile Set) and drop
 // it on the MazeBuilder. Any list left empty falls back to a ProBuilder grey-box piece, so
@@ -17,14 +18,24 @@
 //   - Use the "Check tile set" button on the MazeBuilder to see each prefab's measured size.
 //   - Colliders: the builder makes its own clean wall collision, so kitbash colliders are
 //     switched off by default (MazeBuilder > Collision). Gates and doors keep theirs.
+//
+// DESIGN RULES: GDD section 8 maze pipeline (designer's layout, Artist A's 4 m prefabs,
+// developer's grid loader). Zone 2 pieces turn with zone 2 (R8.24), so don't mark them static.
+//
+// HOW TO USE: Create > The Last Drop > Maze Tile Set, fill the lists, drag it into the
+// MazeBuilder's "Tile Set" and press "Build maze".
+// HOW TO EDIT: add or remove pieces in the lists; "Weight" makes a piece more or less common.
+// ============================================================================
 
 using System;
 using UnityEngine;
 
 namespace TheLastDrop
 {
+    /// <summary>How walls are built: one block per wall tile, or thin panels only on the sides you can see.</summary>
     public enum WallMode { Blocks, Faces }
 
+    /// <summary>How a piece is scaled to fit one tile.</summary>
     public enum FitMode
     {
         None,    // use the prefab at its own size
@@ -32,9 +43,11 @@ namespace TheLastDrop
         Uniform  // scale evenly so the width is exactly one tile, keeping proportions
     }
 
+    /// <summary>One art piece in a Tile Set list, with how to fit and place it.</summary>
     [Serializable]
     public class MazePiece
     {
+        [Tooltip("The prefab to place (a Synty piece or a kitbash saved as a prefab).")]
         public GameObject prefab;
 
         [Tooltip("How often this one is picked compared with the others in the same list.")]
@@ -55,15 +68,20 @@ namespace TheLastDrop
         [Tooltip("Extra scale on top of Fit. (1, 1, 1) = none.")]
         public Vector3 scale = Vector3.one;
 
+        /// <summary>True if a prefab is set.</summary>
         public bool IsValid => prefab != null;
+        /// <summary>The pick weight (1 if it was left at 0 or less).</summary>
         public float Weight => weight > 0f ? weight : 1f;
+        /// <summary>The extra scale ((1, 1, 1) if it was left at zero).</summary>
         public Vector3 Scale => scale == Vector3.zero ? Vector3.one : scale; // new list entries can start at zero
     }
 
+    /// <summary>The art pieces for one zone. Empty lists fall back to grey-box.</summary>
     [CreateAssetMenu(fileName = "MazeTileSet", menuName = "The Last Drop/Maze Tile Set")]
     public class MazeTileSet : ScriptableObject
     {
         [Header("Walls")]
+        [Tooltip("Blocks = one prefab per wall tile. Faces = thin panels only where a wall faces a corridor (lighter).")]
         public WallMode wallMode = WallMode.Faces;
 
         [Tooltip("Blocks mode: pieces that fill a whole wall tile.")]
@@ -104,6 +122,7 @@ namespace TheLastDrop
         [Tooltip("Base tiles (S). Empty = the normal floor.")]
         public MazePiece[] spawnFloors = new MazePiece[0];
 
+        /// <summary>True if the list has at least one piece with a prefab.</summary>
         public static bool HasAny(MazePiece[] list)
         {
             if (list == null) return false;

@@ -26,9 +26,14 @@
 // HOW TO USE: nothing. It adds itself to the game scene (AutoSystems) and finds the maze,
 // the map and the clock. It needs the maze built with "Split For Zone 2 Rotation" (the
 // playtest scene) so zone 2's rooms turn; without it everything still works but stays put.
-// HOW TO EDIT: numbers are in GameBalance ("Maze content: rooms"). The notes, colours and
-// label texts are in this component's Inspector (on the Systems object while playing) or in
-// RoomNotes.cs.
+// HOW TO EDIT: numbers are in GameBalance ("Maze content: rooms"). The notes are in
+// RoomNotes.cs. Colours and label texts are the fields below. This component is added only
+// when Play starts, so Inspector changes made during Play are lost; to keep them, add
+// RoomContent to the Systems object in the scene by hand once (see RoomNotes.cs).
+//
+// SAVING AND DAWN: the dawn autosave and the cistern refill both listen to the clock's NewDay,
+// in no fixed order. Either way works: the save keeps the day of the last refill, and loading
+// refills straight away if that dawn's refill isn't in the save yet (RefillCisterns).
 // ============================================================================
 
 using System.Collections.Generic;
@@ -55,19 +60,20 @@ namespace TheLastDrop
         [Tooltip("Label text colour.")] public Color labelColor = Color.white;
         [Tooltip("Label size (TextMeshPro font size in the world; about 0.1 m per point).")]
         public float labelSize = 3.5f;
-        [Tooltip("How far from the room's middle the note lies, in tiles (east, before zone 2 turns).")]
+        [Tooltip("How far from the room's middle the note lies, in tiles (east, before zone 2 turns). " +
+                 "Keep it at 1 or more so the note's E and the tank's E don't overlap.")]
         public float noteOffsetTiles = 1f;
 
         [Header("Text (what the player reads)")]
         [Tooltip("{0} = litres left, {1} = size.")] public string cisternLabel = "Cistern  {0:0.0} / {1:0.0} L\n<size=70%>refills at dawn</size>";
         [Tooltip("{0} = litres left.")] public string cacheLabel = "Sealed jug  {0:0.0} L";
-        public string cacheEmptyLabel = "Empty jug";
-        public string emptyLabel = "Remains\n<size=70%>no water here</size>";
-        public string noteLabel = "Survivor note";
-        public string noteReadLabel = "Survivor note (read)";
-        public string foundToast = "Found a room. Rooms are safe during the lockdown.";
-        public string journalTitle = "JOURNAL";
-        public string journalEmpty = "No notes read yet. Every room has one.";
+        [Tooltip("Label over a cache that has been emptied.")] public string cacheEmptyLabel = "Empty jug";
+        [Tooltip("Label over an empty room's remains (R8.16).")] public string emptyLabel = "Remains\n<size=70%>no water here</size>";
+        [Tooltip("Label over a note not read yet.")] public string noteLabel = "Survivor note";
+        [Tooltip("Label over a note already read.")] public string noteReadLabel = "Survivor note (read)";
+        [Tooltip("Toast the first time the player walks into a room (R8.18).")] public string foundToast = "Found a room. Rooms are safe during the lockdown.";
+        [Tooltip("Heading of the journal panel (R8.7).")] public string journalTitle = "JOURNAL";
+        [Tooltip("Journal text before any note is read.")] public string journalEmpty = "No notes read yet. Every room has one.";
 
         /// <summary>The one in this scene (null if there is none).</summary>
         public static RoomContent Instance { get; private set; }
@@ -396,6 +402,9 @@ namespace TheLastDrop
         public void ReadNote(int roomIndex)
         {
             if (!ready || roomIndex < 0 || roomIndex >= rooms.Length) return;
+            // The panel can only open while the player is free (not in a menu or minigame). Check
+            // first, so a note is never marked read (and its payload used up) without being shown.
+            if (Game_Manager.instance != null && !Game_Manager.instance.CanControlPlayer()) return;
             var r = rooms[roomIndex];
             var note = NoteFor(roomIndex);
             string extra = "";
@@ -411,6 +420,8 @@ namespace TheLastDrop
         }
 
         // R8.17: Reveal, Marker or Clue. Returns a line for the player, or "".
+        // Note: Reveal opens tiles with RevealLocal, which doesn't fire TileSeen, so those tiles
+        // don't pay the 0.03 L tile reward (R8.2a); they can still complete a section or milestone.
         string ApplyPayload(int roomIndex, RoomNote note)
         {
             var reveal = tracker != null ? tracker.Reveal : null;

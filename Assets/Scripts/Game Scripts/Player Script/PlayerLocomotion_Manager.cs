@@ -1,5 +1,22 @@
+// ============================================================================
+// PlayerLocomotion_Manager.cs
+// Moves and turns the player from the movement input, relative to the camera.
+// Speed = walking or sprinting speed (PlayerStats_Manager; M1 / M2 change them through
+// UpgradeManager), then:
+//   - no sprinting while Dehydrated or Collapsed (hydration states table);
+//   - Dehydrated: × 0.75 (GameBalance > Dehydrated Speed Mult; M5 Marathoner makes it × 1);
+//   - S7 Jerry Can: × 0.9 while the canteen holds more than 6 L (R5.4).
+// No movement at all while collapsed.
+//
+// DESIGN RULES: hydration states table (section 2), R5.4.
+//
+// HOW TO USE: on the Player prefab; Player_Manager calls HandleAllMovement every frame.
+// HOW TO EDIT: speeds are in GameBalance (Player) and the Build and Skills effects CSV.
+// ============================================================================
+
 using UnityEngine;
 
+/// <summary>Moves and turns the player (walk, sprint, thirst and heavy-carry slowdowns).</summary>
 public class PlayerLocomotion_Manager : MonoBehaviour
 {
     public static PlayerLocomotion_Manager instance;
@@ -40,6 +57,7 @@ public class PlayerLocomotion_Manager : MonoBehaviour
         player_RotationalSpeed = player.playerStats_Manager.player_RotationalSpeed;
     }
 
+    /// <summary>Moves and turns the player this frame (when the current animation allows it).</summary>
     public void HandleAllMovement()
     {
         if (player.playerAnimator_Manager.canMove)
@@ -53,6 +71,7 @@ public class PlayerLocomotion_Manager : MonoBehaviour
         }
     }
 
+    /// <summary>Walks or sprints along the input, relative to the camera.</summary>
     public void HandleGroundedMovement()
     {
         GetMovementValues();

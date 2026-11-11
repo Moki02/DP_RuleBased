@@ -3,16 +3,19 @@
 // Every water amount in the game, in one place: the canteen, the Raw Basin, Clean Storage,
 // unbanked water and the spare jugs by the hub door.
 //
-// Clean Storage: when the scene has an UpgradeManager (the maze game), Clean Storage is
-// UpgradeManager's number (it pays for Build and Skills). This script reads and writes that
-// same number, so the purifier, the tap and the shop can never disagree. Old scenes with no
-// UpgradeManager keep their own number here, as before.
+// Clean Storage: when the scene has an UpgradeManager (the maze game), Clean Storage has ONE
+// owner, UpgradeLogic.Stored (it pays for Build and Skills, and UpgradeManager saves it).
+// The cleanStorage property below reads and writes that same number, so the purifier, the
+// tap, evaporation and the shop can never disagree. Old scenes with no UpgradeManager keep
+// their own number here ("cleanStorageLocal"), as before.
 //
 // DESIGN RULES: R1.1 to R1.4 (units, only Clean Storage buys, overflow), R3.5 (banking,
 // Safe Return bonus, spare jugs), R5.1 (an upgrade keeps the water).
 //
-// HOW TO USE: it's on the Game Manager prefab. Other scripts call AddRawWater, TakeCanteenWater,
-// BankWater and so on; don't change the numbers directly unless you have to.
+// HOW TO USE: it's on the Game Manager prefab. Other scripts use GameResources_Manager.instance
+// and call AddRawWater, TakeCanteenWater, BankWater and so on; don't change the numbers
+// directly unless you have to. Water that enters the game is counted by the caller with
+// RunStats.AddCollected (moving water between containers is not counted).
 // HOW TO EDIT: start amounts are in GameBalance (Start values); sizes follow the storage
 // upgrades (UpgradeManager sets canteen_Max and rawBasin_Max).
 // ============================================================================
@@ -21,15 +24,19 @@ using UnityEngine;
 using System;
 using TheLastDrop;
 
+/// <summary>Every water amount in the game (canteen, Raw Basin, Clean Storage, unbanked, spare jugs).</summary>
 public class GameResources_Manager : MonoBehaviour, ISaveable
 {
+    /// <summary>The one in this scene (set in Awake).</summary>
     public static GameResources_Manager instance;
 
     /// <summary>Fired when water didn't fit somewhere (the FULL popup, R1.4).</summary>
     public event Action OnWaterFull;
 
     [Header("Canteen")]
+    [Tooltip("Litres in the canteen now.")]
     public float canteen = 2f;
+    [Tooltip("Canteen size in litres (UpgradeManager sets it from S1 / S4 / S7 in the maze game).")]
     public float canteen_Max = 2f;
 
     // Maze playtest only: pouring into lock basins never empties the canteen.
@@ -38,16 +45,21 @@ public class GameResources_Manager : MonoBehaviour, ISaveable
     public bool infiniteCanteen = false;
 
     [Header("Raw Basin")]
+    [Tooltip("Litres of raw (unsafe) water in the hub's Raw Basin.")]
     public float rawBasin = 0f;
+    [Tooltip("Raw Basin size in litres (UpgradeManager sets it from S5 / S8 in the maze game).")]
     public float rawBasin_Max = 15f;
 
     [Header("Clean Storage (old scenes only; the maze game uses UpgradeManager's)")]
+    [Tooltip("Litres in Clean Storage, ONLY in old scenes with no UpgradeManager.")]
     [UnityEngine.Serialization.FormerlySerializedAs("cleanStorage")]
     [SerializeField] float cleanStorageLocal = 10f;
+    [Tooltip("Clean Storage size in litres, ONLY in old scenes with no UpgradeManager.")]
     [UnityEngine.Serialization.FormerlySerializedAs("cleanStorage_Max")]
     [SerializeField] float cleanStorageLocal_Max = 25f;
 
     [Header("Unbanked Water")]
+    [Tooltip("Litres earned in the maze but not yet carried home (R3.5). Banked when the player walks into the hub.")]
     public float unbankedWater = 0f;
 
     [Header("Spare jugs (R3.5)")]
@@ -96,6 +108,12 @@ public class GameResources_Manager : MonoBehaviour, ISaveable
         }
     }
 
+    private void OnDestroy()
+    {
+        // Don't leave the static pointing at a destroyed object after the scene unloads.
+        if (instance == this) instance = null;
+    }
+
     private void Update()
     {
         // R3.5: spare jugs empty into Clean Storage on their own as room frees up.
@@ -115,6 +133,7 @@ public class GameResources_Manager : MonoBehaviour, ISaveable
 
     // ------------------------------------------------------------------ Adding and taking
 
+    /// <summary>Adds water to the canteen, never past its size. Returns the litres that went in.</summary>
     public float AddCanteenWater(float amount)
     {
         if (amount <= 0) return 0;
@@ -124,6 +143,7 @@ public class GameResources_Manager : MonoBehaviour, ISaveable
         return added;
     }
 
+    /// <summary>Adds water to the Raw Basin, never past its size (FULL popup if some didn't fit, R1.4). Returns the litres that went in.</summary>
     public float AddRawWater(float amount)
     {
         if (amount <= 0) return 0;
@@ -133,6 +153,7 @@ public class GameResources_Manager : MonoBehaviour, ISaveable
         return added;
     }
 
+    /// <summary>Adds water to Clean Storage, never past its size. Returns the litres that went in.</summary>
     public float AddCleanWater(float amount)
     {
         if (amount <= 0) return 0;
@@ -142,12 +163,14 @@ public class GameResources_Manager : MonoBehaviour, ISaveable
         return added;
     }
 
+    /// <summary>Adds water earned in the maze (rewards, new tiles). It's banked at the hub (R3.5).</summary>
     public void AddUnbankedWater(float amount)
     {
         if (amount > 0)
             unbankedWater += amount;
     }
 
+    /// <summary>Takes water from the canteen (all of it if there's less). Returns the litres taken.</summary>
     public float TakeCanteenWater(float amount)
     {
         if (infiniteCanteen)
@@ -158,6 +181,7 @@ public class GameResources_Manager : MonoBehaviour, ISaveable
         return removed;
     }
 
+    /// <summary>Takes water from the Raw Basin. Returns the litres taken.</summary>
     public float TakeRawWater(float amount)
     {
         if (amount <= 0) return 0;
@@ -166,6 +190,7 @@ public class GameResources_Manager : MonoBehaviour, ISaveable
         return removed;
     }
 
+    /// <summary>Takes water from Clean Storage. Returns the litres taken.</summary>
     public float TakeCleanWater(float amount)
     {
         if (amount <= 0) return 0;
@@ -174,7 +199,7 @@ public class GameResources_Manager : MonoBehaviour, ISaveable
         return removed;
     }
 
-    // ONLY CLEAN STORAGE CAN PURCHASE UPGRADES (R1.2)
+    /// <summary>Only Clean Storage can buy things (R1.2). False (and nothing taken) if there isn't enough.</summary>
     public bool SpendCleanWater(float cost)
     {
         if (cost < 0 || cleanStorage < cost)
@@ -202,7 +227,8 @@ public class GameResources_Manager : MonoBehaviour, ISaveable
         return left;
     }
 
-    // MOVE UNBANKED WATER INTO STORAGE (R3.5). Returns the litres banked.
+    /// <summary>Moves all unbanked water into storage, no bonus (R3.5). Returns the litres banked.
+    /// SurvivalDirector.Bank is the one the game uses (it adds the Safe Return bonus and the toast).</summary>
     public float BankWater()
     {
         float amount = unbankedWater;
@@ -211,7 +237,7 @@ public class GameResources_Manager : MonoBehaviour, ISaveable
         return amount;
     }
 
-    // REFILL CANTEEN FROM CLEAN STORAGE
+    /// <summary>Hub tap: moves up to <paramref name="amount"/> litres from Clean Storage into the canteen (R2.4). Returns the litres moved.</summary>
     public float RefillCanteen(float amount)
     {
         float space = Mathf.Max(0, canteen_Max - canteen);
@@ -228,23 +254,26 @@ public class GameResources_Manager : MonoBehaviour, ISaveable
         return transferred;
     }
 
-    // UPGRADE CONTAINER CAPACITIES
+    // Old helpers to grow a container (the maze game sets the sizes from UpgradeManager instead).
+    /// <summary>Makes the canteen at least this big.</summary>
     public void UpgradeCanteen(float newMax)
     {
         canteen_Max = Mathf.Max(canteen_Max, newMax);
     }
 
+    /// <summary>Makes the Raw Basin at least this big.</summary>
     public void UpgradeRawBasin(float newMax)
     {
         rawBasin_Max = Mathf.Max(rawBasin_Max, newMax);
     }
 
+    /// <summary>Old scenes only: makes Clean Storage at least this big (the maze game's size comes from UpgradeLogic.Cap).</summary>
     public void UpgradeCleanStorage(float newMax)
     {
         cleanStorage_Max = Mathf.Max(cleanStorage_Max, newMax);
     }
 
-    // DISPLAY WATER WITH ONE DECIMAL PLACE (R1.1: rounds down, so 4.96 shows as 4.9)
+    /// <summary>Water as text with one decimal, rounded DOWN (R1.1: 4.96 shows as "4.9 L").</summary>
     public string FormatWater(float amount)
     {
         float displayed = Mathf.Floor(

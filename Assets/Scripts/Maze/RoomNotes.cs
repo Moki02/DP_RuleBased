@@ -1,8 +1,12 @@
 // ============================================================================
 // RoomNotes.cs
 // The survivor notes (R8.7): one per room, each with a payload (R8.17). This file holds the
-// note format and the 7 placeholder notes. The writers can replace the text in the
-// Inspector (Systems > RoomContent > Notes) without touching code.
+// note format and the 7 placeholder notes.
+// RoomContent is added to the scene only when Play starts, so text typed into its Inspector
+// during Play is LOST when Play stops. To edit notes without code: in the game scene (not in
+// Play), select Systems, Add Component > RoomContent once and save the scene; its "Notes"
+// list then keeps your edits (the game uses that one instead of adding a new one).
+// Otherwise edit Defaults() below.
 //
 // DESIGN RULES:
 //   R8.7  One note per room. Reading it shows a text panel (the clock keeps running) and
@@ -20,7 +24,9 @@
 // If the layout changes, check the room numbers and the targets below.
 //
 // HOW TO USE: RoomContent uses Defaults() and shows the note for each room.
-// HOW TO EDIT: change the text, payload or target room in the Inspector or in Defaults().
+// HOW TO EDIT: change the text, payload or target room in Defaults() (or in a RoomContent
+// saved in the scene, see above). A note's "Clue:" line is just text; only Reveal and Marker
+// do something.
 // ============================================================================
 
 using System;
@@ -106,7 +112,7 @@ namespace TheLastDrop
 
             // 5: zone 1 west (cistern) -> reveals room 1
             new RoomNote("Aling Nena",
-                "My grandson went into the outer ring looking for the room with the cool tank, north-west of here." +
+                "My grandson went into the outer ring looking for the room with the cool tank, north-west of here. " +
                 "He told me the way and I wrote it down. If you see a red slipper, that's his. Bring him home.",
                 NotePayload.Reveal, 1),
 

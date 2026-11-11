@@ -7,24 +7,40 @@
 // CollapseManager this script works as before: the Collapse HUD shows, and its button
 // calls ReviveCharacter.
 //
+// Order of a collapse in the maze game: PlayerHydration_Manager fires OnCollapsed ->
+// HandleCollapse here plays the animation (in unscaled time) and sets the game state to
+// Collapsed (time scale 0) -> CollapseManager fades, takes the costs and calls ReviveAt,
+// which puts the player at the hub and sets the state back to Exploring (time scale 1).
+//
+// DESIGN RULES: R11.1 (collapse at 0 HYD, wake at the hub), R11.3 (wake HYD comes from
+// CollapseManager).
+//
 // HOW TO USE: on the Player prefab. "Respawn Point" is only needed in old scenes.
+// HOW TO EDIT: the animation's state name is "Collapse Animation". Wake-up numbers are in
+// GameBalance (Collapse and game over); "Revive Hydration" is only for old scenes.
 // ============================================================================
 
 using UnityEngine;
 using TheLastDrop;
 
+/// <summary>Plays the collapse, freezes the game, and wakes the player up again (ReviveAt).</summary>
 public class PlayerDeath_Manager : MonoBehaviour
 {
     [Header("Respawn Settings")]
+    [Tooltip("Old scenes only: where the player wakes. The maze game uses the maze's spawn.")]
     public Transform respawnPoint;
+    [Tooltip("Old scenes only: HYD after waking (the maze game uses GameBalance: 50, 60 with E3).")]
     public float reviveHydration = 50f;
 
     [Header("Collapse UI")]
+    [Tooltip("Old scenes only: the panel with the revive button. Hidden in the maze game (CollapseManager fades instead).")]
     public GameObject collapseHUD;
 
     [Header("Animation")]
+    [Tooltip("Animator state played when the player collapses.")]
     public string collapseAnimation = "Collapse";
 
+    [Tooltip("True from the collapse until ReviveAt (read only).")]
     public bool isDead = false;
 
     private Player_Manager player;
@@ -42,7 +58,8 @@ public class PlayerDeath_Manager : MonoBehaviour
 
     private void Start()
     {
-        player.playerHydration_Manager.OnCollapsed += HandleCollapse;
+        if (player != null && player.playerHydration_Manager != null)
+            player.playerHydration_Manager.OnCollapsed += HandleCollapse;
 
         if (collapseHUD != null)
             collapseHUD.SetActive(false);
@@ -71,12 +88,13 @@ public class PlayerDeath_Manager : MonoBehaviour
         if (collapseHUD != null && CollapseManager.Instance == null)
             collapseHUD.SetActive(true);
 
-        Game_Manager.instance.ChangeGameState(
-            Game_Manager.GameState.Collapsed
-        );
+        if (Game_Manager.instance != null)
+            Game_Manager.instance.ChangeGameState(
+                Game_Manager.GameState.Collapsed
+            );
     }
 
-    // Old scenes: the Collapse HUD's button calls this.
+    /// <summary>Old scenes: the Collapse HUD's button calls this (wakes at Respawn Point).</summary>
     public void ReviveCharacter()
     {
         if (!isDead || respawnPoint == null)
@@ -117,8 +135,9 @@ public class PlayerDeath_Manager : MonoBehaviour
         if (collapseHUD != null)
             collapseHUD.SetActive(false);
 
-        Game_Manager.instance.ChangeGameState(
-            Game_Manager.GameState.Exploring
-        );
+        if (Game_Manager.instance != null)
+            Game_Manager.instance.ChangeGameState(
+                Game_Manager.GameState.Exploring
+            );
     }
 }

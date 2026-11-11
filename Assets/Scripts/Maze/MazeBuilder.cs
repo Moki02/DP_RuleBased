@@ -26,6 +26,10 @@
 // Testing: untick "Gates Enabled" / "Doors Enabled" to walk the whole maze without gates.
 // This works instantly, in the editor or in Play mode, with no rebuild.
 //
+// Rooms: every R region becomes "Room_N" (a MazeArea with a trigger box) under the part it
+// belongs to, so zone 2's rooms sit under Zone2Pivot. RoomContent hangs each room's tank,
+// note and labels under that object at Play, which is how they turn with zone 2.
+//
 // IMPORTANT: "Build maze" deletes and recreates _Generated. Never put props inside it.
 // Keep props in their own GameObject (for example "Zone1_Props"). Props that must turn with
 // zone 2 go under a child of Zone2Pivot after building... and are lost on the next build, so
@@ -40,6 +44,7 @@ using UnityEngine.ProBuilder;
 
 namespace TheLastDrop
 {
+    /// <summary>Builds the maze (walls, gates, doors, valves, rooms, base, spawn) from the designer's CSV layout.</summary>
     public class MazeBuilder : MonoBehaviour, INightLockable
     {
         /// <summary>Name of the child that holds everything the builder makes.</summary>
@@ -98,17 +103,24 @@ namespace TheLastDrop
         [Tooltip("Join touching wall tiles into bigger blocks. Far fewer objects; looks the same.")]
         public bool mergeGreyboxWalls = true;
 
+        [Tooltip("Grey-box walls. Empty = a plain olive colour.")]
         public Material wallMaterial;
+        [Tooltip("Grey-box floor slab. Empty = a plain sand colour.")]
         public Material floorMaterial;
+        [Tooltip("Grey-box gates (G). Empty = blue.")]
         public Material gateMaterial;
+        [Tooltip("Grey-box doors (D and T). Empty = orange-brown.")]
         public Material doorMaterial;
+        [Tooltip("Tint on room floors (R). Empty = dark green.")]
         public Material roomMaterial;
+        [Tooltip("Tint on the hub base (S). Empty = dark blue.")]
         public Material spawnMaterial;
         [Tooltip("Valve grates (V tiles) in grey-box. Empty = orange, the map's valve colour.")]
         public Material valveMaterial;
 
         [Header("Runtime")]
-        [Tooltip("Build on Play if the maze hasn't been built in the editor yet.")]
+        [Tooltip("Build on Play if the maze hasn't been built in the editor yet. (Better: build it in the editor, " +
+                 "so zone 2's pivot and the rooms already exist when the other systems start.)")]
         public bool buildOnStartIfEmpty = true;
 
         /// <summary>The loaded layout. Null until LoadGrid() or Build() has run.</summary>
@@ -254,7 +266,11 @@ namespace TheLastDrop
         [ContextMenu("Build maze")]
         public void Build()
         {
-            if (!LoadGrid())
+            // In Play mode, keep the Grid that Awake loaded: the map, the rooms and the zone 2
+            // rotator may already hold it, and a second copy would stop their zone 2 turns
+            // from matching (the map would read one grid while the rotator turns the other).
+            bool keepGrid = Application.isPlaying && Grid != null;
+            if (!keepGrid && !LoadGrid())
             {
                 Debug.LogError($"[MazeBuilder] {name}: no layout CSV assigned, or it's empty.", this);
                 return;

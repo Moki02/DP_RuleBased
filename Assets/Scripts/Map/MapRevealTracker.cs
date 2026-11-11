@@ -8,7 +8,10 @@
 // turns with zone 2; MapReveal stores tiles in CSV positions to do this).
 //
 // HOW TO USE: put this on the "Systems" object and drag the Maze object into "Maze".
-// The map screen reads "Reveal" from here.
+// The map screen reads "Reveal" from here. Every tile the player sees for the first time
+// fires MapReveal.TileSeen, which pays the 0.03 L tile reward (SurvivalDirector, R8.2a) and
+// the section / milestone rewards (MapRewards, R8.2, R8.3). Debug key 0 (RevealAll) and
+// loading a save don't fire it, so they never pay.
 // HOW TO EDIT: look-ahead and marker limits are in GameBalance ("Map reveal" and
 // "Maze and mapping"). Skills V1, V2 and V3 replace them through UpgradeManager.
 // ============================================================================
@@ -63,6 +66,8 @@ namespace TheLastDrop
         {
             balance = BalanceProvider.Current;
             if (maze == null) maze = FindAnyObjectByType<MazeBuilder>();
+            // The tooltip promises "Empty = found at start", so look for it (V1, V2, V3 need it).
+            if (upgrades == null) upgrades = FindAnyObjectByType<UpgradeManager>();
             if (maze == null || maze.Grid == null)
             {
                 Debug.LogError("[MapRevealTracker] No built maze to map.", this);

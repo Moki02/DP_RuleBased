@@ -3,8 +3,11 @@
 // One extra icon for the map screen: a coloured square with a letter on a tile. Rooms use
 // it (R8.18: a room shows as an icon on the map once found).
 //
+// DESIGN RULES: R8.18 (found rooms show as icons), R8.28 (zone 2 icons turn with zone 2).
+//
 // HOW TO USE: give MapScreen.extraIcons a function that returns the icons to draw, with
 // WORLD tiles (use MazeGrid.LocalToWorld for zone 2, so the icons turn with the zone).
+// HOW TO EDIT: the colours and letters are chosen by whoever makes the icons (RoomContent).
 // ============================================================================
 
 using UnityEngine;

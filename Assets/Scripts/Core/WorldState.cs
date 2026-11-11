@@ -8,10 +8,15 @@
 //   - extra water table depth (Water Table Drop event, nice to have).
 //
 // Whoever owns a fact sets it; everyone else only reads it. Values reset when a scene loads.
+// Owners: StageOverride = StageManager (debug key 8, saved); IsRaining, HeatwaveActive and
+// EvaporationMultiplierTonight = EventManager; Evaporation reads the multiplier at dawn and
+// puts it back to 1.
 //
 // DESIGN RULES: section 10 (stages and events) - this is only the shared notice board.
 //
 // HOW TO USE: read WorldState.StageIndex, WorldState.IsRaining, ... from any script.
+// Owners set their facts in Start or later, never in Awake (the scene-load reset could
+// run after an Awake and wipe it).
 // ============================================================================
 
 using UnityEngine;
@@ -71,7 +76,7 @@ namespace TheLastDrop
             get
             {
                 var b = BalanceProvider.Current;
-                return b != null && StageIndex >= b.stages.Length - 1;
+                return b != null && b.stages != null && b.stages.Length > 0 && StageIndex >= b.stages.Length - 1;
             }
         }
 

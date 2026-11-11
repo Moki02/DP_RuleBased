@@ -10,6 +10,8 @@
 // never pay. Which rewards were paid is saved, so nothing ever pays twice (R8.28).
 // A survivor note that reveals tiles (R8.17) calls CheckTiles() itself; it only checks
 // when the note revealed tiles that were still black.
+// SurvivalDirector listens to the same TileSeen event and pays the separate 0.03 L per new
+// tile (R8.2a). The two rewards add up on purpose (R8.2a: "R8.2 and R8.3 still pay on top").
 //
 // ASSUMPTION: sections are slices by angle (see MazeSections.cs); the CSV has no section codes.
 //

@@ -9,7 +9,9 @@
 //
 // HOW TO USE: call from a UI script, for example
 //     var canvas = UiBuilder.CreateCanvas("MapCanvas", transform, 50);
-//     var title  = UiBuilder.Text(canvas.transform, "Title", "MAP", 40, Color.white);
+//     var title  = UiBuilder.Text("Title", canvas.transform, "MAP", 40, Color.white);
+//     UiBuilder.Place(title.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(60, -36), new Vector2(800, 60));
+// Buttons only react to clicks if the scene has an EventSystem (GameObject > UI > Event System).
 // HOW TO EDIT: the reference resolution (1920 × 1080) is ReferenceWidth/Height below; it
 // matches the artists' design canvas. Fonts: TextMeshPro's default font asset is used
 // (Project Settings > TextMesh Pro > Settings > Default Font Asset).

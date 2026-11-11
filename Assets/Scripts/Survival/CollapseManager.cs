@@ -1,16 +1,22 @@
 // ============================================================================
 // CollapseManager.cs
 // What happens when HYD hits 0 (R11.1 to R11.5):
-//   1. The screen fades to black over 2 s; the game is frozen meanwhile.
-//   2. The collapse costs: all canteen water (kept with E5 Second Wind), half the
-//      unbanked water (rounded down to 0.1 L), and 30 s of clock time.
-//   3. If Clean Storage holds less than 2 L, the game ends: "The drought wins."
+//   1. The screen fades to black over 2 s; the game is frozen meanwhile (time scale 0,
+//      so the fade counts real time). An open minigame is closed with no penalty.
+//   2. The collapse costs: all canteen water (kept with E5 Second Wind) and half the
+//      unbanked water (rounded down to 0.1 L).
+//   3. If Clean Storage holds less than 2 L, the game ends: "The drought wins." (end screen
+//      with the run's stats, Restart / Quit).
 //   4. Otherwise the player wakes at the hub, drinks 2 L from Clean Storage and has
-//      50 HYD (60 with E3 Water Discipline).
+//      50 HYD (60 with E3 Water Discipline). The rest of the unbanked water is banked
+//      (no Safe Return bonus), and THEN the clock jumps 30 s (the last R11.2 cost; done
+//      last so a dawn autosave in those 30 s saves the woken player).
 //
-// DESIGN RULES: R11.1 to R11.5.
+// DESIGN RULES: R11.1 to R11.5, R3.5 (banking on waking).
 //
 // HOW TO USE: added to the game scene by itself (needs a BalanceProvider). Nothing to set.
+// It listens to PlayerHydration_Manager.OnCollapsed; PlayerDeath_Manager listens too and
+// plays the collapse animation and freezes the game (Game_Manager state Collapsed).
 // HOW TO EDIT: GameBalance > Collapse and game over, and Clock > Collapse Clock Penalty.
 // ============================================================================
 
@@ -63,6 +69,14 @@ namespace TheLastDrop
             running = true;
             RunStats.AddCollapse();
 
+            // A minigame left open would still be on screen (and playable) after waking.
+            // Close it as a Quit (no penalty), then make sure the game stays frozen: closing it
+            // may have switched the state from Minigame back to Exploring.
+            if (ValveTimingGame.IsPlaying) ValveTimingGame.Instance.Cancel();
+            var gm = Game_Manager.instance;
+            if (gm != null && gm.currentGameState != Game_Manager.GameState.Collapsed)
+                gm.ChangeGameState(Game_Manager.GameState.Collapsed);
+
             // 1. Fade to black (real time: the game is frozen by the Collapsed state).
             float fadeTime = balance != null ? balance.collapseFadeSeconds : 2f;
             for (float t = 0f; t < fadeTime; t += Time.unscaledDeltaTime)
@@ -86,18 +100,16 @@ namespace TheLastDrop
                 lostUnbanked = Mathf.Floor(res.unbankedWater * lossShare * 10f) / 10f;
                 res.unbankedWater = Mathf.Max(0f, res.unbankedWater - lostUnbanked);
             }
-            var clock = GameClock_Manager.Instance;
             float clockCost = balance != null ? balance.collapseClockPenalty : 30f;
-            // Advance multiplies by the debug clock speed, so divide it back out: always 30 game seconds.
-            if (clock != null && clock.Clock != null)
-                clock.Clock.Advance(clockCost / Mathf.Max(0.01f, clock.Clock.SpeedMultiplier));
 
             // 3. Game over? (R11.4)
             float wakeLitres = balance != null ? balance.wakeLiters : 2f;
             float needed = balance != null ? balance.gameOverBelowLiters : 2f;
             if (res == null || res.cleanStorage < needed - 1e-4f)
             {
-                GameOver();
+                // No clock penalty here: moving the clock could fire the dawn autosave and save
+                // the game-over state (0 HYD, empty canteen) over the last good save.
+                GameOver(needed);
                 running = false;
                 yield break;
             }
@@ -108,10 +120,23 @@ namespace TheLastDrop
             var death = Player_Manager.instance != null ? Player_Manager.instance.playerDeath_Manager : null;
             GetSpawn(out Vector3 pos, out Quaternion rot);
             if (death != null) death.ReviveAt(pos, rot, wakeHyd);
-            else if (Game_Manager.instance != null) Game_Manager.instance.ChangeGameState(Game_Manager.GameState.Exploring);
+            else
+            {
+                // No PlayerDeath_Manager: still refill HYD, or the player would collapse again at once.
+                if (hydration != null) hydration.ResetAfterRevive(wakeHyd);
+                if (Game_Manager.instance != null) Game_Manager.instance.ChangeGameState(Game_Manager.GameState.Exploring);
+            }
 
             // The rest of the unbanked water is home now (R3.5), but with no Safe Return bonus.
             if (SurvivalDirector.Instance != null) SurvivalDirector.Instance.Bank(false);
+
+            // R11.2: 30 s of clock time. Done AFTER waking on purpose: if those 30 s cross dawn,
+            // the dawn autosave (and anything else listening for night or dawn) sees the woken
+            // player, not one lying at 0 HYD with an empty canteen.
+            // Advance multiplies by the debug clock speed, so divide it back out: always 30 game seconds.
+            var clock = GameClock_Manager.Instance;
+            if (clock != null && clock.Clock != null)
+                clock.Clock.Advance(clockCost / Mathf.Max(0.01f, clock.Clock.SpeedMultiplier));
 
             SimpleHud.SetFade(0f);
             string kept = Skills.B("keepCanteenOnCollapse", false) ? "canteen kept (Second Wind)" : $"-{lostCanteen:0.0} L canteen";
@@ -141,11 +166,12 @@ namespace TheLastDrop
             rot = p != null ? p.transform.rotation : Quaternion.identity;
         }
 
-        void GameOver()
+        // R11.4: the end. The game stays frozen (Collapsed state) behind the end screen.
+        void GameOver(float neededLitres)
         {
             IsGameOver = true;
             if (Game_Manager.instance != null) Game_Manager.instance.ChangeGameState(Game_Manager.GameState.Collapsed);
-            ShowEndScreen("THE DROUGHT WINS", "You collapsed with less than 2 L at home.");
+            ShowEndScreen("THE DROUGHT WINS", $"You collapsed with less than {neededLitres:0.#} L at home.");
         }
 
         /// <summary>Shows an end screen (game over or win) with the run's stats and Restart / Quit.</summary>

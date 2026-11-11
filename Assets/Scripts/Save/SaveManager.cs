@@ -3,17 +3,18 @@
 // Saves and loads the game: one save slot, a JSON file at
 //     Application.persistentDataPath/thelastdrop_save.json
 // (on Windows: %USERPROFILE%/AppData/LocalLow/<company>/<product>/).
-//   - Autosave right after every new day starts (NewDay). That comes after the night's
-//     zone 2 turn, so a loaded game starts at that dawn with zone 2 already turned right.
+//   - Autosave one frame after every new day starts (NewDay). That comes after the night's
+//     zone 2 turn and after every other dawn change (evaporation, the heatwave ending), so
+//     a loaded game starts at that dawn with everything already in its dawn state.
 //   - F5 saves now, F9 loads (debug keys).
 //   - Every system saves its own part (ISaveable); this script only collects them,
 //     restores them in order (clock first, player last) and writes the file.
 //   - It saves the player's position and facing too, so a load puts them back.
 //   - A bad or old-version file is rejected with a clear Console message; nothing breaks.
 //
-// CONTINUE BUTTON: the project has no main menu yet. When it gets one, enable its
-// Continue button only if SaveManager.HasSave is true, and on click call
-// SaveManager.LoadAndStart(); it opens the game scene and loads the save.
+// CONTINUE BUTTON: the main menu (Menus/MainMenu.cs) enables Continue only if
+// SaveManager.HasSave is true, and on click calls SaveManager.LoadAndStart(); it opens
+// the game scene and loads the save.
 //
 // DESIGN RULES: R11.8.
 //
@@ -91,6 +92,16 @@ namespace TheLastDrop
         void OnNewDay(int day)
         {
             if (!autosaveAtDawn) return;
+            // Save one frame later, not right now: other systems also react to the new day
+            // (the heatwave ends, the stage changes, evaporation...), and the order in which
+            // they hear about it isn't fixed. Waiting a frame means every one of them has
+            // finished, so the save never catches yesterday's heatwave as "today's".
+            StartCoroutine(AutosaveNextFrame(day));
+        }
+
+        IEnumerator AutosaveNextFrame(int day)
+        {
+            yield return null; // runs even at time scale 0
             if (Save()) Debug.Log($"[SaveManager] Autosaved at the dawn of day {day}.", this);
         }
 

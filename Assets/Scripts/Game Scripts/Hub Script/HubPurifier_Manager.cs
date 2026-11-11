@@ -4,12 +4,14 @@
 // basin has water and storage has room (R3.2, R3.3, R6.2). The boiling pot does 1 L every
 // 6 s (0.167 L/s).
 //
-// A better purifier (the Biosand Filter, R6.1: only the best one owned runs) sets
-// RateOverride; until then the boiling pot rate from GameBalance is used.
+// A better purifier sets RateOverride: the Biosand Filter (Sources/BiosandFilter.cs, P1)
+// does, with its ripening rate (R6.1: only the best purifier owned runs). With no override
+// the boiling pot rate from GameBalance is used. It stops while Clean Storage is full, so
+// no water is lost (R3.3), and pauses while the game is frozen (time scale 0).
 //
 // DESIGN RULES: R3.2, R3.3, R6.1, R6.2.
 //
-// HOW TO USE: on the Boiling Pot prefab.
+// HOW TO USE: on the Boiling Pot prefab (the Build Playtest Scene menu places one in the hub).
 // HOW TO EDIT: GameBalance > Purifiers > Boil Rate.
 // ============================================================================
 
@@ -17,6 +19,7 @@ using System;
 using UnityEngine;
 using TheLastDrop;
 
+/// <summary>The hub's purifier: turns Raw Basin water into Clean Storage water on its own.</summary>
 public class HubPurifier_Manager : MonoBehaviour
 {
     /// <summary>
@@ -25,7 +28,14 @@ public class HubPurifier_Manager : MonoBehaviour
     /// </summary>
     public static Func<float> RateOverride;
 
+    // Static fields survive between Play sessions in the editor when "domain reload" is off.
+    // Start each Play with no override. (Within a session, BiosandFilter clears its hook in
+    // OnDestroy when the scene reloads.)
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStatics() => RateOverride = null;
+
     [Header("Purifier Settings (old scenes; GameBalance wins when present)")]
+    [Tooltip("Boiling pot rate in litres per second (1 L every 6 s = 0.167).")]
     public float boilingPotRate = 1f / 6f;
 
     private GameResources_Manager resources;

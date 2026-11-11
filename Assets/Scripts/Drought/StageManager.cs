@@ -49,8 +49,8 @@ namespace TheLastDrop
 
         GameBalance balance;
         GameClock_Manager clock;
-        Color sunBaseColor;
-        float sunBaseIntensity;
+        Color sunBaseColor;          // the sun's own colour before any stage tint
+        float sunAppliedMult = 1f;   // the stage intensity multiplier the sun has now
 
         void Start()
         {
@@ -200,7 +200,7 @@ namespace TheLastDrop
             }
             if (sun == null) return;
             sunBaseColor = sun.color;
-            sunBaseIntensity = sun.intensity;
+            sunAppliedMult = 1f;
         }
 
         void ApplySun(int index)
@@ -209,7 +209,12 @@ namespace TheLastDrop
             Color tint = balance.stageSunTint != null && index < balance.stageSunTint.Length ? balance.stageSunTint[index] : Color.white;
             float mult = balance.stageSunIntensity != null && index < balance.stageSunIntensity.Length ? balance.stageSunIntensity[index] : 1f;
             sun.color = sunBaseColor * tint;
-            sun.intensity = sunBaseIntensity * mult;
+            // Intensity is changed RELATIVELY (swap our old multiplier for the new one), because
+            // the Thunderstorm (EventManager) also dims the sun relatively. Setting it outright
+            // here would undo the storm's dimming, and the storm's "undim" later would then
+            // leave the sun too bright for the rest of the game.
+            if (sunAppliedMult > 0f) sun.intensity = sun.intensity / sunAppliedMult * mult;
+            sunAppliedMult = mult;
         }
 
         // ------------------------------------------------------------------ Saving (R11.8)

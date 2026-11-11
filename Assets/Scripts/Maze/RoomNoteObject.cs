@@ -24,7 +24,9 @@ namespace TheLastDrop
         public float proximityRange = 2f;
 
         [Header("Text (what the player reads)")]
+        [Tooltip("Prompt for a note not read yet.")]
         public string readPrompt = "Press [E] to read the note";
+        [Tooltip("Prompt for a note already read (no payload the second time).")]
         public string rereadPrompt = "Press [E] to read the note again";
 
         void Awake()
@@ -43,6 +45,7 @@ namespace TheLastDrop
             if (player == null || owner == null) return false;
             if (player.playerHydration_Manager != null && player.playerHydration_Manager.IsCollapsed()) return false;
             if (Game_Manager.instance != null && !Game_Manager.instance.CanControlPlayer()) return false;
+            // The E that closed the note this frame (or last frame) must not open it again.
             if (Time.frameCount <= NotePanel.ClosedFrame + 1) return false;
             return IsPlayerClose(player);
         }
