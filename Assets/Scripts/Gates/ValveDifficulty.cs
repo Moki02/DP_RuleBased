@@ -7,9 +7,11 @@
 //     speed = 120 + 80 × t  degrees/second   the needle gets faster
 //     3 hits win, 3 misses lose.
 // Zone 2's 8 exit gates use the exit valve settings instead (12°, 220°/s, 4 hits, 3 misses).
+// In Demo mode GateManager passes zone 1's exits in as Zone2Exit, so they get the exit
+// valve too (section 13: "Lock 1 becomes the exit: 8 L, then the exit valve").
 // "ring" is the ring of the gate's tile nearest the centre (a valve is one tile).
 //
-// DESIGN RULES: R9.6 (difficulty by distance), R11.6 (exit valve).
+// DESIGN RULES: R9.6 (difficulty by distance), R11.6 (exit valve), section 13 (Demo exit).
 //
 // HOW TO USE: GateManager calls ValveDifficulty.ForGate(...) when it sets up each gate.
 // HOW TO EDIT: every number is in GameBalance under "Valve Timing difficulty by distance

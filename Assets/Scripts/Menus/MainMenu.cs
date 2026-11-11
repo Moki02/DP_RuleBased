@@ -16,6 +16,9 @@
 //
 // After a reload asked for by these buttons, or by Restart on an end screen, the menu is
 // skipped (SkipMenuOnce) and the run starts straight away.
+// Demo mode never autosaves (one save slot, R11.8, belongs to the full game). Debug keys
+// still work behind the title screen: don't press F5 there, it saves the fresh day 1 over
+// the real save.
 //
 // It also shows a plain pause panel (Resume / Save and quit to menu) when Esc pauses
 // the game but the team's pause menu can't be seen, and a "DEMO" HUD line in Demo mode.
@@ -240,6 +243,7 @@ namespace TheLastDrop
 
         void Update()
         {
+            // Runs at time scale 0 too (Update still runs; only Time.deltaTime is 0).
             // Something else (Game_Manager's own Start, a minigame closing) may have switched the
             // state back to Exploring: keep the game frozen while a panel is up.
             if (holdFrozen) { ApplyFreeze(); return; }

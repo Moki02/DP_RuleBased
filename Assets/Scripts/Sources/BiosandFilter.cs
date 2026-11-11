@@ -87,10 +87,15 @@ namespace TheLastDrop
         }
 
         // Detect the moment P1 becomes owned (bought) to remember the day.
+        // Changed also fires whenever Clean Storage changes, so this runs often; it only acts
+        // when "owned" flips.
         void OnUpgradesChanged()
         {
             bool owns = Owned;
-            // (A load also fires Changed; Restore runs right after and puts the saved day back.)
+            // Loading a save: UpgradeManager.Restore (order 30) fires Changed, which may set
+            // "bought today" here; this script's Restore (order 31) runs right after and puts the
+            // saved purchase day back. The clock is restored first (order 0), so "today" is the
+            // loaded day.
             if (owns && !wasOwned) PurchaseDay = WorldState.Day;
             if (!owns) PurchaseDay = 0;
             wasOwned = owns;

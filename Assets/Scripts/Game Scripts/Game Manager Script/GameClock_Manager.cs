@@ -85,7 +85,7 @@ public class GameClock_Manager : MonoBehaviour, ISaveable
 
     private void Update()
     {
-        // The pause menu sets the time scale to 0, which stops the clock too.
+        // Time scale 0 (pause menu, collapse fade, title / end screens) stops the clock too.
         if (Time.timeScale == 0f)
             return;
 
@@ -122,19 +122,27 @@ public class GameClock_Manager : MonoBehaviour, ISaveable
         Debug.Log($"[Clock] Speed x{Clock.SpeedMultiplier}");
     }
 
-    /// <summary>Pauses or unpauses ONLY the clock (the world keeps running). Used by the Build and Skills menu.</summary>
+    /// <summary>
+    /// Pauses or unpauses ONLY the clock (the player and HYD keep running). Used by the Build and
+    /// Skills menu at the hub (R1.5, R7.1). Things that follow game time also stop while it's
+    /// paused: event timers (EventManager) and the automatic water sources (WaterSources).
+    /// </summary>
     public void SetClockPaused(bool paused)
     {
         Clock.Paused = paused;
     }
 
-    /// <summary>Freezes the whole game (time scale 0).</summary>
+    /// <summary>
+    /// Freezes the whole game (time scale 0). Not used by the code; prefer
+    /// Game_Manager.ChangeGameState(Paused), which also frees the cursor and shows the pause menu.
+    /// Setting the time scale here alone leaves Game_Manager in the wrong state.
+    /// </summary>
     public void PauseGame()
     {
         Time.timeScale = 0f;
     }
 
-    /// <summary>Unfreezes the whole game (time scale 1).</summary>
+    /// <summary>Unfreezes the whole game (time scale 1). Not used by the code; prefer Game_Manager.ResumeGame().</summary>
     public void ResumeGame()
     {
         Time.timeScale = 1f;

@@ -48,9 +48,16 @@ namespace TheLastDrop
             return go;
         }
 
-        /// <summary>A floating label <paramref name="height"/> metres above <paramref name="parent"/>.</summary>
+        /// <summary>
+        /// A floating label <paramref name="height"/> metres above <paramref name="parent"/>.
+        /// <paramref name="fontSize"/> is in TextMeshPro points: for 3D text about 10 points = 1 m.
+        /// </summary>
         public static FacingLabel Label(Transform parent, float height, float fontSize)
         {
+            // 3D TextMeshPro (not the UI kind), so it needs no Canvas. No font is set here: TMP
+            // uses the default font from Project Settings > TextMesh Pro (TMP Essentials must be
+            // imported, as for every other TMP text in the project). The 10 × 2 m box is centred
+            // on the label; NoWrap keeps long lines on one line (they may spill past the box).
             var go = new GameObject("Label");
             go.transform.SetParent(parent, false);
             go.transform.localPosition = new Vector3(0f, height, 0f);

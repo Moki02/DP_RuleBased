@@ -13,10 +13,14 @@
 //
 // DESIGN RULES: R11.6, R11.7, ending titles table and secondary goals (section 11), R13.4.
 //
+// Restart (CollapseManager.Restart) starts a new run straight away, skipping the title
+// screen; in Demo mode it starts another demo and leaves the full game's save alone.
+//
 // HOW TO USE: nothing to place; GateManager calls Show. The title days are in
 // GameBalance > Ending screen.
-// HOW TO EDIT: the words are below. "Read all 8 survivor notes" isn't shown yet: there is
-// no notes system to ask (add it to Badges() when there is one).
+// HOW TO EDIT: the words are below. The third badge, "Read all 8 survivor notes", isn't
+// shown yet: RoomContent (batch 5) has no public "notes read" count to ask. Add one there
+// (it keeps a list of read notes), then add the badge in Badges().
 // ============================================================================
 
 using System.Collections.Generic;
@@ -35,6 +39,7 @@ namespace TheLastDrop
         static void ResetStatics() => HasWon = false;
 
         // Debug key F8 (only while GameBalance debug keys are on): win now.
+        // AfterSceneLoad runs once per Play, so the key stays registered for every scene.
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void RegisterDebugKey()
         {
@@ -63,7 +68,8 @@ namespace TheLastDrop
             CollapseManager.ShowEndScreen(title.ToUpperInvariant(), line);
         }
 
-        // Secondary goals (section 11, no gameplay effect). Each is read defensively.
+        // Secondary goals (section 11, no gameplay effect). Each is read defensively
+        // (any system may be missing in a test scene).
         static List<string> Badges()
         {
             var list = new List<string>();

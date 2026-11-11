@@ -10,8 +10,11 @@
 //   - Heatwave:     no warning, lasts until dawn. HYD drain × 1.3 (× 1.6 in the last stage),
 //                   WorldState.HeatwaveActive = true (Solar Still × 2), tonight's evaporation × 2.
 //                   The HUD shows the heat index ("Danger 46°C" / "Extreme Danger 53°C").
-// Water Table Drop, Cloud Seeding, Rationing, Relief Tanker and Grass Fire are nice-to-have
-// and not built: their weights are added to Calm (R10.5).
+// Water Table Drop, Cloud Seeding, Rationing, Relief Tanker and Grass Fire are not built:
+// their weights are added to Calm (R10.5). NOTE: the GDD's event table still marks Water
+// Table Drop and Cloud Seeding as "Must"; the batch plan (BATCHES.md) moved them to nice to
+// have. Until they're built, Calm days are more common than the table says (stage 3: 60%
+// Calm instead of 10%).
 //
 // When does it happen?
 //   - The time is rolled at dawn, between Event Window Min and Max seconds into the day
@@ -37,7 +40,11 @@
 //   GameBalance > Drought stages > Event Weights (the roll), GameBalance > Events (extra).
 // SAVING: running events are not saved (the autosave is at dawn, before any event). A
 //   mid-day save remembers whether today's event already happened (so loading never gives
-//   a second one) and whether a heatwave was on (it comes back). A storm is lost on load.
+//   a second one) and the day a heatwave started (it comes back only if the save is from
+//   that same day, so a dawn save never brings back yesterday's heatwave). A storm is lost
+//   on load.
+// SUN: a storm dims the sun relatively (× Storm Light Mult) and undoes it when the rain
+//   ends, unless the drought stages set the sun in between (then their value is kept).
 // ============================================================================
 
 using UnityEngine;
@@ -91,11 +98,13 @@ namespace TheLastDrop
         int debugCycle;                 // debug key 9: 0 Thunderstorm, 1 Heatwave, 2 Calm
         bool registeredDebugKey;
 
+        int heatwaveDay;                // the day the running heatwave started on (for the save)
         bool evapSetByHeatwave;         // we set WorldState.EvaporationMultiplierTonight
         bool resetEvapNextFrame;        // after dawn: put it back to 1 once the evaporation has used it
 
         Light sun;
         float sunDimmedBy = 1f;         // the factor we multiplied the sun by (1 = not dimmed)
+        float sunDimmedValue;           // the intensity we left the sun at (to spot someone else changing it)
 
         // ------------------------------------------------------------------ Unity
 
@@ -319,6 +328,7 @@ namespace TheLastDrop
         void StartHeatwave(bool quiet)
         {
             phase = Phase.Heatwave;
+            heatwaveDay = clock.Day;
             WorldState.HeatwaveActive = true;
             WorldState.EvaporationMultiplierTonight = balance.heatwaveEvapMult;
             evapSetByHeatwave = true;
@@ -404,12 +414,17 @@ namespace TheLastDrop
             if (sun == null) return;
             sunDimmedBy = balance.stormLightMult;
             sun.intensity *= sunDimmedBy;   // relative, so it doesn't fight the stage lighting
+            sunDimmedValue = sun.intensity;
         }
 
         void RestoreSun()
         {
             if (sunDimmedBy == 1f) return;
-            if (sun != null && sunDimmedBy > 0f) sun.intensity /= sunDimmedBy;
+            // Undo the dimming only if nobody changed the sun since. The drought stages set the
+            // sun's intensity outright (new stage at dawn, debug key 8, loading a save): that value
+            // is already the undimmed one, and dividing it again would make the sun too bright.
+            if (sun != null && sunDimmedBy > 0f && Mathf.Approximately(sun.intensity, sunDimmedValue))
+                sun.intensity /= sunDimmedBy;
             sunDimmedBy = 1f;
         }
 
@@ -470,7 +485,10 @@ namespace TheLastDrop
         {
             data.hasEvents = true;
             data.eventFiredDay = firedDay;
-            data.heatwaveDay = phase == Phase.Heatwave && clock != null ? clock.Day : 0;
+            // The day the heatwave STARTED, not clock.Day: the dawn autosave can run before this
+            // script ends the heatwave, and by then clock.Day is already the new day. Saving the
+            // new day would bring yesterday's heatwave back when that dawn save is loaded.
+            data.heatwaveDay = phase == Phase.Heatwave ? heatwaveDay : 0;
         }
 
         /// <summary>Clears every event flag, then plans the loaded day (and brings back its heatwave).</summary>

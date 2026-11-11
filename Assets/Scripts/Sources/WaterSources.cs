@@ -1,7 +1,8 @@
 // ============================================================================
 // WaterSources.cs
 // Runs the three automatic water sources the player can build (Build tab), every frame
-// while the game isn't paused:
+// while the game isn't paused (they also stop while the clock is paused on the Build and
+// Skills screen at the hub, R1.5):
 //
 //   Rain Catcher (W2; W3 / W8 bigger roof)  only while it rains (WorldState.IsRaining):
 //       catch area (m²) × rain per m² per second × runoff  ->  Raw Basin.
@@ -19,8 +20,9 @@
 // shows its live output and why it is slow or stopped (R4.6). While the player is in the
 // hub a "Sources" line on the HUD sums them up.
 //
-// Debug key 4 turns rain on and off (until the Thunderstorm event from batch 3 is merged,
-// that's the only way to test the Rain Catcher).
+// Rain comes from the Thunderstorm event (EventManager sets WorldState.IsRaining).
+// Debug key 4 also turns rain on and off by hand, to test the Rain Catcher without waiting
+// for a storm (debug key 9 starts a storm too). A real storm turns the rain off when it ends.
 //
 // DESIGN RULES: R1.4, R3.1, R3.3, R4.3, R4.4, R4.5, R4.6, section 4 table, section 10
 // (stage sun / deep-well factors, Heatwave doubles the still).
@@ -76,7 +78,7 @@ namespace TheLastDrop
             upgrades = UpgradeManager.Instance;
             if (upgrades != null) upgrades.Changed += OnUpgradesChanged;
 
-            // Test key until the Thunderstorm event (batch 3) is merged.
+            // Test key: rain on/off by hand (the Thunderstorm event is the real source of rain).
             DebugKeys.Register(Key.Digit4, "toggle rain", ToggleRain);
         }
 
@@ -105,7 +107,13 @@ namespace TheLastDrop
             if (dirty) RebuildModelsIfNeeded();
 
             RainRate = StillRate = WellRate = 0f;
-            bool running = Time.timeScale > 0f;
+            // Sources run on game time: nothing is made while the game is frozen (pause, title or
+            // end screen) or while the clock is paused on the Build and Skills screen at the hub
+            // (R1.5, R7.1). Otherwise the player could sit in that screen and collect free water
+            // (and a storm's timer stops there too, so the Rain Catcher would never stop).
+            var clock = GameClock_Manager.Instance;
+            bool clockPaused = clock != null && clock.Clock != null && clock.Clock.Paused;
+            bool running = Time.timeScale > 0f && !clockPaused;
             float dt = running ? Time.deltaTime : 0f;
 
             string rainText = RunRainCatcher(dt);

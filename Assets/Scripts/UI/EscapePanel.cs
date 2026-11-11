@@ -1,13 +1,15 @@
 // ============================================================================
 // EscapePanel.cs
-// The "You escaped on day N" panel. It appears when the player wins the valve minigame of
-// one of zone 2's 8 exit gates, which is the game's win. In the playtest the Continue
-// button just closes it so testing can go on.
+// The OLD "You escaped on day N" panel from the first maze playtest.
+// NOT USED ANY MORE: since batch 6 a win opens WinScreen (ending title, stats, Restart /
+// Quit) through GateManager. This script is kept only because the Build Playtest Scene menu
+// still adds it to "Systems"; it builds a hidden canvas and nothing ever shows it.
+// It can be deleted once the scene builder and GateManager.escapePanel stop referring to it.
+// (If you do call Show, note its Continue button lets the game go on after a win.)
 //
-// DESIGN RULES: R11.6 (opening an exit valve wins the game).
+// DESIGN RULES: R11.6 (opening an exit valve wins the game); now done by WinScreen.
 //
-// HOW TO USE: put this on the "Systems" object (the Build Playtest Scene menu does it).
-// GateManager calls Show(day). It builds its own canvas when the game starts.
+// HOW TO USE: nothing to do (unused). It builds its own hidden canvas when the game starts.
 // HOW TO EDIT: colours and words are in the Inspector.
 // ============================================================================
 
@@ -16,7 +18,7 @@ using UnityEngine;
 
 namespace TheLastDrop
 {
-    /// <summary>Shows "You escaped on day N" with a Continue button.</summary>
+    /// <summary>Old "You escaped on day N" panel with a Continue button. Unused: WinScreen replaced it.</summary>
     public class EscapePanel : MonoBehaviour
     {
         [Header("Text (what the player reads)")]

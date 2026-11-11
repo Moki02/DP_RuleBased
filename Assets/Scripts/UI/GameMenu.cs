@@ -8,6 +8,9 @@
 //   Skills has a "‹ Build" button on its left edge.
 // While the menu is open the player can't move and the cursor is free. The clock pauses
 // only while Build or Skills is open AT THE HUB; the Map page never pauses it.
+// It can't open while the game is paused, in a minigame, collapsed, or behind the title /
+// end screens (MenuState.Enter says no). If one of those takes over while it's open (for
+// example the player collapses), it closes itself.
 // The menu remembers the last page and the last selected card on each page (MenuMemory),
 // and that memory is saved with the game.
 //
@@ -167,6 +170,17 @@ namespace TheLastDrop
         void Update()
         {
             if (!built) return;
+
+            // Something else took over the screen while the menu was open (a collapse, the end
+            // screen, the title screen's freeze): close the menu quietly, so it isn't left open
+            // with the player walking around and the clock stuck paused after waking at the hub.
+            var gm = Game_Manager.instance;
+            if (IsOpen && gm != null && gm.currentGameState != Game_Manager.GameState.Menu)
+            {
+                Memory.IsOpen = false;
+                ApplyMemory(false); // hides it and un-pauses the clock; the state is not ours to change
+            }
+
             var kb = Keyboard.current;
             if (kb != null)
             {

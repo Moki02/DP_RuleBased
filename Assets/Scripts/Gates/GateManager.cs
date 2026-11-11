@@ -5,12 +5,14 @@
 //       hub gates 4 L, zone 1 exits 10 L, zone 2 exits 18 L,
 //     and a Valve Timing minigame whose difficulty grows with distance from the hub (R9.6);
 //     zone 2's 8 exits use the exit valve settings, and winning one wins the game (R11.6);
+//     in Demo mode (section 13) zone 1's exits become the exit instead: 8 L (Lock 1 of
+//     GameBalance_Demo) and the exit valve, and winning one shows "Demo complete" (R13.4);
 //   - each V tile (8 of them) gets a ValveGate on its grate (R8.8).
 // It also tells the map which gates are open, opens the win screen (WinScreen), and, when
 // night falls, moves a player standing in a gate's doorway back to the hub side so the
 // closing gate can't trap them.
 //
-// DESIGN RULES: R8.8, R8.9, R8.21 / R8.23, R9.6, R11.6.
+// DESIGN RULES: R8.8, R8.9, R8.21 / R8.23, R9.6, R11.6, section 13 / R13.4 (Demo exit).
 //
 // HOW TO USE: put this on the "Systems" object and fill the links (the Build Playtest
 // Scene menu does it). Gates are made at Play; nothing to place by hand.
@@ -60,7 +62,8 @@ namespace TheLastDrop
         public GameObject lockBasinPrefab;
         [Tooltip("The map screen, so it can draw open gates light blue. Empty = found by itself.")]
         public MapScreen mapScreen;
-        [Tooltip("The \"You escaped\" panel. Empty = found by itself.")]
+        [Tooltip("Old \"You escaped\" panel. NOT USED any more: a win now opens WinScreen (title, stats, Restart). " +
+                 "Kept only so the Build Playtest Scene menu, which still fills this slot, compiles.")]
         public EscapePanel escapePanel;
 
         [Header("Basin placement (metres)")]
@@ -198,6 +201,8 @@ namespace TheLastDrop
                 : new Vector2Int(0, d.y > 0 ? 1 : -1);
         }
 
+        // A lock's valve was won. LockBasin_Manager has already put the game back to Exploring;
+        // WinScreen then freezes it behind the end screen (MainMenu.Freeze).
         void OnBasinOpened(LockBasin_Manager basin)
         {
             if (!basin.isExitGate) return;
