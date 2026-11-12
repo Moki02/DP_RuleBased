@@ -8,6 +8,7 @@
 //   Assets/Resources/UI/Map.prefab          - the map screen and side panel (MapView)
 //   Assets/Resources/UI/NotePanel.prefab    - survivor notes and the journal (NotePanelView)
 //   Assets/Resources/UI/SimpleHud.prefab    - status lines, toasts, banners, fade, pop-up panel (SimpleHudView)
+//   Assets/Resources/UI/HowToPlay.prefab    - the How to Play screen shown after loading (HowToPlayView)
 // The game loads these by itself. A different prefab can also be dragged into the slots on
 // GameMenu ("Menu Prefab", "Card Prefab") and MapScreen ("Map Prefab") on the Systems object.
 //
@@ -64,6 +65,7 @@ namespace TheLastDrop.EditorTools
                 Make("Map", made, () => MapView.BuildDefault(null, map).gameObject);
                 Make("NotePanel", made, () => NotePanelView.BuildDefault(null).gameObject);
                 Make("SimpleHud", made, () => SimpleHudView.BuildDefault(null).gameObject);
+                Make("HowToPlay", made, () => HowToPlayView.BuildDefault(null).gameObject);
             }
             finally
             {

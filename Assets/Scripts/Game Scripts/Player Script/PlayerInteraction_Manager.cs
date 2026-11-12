@@ -11,7 +11,8 @@
 //
 // HOW TO USE: on the Player prefab. Drag in the "Interaction Hitbox" (a BoxCollider child in
 // front of the player; only its size and position are used) and the HUD's "Interaction Text".
-// HOW TO EDIT: change the reach by resizing the hitbox box.
+// HOW TO EDIT: change the reach by resizing the hitbox box. If the slot is empty, a default
+// box (0.5 x 1.8 x 1 m, in front of the player) is made at Play so interacting still works.
 // ============================================================================
 
 using UnityEngine;
@@ -43,6 +44,26 @@ public class PlayerInteraction_Manager : MonoBehaviour
         instance = this;
 
         player = GetComponent<Player_Manager>();
+
+        // A player prefab without its "Interaction Hitbox" child can't interact at all, so make
+        // one with the same size as the team's Player prefab (about 1 m in front, body height).
+        if (interaction_Hitbox == null)
+            interaction_Hitbox = MakeDefaultHitbox();
+    }
+
+    // The default reach box, copied from the team's Player prefab. Only its size and position
+    // are used, so its collider is switched off (it never bumps into anything).
+    private BoxCollider MakeDefaultHitbox()
+    {
+        var go = new GameObject("Interaction Hitbox (auto)");
+        go.transform.SetParent(transform, false);
+        var box = go.AddComponent<BoxCollider>();
+        box.size = new Vector3(0.5f, 1.8f, 1f);
+        box.center = new Vector3(0f, 0.9f, 0.66f);
+        box.enabled = false;
+        Debug.LogWarning("[PlayerInteraction_Manager] No Interaction Hitbox was set on " + name +
+                         ", so a default one was made. Add one to the prefab to change the reach.", this);
+        return box;
     }
 
     private void Start()
