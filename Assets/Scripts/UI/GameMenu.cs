@@ -154,7 +154,7 @@ namespace TheLastDrop
         {
             "Endurance|E1:0:0,E2:0:1,E4:1:1,E3:0:2,E5:0:3",
             "Pathfinder|M1:1:0,M2:0:1,M3:1:1,M4:2:1,M5:0.5:2",
-            "Scout|V1:1:0,V2:0:1,V3:1:1,V4:2:1,V5:1.5:2",
+            "Scout|V1:1:0,V6:2:0,V2:0:1,V3:1:1,V4:2:1,V5:1.5:2",
         };
 
         // Design sizes in pixels (1920 × 1080).

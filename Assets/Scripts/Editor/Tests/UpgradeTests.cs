@@ -46,15 +46,15 @@ namespace TheLastDrop
         }
 
         [Test]
-        public void RealCsv_34Upgrades_NoProblems()
+        public void RealCsv_35Upgrades_NoProblems()
         {
             var problems = new List<string>();
             var all = LoadReal(problems);
             CollectionAssert.IsEmpty(problems, string.Join("\n", problems));
-            Assert.AreEqual(34, all.Count);
+            Assert.AreEqual(35, all.Count);
             Assert.AreEqual(19, all.Count(u => u.Tab == UpgradeTab.Build));
-            Assert.AreEqual(15, all.Count(u => u.Tab == UpgradeTab.Skills));
-            Assert.AreEqual(44, all.Sum(u => u.Effects.Count), "one per effects row");
+            Assert.AreEqual(16, all.Count(u => u.Tab == UpgradeTab.Skills));
+            Assert.AreEqual(45, all.Sum(u => u.Effects.Count), "one per effects row");
 
             var w7 = all.First(u => u.Id == "W7");
             CollectionAssert.AreEqual(new[] { "W4", "S3" }, w7.Needs);

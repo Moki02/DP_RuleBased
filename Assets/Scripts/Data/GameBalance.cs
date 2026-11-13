@@ -306,6 +306,11 @@ namespace TheLastDrop
         [Min(1)] public int valveHitsToWin = 3;
         [Tooltip("Misses that lose a normal gate or valve.")]
         [Min(1)] public int valveMissesToLose = 3;
+        [Tooltip("SPEED-UP (2026-11-13): after each green hit the needle's speed is multiplied by this, for the first " +
+                 "\"Valve Speed Ups\" hits. 1.25 = 120°/s → 150 → 188. 1 = no speed-up. Every minigame: valves, gates, doors, exit valve.")]
+        [Min(1f)] public float valveSpeedUpMult = 1.25f;
+        [Tooltip("How many green hits speed the needle up (2 = after the 1st and the 2nd hit; later hits keep that speed). Misses never change the speed.")]
+        [Min(0)] public int valveSpeedUps = 2;
 
         [Tooltip("Valve Timing rows: [3] is the EXIT VALVE, used by zone 2's 8 exit gates (12°, 220°/s, 4 hits, 3 misses). " +
                  "[0] to [2] are the old per-zone rows, still used by hand-placed ValveGates in the old scenes.")]

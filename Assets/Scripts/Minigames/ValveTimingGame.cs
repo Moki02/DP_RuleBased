@@ -5,7 +5,9 @@
 //
 // How it plays: a needle swings back and forth across a half circle. A green band sits
 // somewhere on the dial. Press Space while the needle is inside the band. Enough hits wins,
-// enough misses loses, Esc quits with no penalty. Numbers come from GameBalance.valveTiming
+// enough misses loses, Esc quits with no penalty. SPEED-UP: after the 1st and the 2nd green hit
+// the needle gets faster (× GameBalance.valveSpeedUpMult each, for valveSpeedUps hits); misses
+// never change it. Numbers come from GameBalance.valveTiming
 // ([0] zone 1, [1] zone 2, [2] zone 3, [3] exit valve) and GameBalance.valveBandMinMove.
 //
 // Setup:
@@ -135,6 +137,7 @@ namespace TheLastDrop
         float wheelAngle, wheelTarget;
         int startFrame;
         float currentT = -1f;
+        float needleSpeed;   // this game's speed right now: the settings' speed, raised by green hits
 
         /// <summary>The settings of the game being played (null before the first game).</summary>
         public ValveTimingSettings CurrentSettings => settings;
@@ -201,6 +204,7 @@ namespace TheLastDrop
 
             hits = 0;
             misses = 0;
+            needleSpeed = settings.needleSpeed;
             ending = false;
             flashTimer = 0f;
             wheelAngle = wheelTarget = 0f;
@@ -245,7 +249,7 @@ namespace TheLastDrop
             }
 
             // Needle ping-pongs across the half circle.
-            needleAngle += needleDir * settings.needleSpeed * dt;
+            needleAngle += needleDir * needleSpeed * dt;
             if (needleAngle > DialHalf) { needleAngle = 2f * DialHalf - needleAngle; needleDir = -1f; }
             if (needleAngle < -DialHalf) { needleAngle = -2f * DialHalf - needleAngle; needleDir = 1f; }
             needleAngle = Mathf.Clamp(needleAngle, -DialHalf, DialHalf);
@@ -270,6 +274,10 @@ namespace TheLastDrop
             if (inBand)
             {
                 hits++;
+                // Speed-up after each of the first few green hits (GameBalance.valveSpeedUps).
+                needleSpeed = ValveDifficulty.SpeedAfterHits(settings.needleSpeed, hits,
+                                                             balance != null ? balance.valveSpeedUpMult : 1f,
+                                                             balance != null ? balance.valveSpeedUps : 0);
                 wheelTarget -= 360f / Mathf.Max(1, settings.hitsToWin);   // one notch clockwise
                 Play(hitClip);
                 onHit.Invoke();
@@ -372,7 +380,7 @@ namespace TheLastDrop
             if (!show || settings == null) return;
             // -1 = the gate passed a fixed row (exit valve or an old ValveGate), not a t from R9.6.
             string t = currentT < 0f ? "fixed row (no t)" : $"t {currentT:0.000}";
-            debugText.text = $"[F1] {t}   band {settings.bandWidth:0.0}°   speed {settings.needleSpeed:0.0}°/s   " +
+            debugText.text = $"[F1] {t}   band {settings.bandWidth:0.0}°   speed {needleSpeed:0.0}°/s (start {settings.needleSpeed:0.0})   " +
                              $"win {settings.hitsToWin} hits / lose {settings.missesToLose} misses";
         }
 

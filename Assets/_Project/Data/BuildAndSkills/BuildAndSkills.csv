@@ -33,3 +33,4 @@ V2,Landmarks,Skills,Scout,15,V1,Nice,5 more map markers; gates show on the map.
 V3,Keen Eyes,Skills,Scout,30,V1,Nice,Entering a tile reveals all 8 neighbours.
 V4,Surveyor,Skills,Scout,25,V1,Nice,Section rewards × 1.5.
 V5,Cartographer,Skills,Scout,40,V3|V4,Nice,A section counts as mapped at 60%.
+V6,Sun Reading,Skills,Scout,20,,Must,A compass at the top of the screen.

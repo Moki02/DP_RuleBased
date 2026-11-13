@@ -41,6 +41,13 @@ namespace TheLastDrop
         /// <summary>Needle speed (degrees per second) at difficulty t.</summary>
         public static float Speed(float t, float speedAtHub, float speedGain) => speedAtHub + speedGain * t;
 
+        /// <summary>
+        /// Needle speed after <paramref name="hits"/> green hits (2026-11-13 speed-up): the start speed
+        /// times <paramref name="mult"/> once per hit, for at most <paramref name="maxSpeedUps"/> hits.
+        /// </summary>
+        public static float SpeedAfterHits(float startSpeed, int hits, float mult, int maxSpeedUps) =>
+            startSpeed * Mathf.Pow(Mathf.Max(1f, mult), Mathf.Clamp(hits, 0, Mathf.Max(0, maxSpeedUps)));
+
         /// <summary>Minigame settings for a normal gate or valve on this ring.</summary>
         public static ValveTimingSettings ForRing(int ring, GameBalance b)
         {

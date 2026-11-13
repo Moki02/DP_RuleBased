@@ -110,6 +110,11 @@ namespace TheLastDrop
         [Tooltip("D tiles. Room and hallway doors use the same pieces. Modelled for a corridor running along Z.")]
         public MazePiece[] doors = new MazePiece[0];
 
+        [Tooltip("ROOM DOORS (RoomDoors puts one in every room entrance at Play). One prefab, modelled for a " +
+                 "doorway along X (one tile wide), facing +Z, pivot at the bottom middle. It sinks into the floor " +
+                 "when open. Needs a collider (a box is added if it has none). Empty = an orange grey-box slab.")]
+        public GameObject roomDoor;
+
         [Tooltip("V tiles: the valve grate that blocks a corridor until its minigame is won (R8.8). " +
                  "Modelled for a corridor running along Z. Empty = an orange grey-box grate.")]
         public MazePiece[] valves = new MazePiece[0];
