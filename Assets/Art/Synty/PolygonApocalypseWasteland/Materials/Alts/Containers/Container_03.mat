@@ -69,7 +69,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Albedo_Tiling: 1
+    - _Albedo_Tiling: 0.1
     - _BUILTIN_QueueControl: -1
     - _BUILTIN_QueueOffset: 0
     - _BumpScale: 1

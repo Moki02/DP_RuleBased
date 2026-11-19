@@ -68,7 +68,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Albedo_Tiling: 7
+    - _Albedo_Tiling: 0.5
     - _BUILTIN_QueueControl: -1
     - _BUILTIN_QueueOffset: 0
     - _EmissiveAmount: 0
@@ -82,7 +82,7 @@ Material:
     - _Grunge_Tiling: 0.03
     - _Metallic: 0
     - _NormalAmount: 1
-    - _Normal_Tiling: 1
+    - _Normal_Tiling: 0.5
     - _QueueControl: 0
     - _QueueOffset: 0
     - _Smoothness: 0.2
