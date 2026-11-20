@@ -22,7 +22,10 @@
 // DESIGN RULES: none of its own. The artists can replace any of this later.
 //
 // HOW TO USE: call the static methods above from any script.
-// HOW TO EDIT: everything you see is in the prefab.
+// HOW TO EDIT: everything you see is in the prefab. To move things on screen in a game scene,
+// run Salok > UI > Put HUD text in scene: the prefab is placed in the hierarchy (still linked)
+// and the game uses that copy, so its "StatusText" (bottom right), toasts and banner can be
+// moved there with the Rect Tool. Apply the overrides to the prefab to move them everywhere.
 // ============================================================================
 
 using System;
@@ -163,7 +166,16 @@ namespace TheLastDrop
             if (instance != null) return instance;
             // The prefab (Resources/UI/SimpleHud), else the built-in look. Sort order 9: under the
             // team's HUD and pause menu (10); the panel lifts it to 90 so it covers everything.
-            var v = UiBuilder.InstantiateView<SimpleHudView>(null, PrefabResource, null);
+            // A copy already placed in the scene (Salok > UI > Put HUD text in scene) is used as it is,
+            // so its placement can be edited in the editor. Otherwise the prefab is copied in.
+            var v = FindAnyObjectByType<SimpleHudView>(FindObjectsInactive.Include);
+            if (v != null && !v.gameObject.activeInHierarchy)
+            {
+                var root = v.transform.root.gameObject;
+                if (!root.activeSelf) root.SetActive(true);
+                if (!v.gameObject.activeSelf) v.gameObject.SetActive(true);
+            }
+            if (v == null) v = UiBuilder.InstantiateView<SimpleHudView>(null, PrefabResource, null);
             if (v == null) v = SimpleHudView.BuildDefault(null);
             instance = v.gameObject.AddComponent<SimpleHud>();
             instance.view = v;

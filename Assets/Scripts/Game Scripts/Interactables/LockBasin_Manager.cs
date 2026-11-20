@@ -51,6 +51,8 @@ public class LockBasin_Manager : Interactable_Manager, INightLockable
     public UI_StatBar basinBar;
     [Tooltip("The \"2 / 4 L\" text above the basin.")]
     public TMP_Text basinText;
+    [Tooltip("Show the bar and \"2 / 4 L\" panel above the basin. Off = hidden (the E prompt still shows the litres).")]
+    public bool showBasinUI = true;
 
     [Header("Gate")]
     [Tooltip("Old scenes: the gate wall to hide when the gate opens.")]
@@ -125,7 +127,20 @@ public class LockBasin_Manager : Interactable_Manager, INightLockable
             UnlockGate();
 
         ApplyGateLook();
+        if (!showBasinUI) HideBasinUI();
         UpdateBasinUI();
+    }
+
+    // Hides the panel above the basin (its canvas, or just the bar and text if they share the basin's own object).
+    private void HideBasinUI()
+    {
+        foreach (Component part in new Component[] { basinText, basinBar })
+        {
+            if (part == null) continue;
+            var canvas = part.GetComponentInParent<Canvas>(true);
+            var target = canvas != null && canvas.gameObject != gameObject ? canvas.gameObject : part.gameObject;
+            if (target != gameObject) target.SetActive(false);
+        }
     }
 
     private void Update()
@@ -316,7 +331,7 @@ public class LockBasin_Manager : Interactable_Manager, INightLockable
         isUnlocked = true;
 
         if (gateObject != null)
-            gateObject.SetActive(false);
+            SetPieceShut(gateObject, false);
 
         Debug.Log("Lock Basin Full! Gate Unlocked!");
         Opened?.Invoke(this);
@@ -346,7 +361,15 @@ public class LockBasin_Manager : Interactable_Manager, INightLockable
         if (!openWithValveMinigame) return;
         bool shut = !Lock.IsPassable;
         foreach (var piece in gateObjects)
-            if (piece != null && piece.activeSelf != shut) piece.SetActive(shut);
+            if (piece != null) SetPieceShut(piece, shut);
+    }
+
+    // A gate with a GateSlider slides its panel sideways; any other gate piece is shown or hidden.
+    private static void SetPieceShut(GameObject piece, bool shut)
+    {
+        var slider = piece.GetComponent<GateSlider>();
+        if (slider != null) { slider.SetShut(shut); return; }
+        if (piece.activeSelf != shut) piece.SetActive(shut);
     }
 
     // ------------------------------------------------------------------ Reach

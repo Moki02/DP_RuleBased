@@ -18,6 +18,9 @@
 // R9.6 (the same table as the valve grates).
 //
 // HOW TO USE: nothing to set up. It adds itself to the game scene (AutoSystems).
+// SEE AND MOVE DOORS IN THE EDITOR: Salok > Rooms > Place room doors in scene puts every door
+// under MazeBuilder > Room_Doors. Move or turn the RoomDoor_... objects (keep their names); at
+// Play the game uses them. Doors that aren't placed are still made on their default spot.
 // HOW TO EDIT: THE LOOK is the Maze Tile Set's "Room Door" prefab (modelled for a doorway
 // along X, facing +Z, pivot at the bottom middle). Empty = an orange grey-box slab (the
 // MazeBuilder's "Door Material" if set). Door height and thickness are below; the width is
@@ -103,47 +106,90 @@ namespace TheLastDrop
             Debug.Log($"[RoomDoors] {doors.Count} room doors in {maze.Grid.Rooms.Count} rooms.", this);
         }
 
+        /// <summary>Name of the folder (under the MazeBuilder) that holds doors placed in the editor.</summary>
+        public const string PlacedRootName = "Room_Doors";
+
+        /// <summary>
+        /// Where a door goes by default, in the MazeBuilder's own space (0 degree layout, north = +Z):
+        /// on the edge between the room tile and the corridor tile, facing out of the room.
+        /// </summary>
+        public static void DefaultPose(MazeBuilder maze, RoomDoorSpot spot, out Vector3 localPos, out Quaternion localRot)
+        {
+            Vector3 inside = maze.GridToLocal(spot.Inside.x, spot.Inside.y);
+            Vector3 outside = maze.GridToLocal(spot.Outside.x, spot.Outside.y);
+            localPos = (inside + outside) * 0.5f;
+            localRot = Quaternion.LookRotation((outside - inside).normalized);
+        }
+
+        /// <summary>The object's name for a door (the same in the editor and at Play).</summary>
+        public static string DoorName(RoomDoorSpot spot) =>
+            $"RoomDoor_{spot.Index}_{spot.Inside.x}_{spot.Inside.y}_{DirName(spot.Out)}";
+
         RoomDoor MakeDoor(RoomDoorSpot spot)
         {
             var grid = maze.Grid;
             RectInt rect = grid.Rooms[spot.Room].Tiles;
             float tile = maze.TileSize;
             float height = Mathf.Min(doorHeight, maze.WallHeight);
-
-            // Everything in the MazeBuilder's own space (0 degree layout, north = +Z).
-            Vector3 inside = maze.GridToLocal(spot.Inside.x, spot.Inside.y);
-            Vector3 outside = maze.GridToLocal(spot.Outside.x, spot.Outside.y);
-            Vector3 edge = (inside + outside) * 0.5f;
             Vector3 roomMiddle = (maze.GridToLocal(rect.xMin, rect.yMin) + maze.GridToLocal(rect.xMax - 1, rect.yMax - 1)) * 0.5f;
-            Vector3 outward = (outside - inside).normalized;
 
-            var go = new GameObject($"RoomDoor_{spot.Index}_{spot.Inside.x}_{spot.Inside.y}_{DirName(spot.Out)}");
+            // A door placed in the editor (Salok > Rooms > Place room doors in scene) keeps the spot
+            // and turn it was given; otherwise it goes on the default spot.
+            var placedRoot = maze.transform.Find(PlacedRootName);
+            var placed = placedRoot != null ? placedRoot.Find(DoorName(spot)) : null;
+            Vector3 pos;
+            Quaternion rot;
+            if (placed != null) { pos = placed.localPosition; rot = placed.localRotation; }
+            else DefaultPose(maze, spot, out pos, out rot);
+
+            var go = placed != null ? placed.gameObject : new GameObject(DoorName(spot));
             var area = FindArea(rect);
             if (area != null)
             {
                 // The room object sits on the room's middle at floor level, turned like the maze
                 // at 0 degrees, so this offset stays right after zone 2 turns.
                 go.transform.SetParent(area.transform, false);
-                go.transform.localPosition = edge - roomMiddle;
-                go.transform.localRotation = Quaternion.LookRotation(outward);
+                go.transform.localPosition = pos - roomMiddle;
+                go.transform.localRotation = rot;
             }
             else
             {
                 Debug.LogWarning($"[RoomDoors] No room object for room {spot.Room}; door {spot.Index} won't turn with zone 2.", this);
                 go.transform.SetParent(maze.transform, false);
-                go.transform.localPosition = edge;
-                go.transform.localRotation = Quaternion.LookRotation(outward);
+                go.transform.localPosition = pos;
+                go.transform.localRotation = rot;
             }
 
-            var door = go.AddComponent<RoomDoor>();
+            var door = go.GetComponent<RoomDoor>();
+            if (door == null) door = go.AddComponent<RoomDoor>();
             door.index = spot.Index;
             door.height = height;
             door.width = tile;
             door.settings = ValveDifficulty.ForRing(spot.Ring, balance);
             door.difficultyT = ValveDifficulty.T(spot.Ring, balance);
-            door.leaf = MakeLeaf(go.transform, tile, height);
+            door.leaf = placed != null ? PlacedLeaf(go.transform, tile, height) : null;
+            if (door.leaf == null) door.leaf = MakeLeaf(go.transform, tile, height);
             door.Init();
             return door;
+        }
+
+        // The moving part of a placed door: its art's "Leaf" child, the art itself, or a "Leaf" slab.
+        Transform PlacedLeaf(Transform door, float width, float height)
+        {
+            var art = door.Find("DoorArt");
+            Transform moving = art != null ? (art.Find("Leaf") ?? art) : door.Find("Leaf");
+            if (moving == null) return null;
+            EnsureCollider(moving.gameObject, width, height);
+            return moving;
+        }
+
+        void EnsureCollider(GameObject moving, float width, float height)
+        {
+            foreach (var c in moving.GetComponentsInChildren<Collider>(true))
+                if (c.enabled && !c.isTrigger) return;
+            var box = moving.AddComponent<BoxCollider>();
+            box.center = new Vector3(0f, height * 0.5f, 0f);
+            box.size = new Vector3(width, height, doorThickness);
         }
 
         // The Maze Tile Set's Room Door prefab, or an orange slab.
@@ -153,14 +199,12 @@ namespace TheLastDrop
             if (prefab != null)
             {
                 var art = Instantiate(prefab, parent, false);
-                art.name = "Leaf";
-                if (art.GetComponentInChildren<Collider>() == null)
-                {
-                    var box = art.AddComponent<BoxCollider>();
-                    box.center = new Vector3(0f, height * 0.5f, 0f);
-                    box.size = new Vector3(width, height, doorThickness);
-                }
-                return art.transform;
+                // A prefab with a child named "Leaf" keeps its frame still and moves only the leaf.
+                var leafPart = art.transform.Find("Leaf");
+                art.name = "DoorArt";
+                var moving = leafPart != null ? leafPart.gameObject : art;
+                EnsureCollider(moving, width, height);
+                return moving.transform;
             }
 
             var slab = GameObject.CreatePrimitive(PrimitiveType.Cube);

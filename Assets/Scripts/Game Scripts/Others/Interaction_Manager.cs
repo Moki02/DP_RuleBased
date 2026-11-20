@@ -87,6 +87,19 @@ public class Interactable_Manager : MonoBehaviour
     {
         if (!allInteractables.Contains(this))
             allInteractables.Add(this);
+        HideInteractionPointMesh();
+    }
+
+    /// <summary>
+    /// The interaction point is only a position (some scripts move it next to the player). If it
+    /// has a mesh on it (a marker sphere used while setting things up), hide that mesh so it never
+    /// shows in the game. Does nothing when the point is this object itself or holds this object.
+    /// </summary>
+    protected void HideInteractionPointMesh()
+    {
+        if (interactionPoint == null || interactionPoint == transform || transform.IsChildOf(interactionPoint)) return;
+        foreach (var r in interactionPoint.GetComponentsInChildren<Renderer>(true))
+            r.enabled = false;
     }
 
     protected virtual void OnDisable()

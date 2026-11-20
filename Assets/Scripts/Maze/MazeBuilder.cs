@@ -99,6 +99,11 @@ namespace TheLastDrop
         [Tooltip("When generating wall colliders, switch off the solid colliders that came with wall, cap and pillar prefabs.")]
         public bool disableArtWallColliders = true;
 
+        [Header("Floor")]
+        [Tooltip("The floor is one Unity Terrain (Salok > Environment > 3. Make terrain floor). When ticked, the " +
+                 "builder makes no floor tiles, no grey-box floor slab and no room/base tint patches.")]
+        public bool terrainFloor = false;
+
         [Header("Grey-box (used when the Tile Set has no piece)")]
         [Tooltip("Join touching wall tiles into bigger blocks. Far fewer objects; looks the same.")]
         public bool mergeGreyboxWalls = true;
@@ -387,6 +392,8 @@ namespace TheLastDrop
 
         void BuildFloor(Transform parent, bool withSlab)
         {
+            if (terrainFloor) return; // the scene's terrain is the floor
+
             bool hasFloor = tileSet != null && MazeTileSet.HasAny(tileSet.floors);
             bool hasRoom = tileSet != null && MazeTileSet.HasAny(tileSet.roomFloors);
             bool hasSpawn = tileSet != null && MazeTileSet.HasAny(tileSet.spawnFloors);
@@ -462,6 +469,27 @@ namespace TheLastDrop
             }
 
             if (useFaces) objects += BuildPillars(parent);
+            if (useFaces && tileSet.wallCore) objects += BuildWallCore(parent);
+            return objects;
+        }
+
+        // Faces mode: a solid block inside every wall (merged into big rectangles), just behind
+        // the panels, so seams, corners and tops never show through to nothing.
+        int BuildWallCore(Transform parent)
+        {
+            var mat = Mat(tileSet.wallCoreMaterial, "WallCore", new Color(0.26f, 0.25f, 0.24f));
+            float inset = tileSet.wallCoreInset;
+            float h = Mathf.Max(0.1f, WallHeight - tileSet.wallCoreTopGap);
+            int objects = 0;
+            foreach (var r in WallRects(true))
+            {
+                Vector3 size = RectSize(r, h) - new Vector3(inset * 2f, 0f, inset * 2f);
+                size.x = Mathf.Max(0.05f, size.x);
+                size.z = Mathf.Max(0.05f, size.z);
+                var go = CreateBox($"WallCore_{r.xMin}_{r.yMin}", parent, RectCentre(r, h * 0.5f), size, mat, false);
+                MarkStatic(go);
+                objects++;
+            }
             return objects;
         }
 
@@ -493,19 +521,22 @@ namespace TheLastDrop
 
                     Vector3 pos = GridToLocal(x, y) + new Vector3(dx * half, 0f, -dy * half);
                     var piece = MazeTileSet.Pick(tileSet.pillars, MazeTileSet.Hash(corner.x, corner.y, 5));
-                    if (PlaceWallArt(piece, parent, pos, Quaternion.identity, Anchor.Pillar, $"Pillar_{corner.x}_{corner.y}")) count++;
+                    if (PlaceWallArt(piece, parent, pos, Quaternion.identity, Anchor.Pillar, $"Pillar_{corner.x}_{corner.y}", keepBoxColliders: true)) count++;
                 }
             }
             return count;
         }
 
-        bool PlaceWallArt(MazePiece piece, Transform parent, Vector3 pos, Quaternion rot, Anchor anchor, string objName)
+        // keepBoxColliders: pillars stick out past the generated wall collision, so their own
+        // box collider (the kit puts one on) stays on and players can't walk through them.
+        bool PlaceWallArt(MazePiece piece, Transform parent, Vector3 pos, Quaternion rot, Anchor anchor, string objName,
+                          bool keepBoxColliders = false)
         {
             var go = PlacePiece(piece, parent, pos, rot, anchor, objName);
             if (go == null) return false;
             if (generateWallColliders && disableArtWallColliders)
                 foreach (var col in go.GetComponentsInChildren<Collider>(true))
-                    if (!col.isTrigger) col.enabled = false;
+                    if (!col.isTrigger && !(keepBoxColliders && col is BoxCollider)) col.enabled = false;
             return true;
         }
 
@@ -643,7 +674,7 @@ namespace TheLastDrop
                 // Tinted floor patch so rooms and the base are easy to see in grey-box.
                 bool hasArtFloor = tileSet != null && MazeTileSet.HasAny(
                     kind == MazeArea.Kind.Room ? tileSet.roomFloors : tileSet.spawnFloors);
-                if (!hasArtFloor)
+                if (!hasArtFloor && !terrainFloor)
                 {
                     var mat = kind == MazeArea.Kind.Room
                         ? Mat(roomMaterial, "Room", new Color(0.18f, 0.42f, 0.31f))

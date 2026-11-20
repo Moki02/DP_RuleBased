@@ -9,8 +9,8 @@
 // (no minigame) to open it again; it then stays open until dawn. Doors you never unlocked
 // still need the minigame, day or night. At dawn every unlocked door opens again.
 //
-// The door "opens" by sinking into the floor, then its meshes are hidden and its colliders
-// switched off. If the player is standing in the doorway when it shuts at night, its
+// The door "opens" by rising up into its frame (like a sluice gate) and its colliders switch
+// off. With "Rise When Open" unticked it sinks into the floor and is hidden instead. If the player is standing in the doorway when it shuts at night, its
 // colliders wait until they step out, so nobody gets stuck inside a door.
 //
 // DESIGN RULES: none yet (pending GDD entry: room doors, 2026-11-13). Uses R9.1 (the world
@@ -42,8 +42,10 @@ namespace TheLastDrop
         public string openPrompt = "Press [E] to open the door";
 
         [Header("Look")]
-        [Tooltip("The moving part (it sinks into the floor when open). Set by RoomDoors.")]
+        [Tooltip("The moving part (it rises when open). Set by RoomDoors: the door prefab's child named \"Leaf\", or the whole prefab.")]
         public Transform leaf;
+        [Tooltip("On: the leaf rises up into its frame and stays visible. Off: it sinks into the floor and hides.")]
+        public bool riseWhenOpen = true;
         [Tooltip("How tall the door is, in metres (how far it sinks).")]
         public float height = 3f;
         [Tooltip("How wide the doorway is, in metres (one tile). Used to tell if the player is standing in it.")]
@@ -88,9 +90,11 @@ namespace TheLastDrop
         /// <summary>Called by RoomDoors once the leaf (grey-box or prefab) is in place.</summary>
         public void Init()
         {
-            colliders = GetComponentsInChildren<Collider>(true);
-            renderers = GetComponentsInChildren<Renderer>(true);
             if (leaf == null) leaf = transform;
+            // Only the moving part's colliders that are on (a frame stays solid; switched-off art colliders stay off).
+            colliders = System.Array.FindAll(leaf.GetComponentsInChildren<Collider>(true), c => c.enabled);
+            // Rising doors stay visible (the frame and the raised panel); sinking ones hide when open.
+            renderers = riseWhenOpen ? new Renderer[0] : GetComponentsInChildren<Renderer>(true);
             leafClosedPos = leaf.localPosition;
             Snap();
         }
@@ -234,7 +238,8 @@ namespace TheLastDrop
         {
             if (leaf == null) return;
             float eased = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(shown));
-            leaf.localPosition = leafClosedPos + Vector3.down * (height + 0.05f) * eased;
+            Vector3 dir = riseWhenOpen ? Vector3.up : Vector3.down;
+            leaf.localPosition = leafClosedPos + dir * (height + 0.05f) * eased;
         }
 
         void SetRenderers(bool on)

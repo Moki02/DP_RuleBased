@@ -96,6 +96,17 @@ namespace TheLastDrop
         [Tooltip("Faces mode, optional: placed on the centre of every wall tile (a top cap or filler). Use Position Offset Y to lift it.")]
         public MazePiece[] wallCaps = new MazePiece[0];
 
+        [Header("Wall core (Faces mode)")]
+        [Tooltip("Fill every wall with a solid block just behind the panels, so gaps between panels, corners " +
+                 "and wall tops never show a hole.")]
+        public bool wallCore = true;
+        [Tooltip("The core's material. Empty = a dark stone grey (it only shows through gaps, where it reads as shadow).")]
+        public Material wallCoreMaterial;
+        [Tooltip("How far the core sits behind the wall's front faces, in metres. Keep it less than the panels' depth.")]
+        [Min(0f)] public float wallCoreInset = 0.35f;
+        [Tooltip("How far below the wall top the core stops, in metres (so the top trims cover it).")]
+        [Min(0f)] public float wallCoreTopGap = 0.2f;
+
         [Header("Pillars (Faces mode, optional)")]
         [Tooltip("Pillars or trims placed on wall corners to hide seams between panels.")]
         public MazePiece[] pillars = new MazePiece[0];

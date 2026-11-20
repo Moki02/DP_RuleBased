@@ -21,6 +21,12 @@
 //     show on the map as an icon: C = cistern, J = water jug (cache), E = empty.
 //   - The journal (J or the Journal button on the map screen) lists every note read.
 //
+// EDIT ROOMS IN THE EDITOR: Salok > Rooms > Place room objects in scene puts every room's
+// water object (Cistern / SealedJug / Remains) and clue body into the scene under
+// MazeBuilder > Room_Objects > RoomContent_N. Move, turn or swap the CHILDREN (keep their names);
+// at Play this script uses them instead of making new ones. Rooms without placed objects still
+// get the old automatic ones.
+//
 // DESIGN RULES: R8.5, R8.7, R8.11 to R8.18, R1.3 (water counted with RunStats.AddCollected).
 //
 // HOW TO USE: nothing. It adds itself to the game scene (AutoSystems) and finds the maze,
@@ -222,6 +228,19 @@ namespace TheLastDrop
             return null;
         }
 
+        /// <summary>Name of the folder (under the MazeBuilder) that holds room objects placed in the editor.</summary>
+        public const string PlacedRootName = "Room_Objects";
+        /// <summary>Names of the water object in a room, by outcome.</summary>
+        public static string WaterName(RoomOutcome o) =>
+            o == RoomOutcome.Cistern ? "Cistern" : o == RoomOutcome.Cache ? "SealedJug" : "Remains";
+
+        // The room's objects placed in the editor (Salok > Rooms > Place room objects in scene), or null.
+        Transform FindPlaced(int roomIndex)
+        {
+            var root = maze.transform.Find(PlacedRootName);
+            return root != null ? root.Find($"RoomContent_{roomIndex}") : null;
+        }
+
         void BuildObjects()
         {
             float tile = maze.TileSize;
@@ -229,37 +248,43 @@ namespace TheLastDrop
             {
                 var r = rooms[i];
                 var area = FindArea(r.info);
-                var holder = new GameObject("RoomContent").transform;
-                if (area != null)
+                var holder = FindPlaced(i);
+                bool placed = holder != null;
+                if (placed)
                 {
-                    // Under the room's own object: zone 2's rooms are under Zone2Pivot, so this turns with them.
-                    holder.SetParent(area.transform, false);
-                    holder.localPosition = Vector3.zero;   // the area sits on the room's middle, at floor level
+                    // Placed in the editor: move it under the room so zone 2's rooms turn with it.
+                    // Its children keep the positions the designer gave them.
+                    if (area != null)
+                    {
+                        holder.SetParent(area.transform, false);
+                        holder.localPosition = Vector3.zero;
+                        holder.localRotation = Quaternion.identity;
+                    }
                 }
                 else
                 {
-                    Debug.LogWarning($"[RoomContent] No room object for room {i} at {r.info.Tiles}; its things won't turn with zone 2.", this);
-                    holder.SetParent(maze.transform, true);
-                    Vector2Int c = CentreTile(r.info);
-                    holder.position = maze.GridToWorld(c.x, c.y);
+                    holder = new GameObject("RoomContent").transform;
+                    if (area != null)
+                    {
+                        // Under the room's own object: zone 2's rooms are under Zone2Pivot, so this turns with them.
+                        holder.SetParent(area.transform, false);
+                        holder.localPosition = Vector3.zero;   // the area sits on the room's middle, at floor level
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[RoomContent] No room object for room {i} at {r.info.Tiles}; its things won't turn with zone 2.", this);
+                        holder.SetParent(maze.transform, true);
+                        Vector2Int c = CentreTile(r.info);
+                        holder.position = maze.GridToWorld(c.x, c.y);
+                    }
                 }
                 holder.name = $"RoomContent_{i}";
                 r.holder = holder;
 
-                // The water (or the remains) in the middle.
-                GameObject thing;
-                switch (r.outcome)
-                {
-                    case RoomOutcome.Cistern:
-                        thing = Primitive(PrimitiveType.Cylinder, "Cistern", holder, new Vector3(0f, 0.6f, 0f), new Vector3(1.6f, 0.6f, 1.6f), cisternColor);
-                        break;
-                    case RoomOutcome.Cache:
-                        thing = Primitive(PrimitiveType.Cylinder, "SealedJug", holder, new Vector3(0f, 0.4f, 0f), new Vector3(0.6f, 0.4f, 0.6f), cacheColor);
-                        break;
-                    default:
-                        thing = Primitive(PrimitiveType.Cube, "Remains", holder, new Vector3(0f, 0.3f, 0f), new Vector3(1.4f, 0.6f, 0.9f), emptyColor);
-                        break;
-                }
+                // The water (or the remains). A placed one is kept where it is; if the room rolled a
+                // different outcome than when it was placed, a new one takes the old one's spot.
+                GameObject thing = PlacedWater(holder, r.outcome);
+                if (thing == null) thing = MakeWater(holder, r.outcome, null);
                 if (r.outcome != RoomOutcome.Empty)
                 {
                     var src = thing.AddComponent<RoomWaterSource>();
@@ -267,13 +292,25 @@ namespace TheLastDrop
                     src.roomIndex = i;
                     src.proximityRange = balance.interactRange;
                 }
-                r.waterLabel = WorldLabel.Create(holder, new Vector3(0f, 2.2f, 0f), labelSize, labelColor);
+                Vector3 waterPos = holder.InverseTransformPoint(thing.transform.position);
+                r.waterLabel = WorldLabel.Create(holder, new Vector3(waterPos.x, 2.2f, waterPos.z), labelSize, labelColor);
 
                 // The note, one tile to the side, so its E doesn't fight with the tank's E.
+                // A clue body (skeleton or dead body from Resources/Salok/ClueBodies) holds it when
+                // there is one; its child named "Note" is what the player reads.
                 Vector3 notePos = new Vector3(noteOffsetTiles * tile, 0f, 0f);
-                var note = Primitive(PrimitiveType.Cube, "SurvivorNote", holder, notePos + new Vector3(0f, 0.45f, 0f), new Vector3(0.5f, 0.05f, 0.35f), noteColor);
-                var stand = Primitive(PrimitiveType.Cube, "NoteCrate", holder, notePos + new Vector3(0f, 0.2f, 0f), new Vector3(0.7f, 0.4f, 0.7f), emptyColor);
-                stand.transform.SetAsFirstSibling();
+                GameObject note = placed ? PlacedNote(holder, out notePos) : null;
+                if (note == null)
+                {
+                    notePos = new Vector3(noteOffsetTiles * tile, 0f, 0f);
+                    note = MakeClueBody(holder, notePos, i);
+                }
+                if (note == null)
+                {
+                    note = Primitive(PrimitiveType.Cube, "SurvivorNote", holder, notePos + new Vector3(0f, 0.45f, 0f), new Vector3(0.5f, 0.05f, 0.35f), noteColor);
+                    var stand = Primitive(PrimitiveType.Cube, "NoteCrate", holder, notePos + new Vector3(0f, 0.2f, 0f), new Vector3(0.7f, 0.4f, 0.7f), emptyColor);
+                    stand.transform.SetAsFirstSibling();
+                }
                 var reader = note.AddComponent<RoomNoteObject>();
                 reader.owner = this;
                 reader.roomIndex = i;
@@ -281,6 +318,116 @@ namespace TheLastDrop
                 r.noteLabelObj = WorldLabel.Create(holder, notePos + new Vector3(0f, 1.4f, 0f), labelSize * 0.8f, labelColor);
             }
             RefreshLabels();
+        }
+
+        // The placed water object for this outcome. A placed one for another outcome is swapped out
+        // (same spot and turn). Null if nothing was placed.
+        GameObject PlacedWater(Transform holder, RoomOutcome outcome)
+        {
+            Transform match = null, other = null;
+            foreach (RoomOutcome o in System.Enum.GetValues(typeof(RoomOutcome)))
+            {
+                var t = holder.Find(WaterName(o));
+                if (t == null) continue;
+                if (o == outcome) match = t; else other = t;
+            }
+            if (match != null)
+            {
+                if (other != null) Destroy(other.gameObject);
+                return match.gameObject;
+            }
+            if (other == null) return null;
+            var made = MakeWater(holder, outcome, other);
+            Destroy(other.gameObject);
+            return made;
+        }
+
+        // A plain primitive for the outcome; at the spot of <paramref name="replace"/> if given.
+        GameObject MakeWater(Transform holder, RoomOutcome outcome, Transform replace)
+        {
+            GameObject thing;
+            switch (outcome)
+            {
+                case RoomOutcome.Cistern:
+                    thing = Primitive(PrimitiveType.Cylinder, WaterName(outcome), holder, new Vector3(0f, 0.6f, 0f), new Vector3(1.6f, 0.6f, 1.6f), cisternColor);
+                    break;
+                case RoomOutcome.Cache:
+                    thing = Primitive(PrimitiveType.Cylinder, WaterName(outcome), holder, new Vector3(0f, 0.4f, 0f), new Vector3(0.6f, 0.4f, 0.6f), cacheColor);
+                    break;
+                default:
+                    thing = Primitive(PrimitiveType.Cube, WaterName(outcome), holder, new Vector3(0f, 0.3f, 0f), new Vector3(1.4f, 0.6f, 0.9f), emptyColor);
+                    break;
+            }
+            if (replace != null)
+            {
+                var p = replace.localPosition;
+                thing.transform.localPosition = new Vector3(p.x, thing.transform.localPosition.y, p.z);
+                thing.transform.localRotation = replace.localRotation;
+            }
+            return thing;
+        }
+
+        // The placed clue body's "Note" (or a placed SurvivorNote). notePos = where it lies, in the holder's space.
+        static GameObject PlacedNote(Transform holder, out Vector3 notePos)
+        {
+            notePos = Vector3.zero;
+            var body = holder.Find("ClueBody");
+            if (body != null)
+            {
+                notePos = holder.InverseTransformPoint(body.position);
+                var note = body.Find("Note");
+                if (note == null)
+                {
+                    note = new GameObject("Note").transform;
+                    note.SetParent(body, false);
+                    note.localPosition = Vector3.up * 0.5f;
+                }
+                if (note.GetComponent<Collider>() == null)
+                {
+                    var box = note.gameObject.AddComponent<BoxCollider>();
+                    box.size = new Vector3(0.5f, 0.16f, 0.5f);
+                    box.center = new Vector3(0f, 0.08f, 0f);
+                }
+                return note.gameObject;
+            }
+            var plain = holder.Find("SurvivorNote");
+            if (plain == null) return null;
+            notePos = holder.InverseTransformPoint(plain.position);
+            notePos.y = 0f;
+            return plain.gameObject;
+        }
+
+        static GameObject[] clueBodies;
+
+        /// <summary>
+        /// Puts a clue body (Resources/Salok/ClueBodies) at the note's spot and returns its "Note"
+        /// child, or null when there are no clue bodies (then the old note-on-a-crate is used).
+        /// Each room always gets the same body; the bodies are prefabs the artists can edit.
+        /// </summary>
+        static GameObject MakeClueBody(Transform holder, Vector3 localPos, int roomIndex)
+        {
+            if (clueBodies == null) clueBodies = Resources.LoadAll<GameObject>("Salok/ClueBodies");
+            if (clueBodies.Length == 0) return null;
+            var prefab = clueBodies[roomIndex % clueBodies.Length];
+            var body = Instantiate(prefab, holder, false);
+            body.name = "ClueBody";
+            body.transform.localPosition = localPos;
+            body.transform.localRotation = Quaternion.Euler(0f, (roomIndex * 97) % 360, 0f);
+            var note = body.transform.Find("Note");
+            if (note == null)
+            {
+                Debug.LogWarning($"[RoomContent] Clue body '{prefab.name}' has no child named 'Note'; putting the note on top of it.");
+                note = new GameObject("Note").transform;
+                note.SetParent(body.transform, false);
+                note.localPosition = Vector3.up * 0.5f;
+            }
+            if (note.GetComponent<Collider>() == null)
+            {
+                var box = note.gameObject.AddComponent<BoxCollider>();
+                box.size = new Vector3(0.5f, 0.16f, 0.5f);
+                box.center = new Vector3(0f, 0.08f, 0f);
+            }
+            return note.gameObject;
         }
 
         static GameObject Primitive(PrimitiveType type, string name, Transform parent, Vector3 localPos, Vector3 scale, Color color)
