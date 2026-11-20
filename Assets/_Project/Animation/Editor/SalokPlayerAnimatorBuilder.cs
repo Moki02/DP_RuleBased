@@ -1,11 +1,11 @@
 // ============================================================================
 // SalokPlayerAnimatorBuilder.cs  (Editor only)
 // Builds and wires the player's Animator Controller, AC_Salok_Player, from Synty's
-// AC_Polygon_Feminine (the pack's file is copied, never edited):
+// AC_Polygon_Masculine (the pack's file is copied, never edited):
 //   1. Checks the female model (Characters.fbx) is rigged Humanoid with a valid Avatar.
 //   2. Copies the Synty controller to Assets/_Project/Animation/AC_Salok_Player.controller
 //      (only if it isn't there yet, so an artist's later changes are kept).
-//   3. Swaps any *_RootMotion_* or Masculine clip for the in-place Feminine one, and fills the
+//   3. Swaps any *_RootMotion_* or Feminine clip for the in-place Masculine one, and fills the
 //      body-look blend tree whose clips are missing in the pack.
 //   4. Adds LocomotionPlaybackSpeed (scales the locomotion and crouch blend trees only).
 //   5. Adds the action layers: "Actions" (full body: Collapse, WakeUp, Pump, Pour) and
@@ -31,13 +31,13 @@ using UnityEngine;
 
 public static class SalokPlayerAnimatorBuilder
 {
-    const string SourceController = "Assets/Art/AnimationBaseLocomotion/Animations/Polygon/AC_Polygon_Feminine.controller";
+    const string SourceController = "Assets/Art/AnimationBaseLocomotion/Animations/Polygon/AC_Polygon_Masculine.controller";
     const string Folder = "Assets/_Project/Animation";
     const string TargetController = Folder + "/AC_Salok_Player.controller";
     const string UpperBodyMaskPath = Folder + "/AM_Salok_UpperBody.mask";
     const string OldController = "Assets/Art/PlaceHolder/Animator/Player.controller";
     const string FemaleModel = "Assets/Art/Synty/PolygonApocalypseWasteland/Models/Characters/Characters.fbx";
-    const string IdleClipFbx = "Assets/Art/AnimationBaseLocomotion/Animations/Polygon/Feminine/Idle/A_Idle_Standing_Femn.fbx";
+    const string IdleClipFbx = "Assets/Art/AnimationBaseLocomotion/Animations/Polygon/Masculine/Idle/A_Idle_Standing_Masc.fbx";
     const string BodyLookFbx = "Assets/Art/AnimationBaseLocomotion/Animations/Polygon/Neutral/Additive/Look/A_BodyLook_Additive_Neut.fbx";
     const string PlayerPrefabPath = "Assets/Prefabs/Player Prefab/PlayerPrefab.prefab";
     const string GameScene = "Assets/Scenes/Salok_Environment.unity";
@@ -156,7 +156,7 @@ public static class SalokPlayerAnimatorBuilder
             throw new Exception("Could not copy " + SourceController);
         AssetDatabase.ImportAsset(TargetController);
         ac = AssetDatabase.LoadAssetAtPath<AnimatorController>(TargetController);
-        Log.Add("Copied AC_Polygon_Feminine to " + TargetController + ".");
+        Log.Add("Copied AC_Polygon_Masculine to " + TargetController + ".");
         return ac;
     }
 
@@ -195,7 +195,7 @@ public static class SalokPlayerAnimatorBuilder
     {
         string n = name.Replace("RootMotionVertical", "").Replace("RootMotion", "");
         while (n.Contains("__")) n = n.Replace("__", "_");
-        return n.Replace("_Masc", "_Femn");
+        return n.Replace("_Femn", "_Masc");
     }
 
     static Motion RemapClip(Motion motion, string where)
@@ -206,18 +206,18 @@ public static class SalokPlayerAnimatorBuilder
         string path = AssetDatabase.GetAssetPath(clip);
         string file = Path.GetFileName(path);
         bool rootMotion = file.Contains("RootMotion");
-        bool masculine = path.Contains("/Masculine/");
-        if (!rootMotion && !masculine)
+        bool feminine = path.Contains("/Feminine/");
+        if (!rootMotion && !feminine)
             return motion;
 
-        string newPath = Path.GetDirectoryName(path).Replace('\\', '/').Replace("/Masculine/", "/Feminine/") + "/" + InPlaceName(file);
+        string newPath = Path.GetDirectoryName(path).Replace('\\', '/').Replace("/Feminine/", "/Masculine/") + "/" + InPlaceName(file);
         var clips = AssetDatabase.LoadAllAssetsAtPath(newPath).OfType<AnimationClip>()
             .Where(c => !c.name.StartsWith("__preview__")).ToList();
         AnimationClip replacement = clips.FirstOrDefault(c => c.name == InPlaceName(clip.name)) ??
                                     (clips.Count == 1 ? clips[0] : null);
         if (replacement == null)
         {
-            Log.Add($"WARNING: no in-place/Feminine version of {file} ({where}); kept as is.");
+            Log.Add($"WARNING: no in-place/Masculine version of {file} ({where}); kept as is.");
             return motion;
         }
 
@@ -545,7 +545,7 @@ public static class SalokPlayerAnimatorBuilder
     {
         var problems = new List<string>();
 
-        // Every clip: Feminine or Neutral, in-place.
+        // Every clip: Masculine or Neutral, in-place.
         var clips = new HashSet<AnimationClip>();
         foreach (var layer in ac.layers)
             foreach (var state in AllStates(layer.stateMachine))
@@ -562,9 +562,9 @@ public static class SalokPlayerAnimatorBuilder
         {
             string p = AssetDatabase.GetAssetPath(c);
             if (p.Contains("RootMotion")) problems.Add("root-motion clip still used: " + p);
-            if (p.Contains("/Masculine/")) problems.Add("masculine clip still used: " + p);
+            if (p.Contains("/Feminine/")) problems.Add("feminine clip still used: " + p);
         }
-        Log.Add($"Clips used: {clips.Count} ({clips.Count(c => AssetDatabase.GetAssetPath(c).Contains("/Feminine/"))} Feminine, " +
+        Log.Add($"Clips used: {clips.Count} ({clips.Count(c => AssetDatabase.GetAssetPath(c).Contains("/Masculine/"))} Masculine, " +
                 $"{clips.Count(c => AssetDatabase.GetAssetPath(c).Contains("/Neutral/"))} Neutral, " +
                 $"{clips.Count(c => AssetDatabase.GetAssetPath(c).Contains("/PlaceHolder/"))} old placeholder).");
 

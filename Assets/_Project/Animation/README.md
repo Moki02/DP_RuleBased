@@ -1,10 +1,10 @@
 # Player animation (Salok)
 
 The player uses **AC_Salok_Player.controller** (this folder), a copy of Synty's
-`AC_Polygon_Feminine` from *Animation - Base Locomotion* (`Assets/Art/AnimationBaseLocomotion`).
+`AC_Polygon_Masculine` from *Animation - Base Locomotion* (`Assets/Art/AnimationBaseLocomotion`).
 The pack's own files are never edited. The Animator is on `PlayerPrefab` (root), with
 **Apply Root Motion off**: movement is done in code (`PlayerLocomotion_Manager`), and only the
-in-place Feminine clips are used (no `*_RootMotion_*` clips).
+in-place Masculine clips are used (no `*_RootMotion_*` clips).
 
 `Salok > Animation > Build Player Animator` (`Editor/SalokPlayerAnimatorBuilder.cs`) creates
 or repairs everything. It is safe to run again: it never overwrites an action state that
@@ -34,7 +34,7 @@ state other than `Empty` plays and out when it returns.
 
 | Situation | State / clip | Gait (`CurrentGait`) |
 |---|---|---|
-| Standing still | `Idle_Standing` (A_Idle_Standing_Femn) | 0 Idle |
+| Standing still | `Idle_Standing` (A_Idle_Standing_Masc) | 0 Idle |
 | Walk (4 m/s) | Locomotion blend tree at MoveSpeed 4: run clip blended with about a third of sprint | 2 Run |
 | Sprint (6.5 m/s) | Locomotion blend tree at MoveSpeed 6.5: almost all sprint clip | 3 Sprint |
 | Dehydrated walk (3 m/s) | Tired walk: MoveSpeed 1.9 (mostly the walk clip) played about 1.6× faster, head and body looking down, less lean | 1 Walk |
@@ -77,7 +77,7 @@ All tuning (gait mapping, tired walk, lean, head look, action fade) is in the In
 The placeholders use the idle clip and are tagged `PLACEHOLDER` in the Animator.
 
 1. Import the clip as **Humanoid** (Rig tab: Animation Type Humanoid, Avatar "Create From This
-   Model", or copy from `A_Idle_Standing_Femn`). Turn **Loop Time** on for `Pump` and `Pour`
+   Model", or copy from `A_Idle_Standing_Masc`). Turn **Loop Time** on for `Pump` and `Pour`
    (they repeat until E is released), off for `WakeUp`.
 2. Open `AC_Salok_Player`, go to the **Actions** layer, select the state and drag the clip into
    **Motion**. Keep the state's name exactly (`Pump`, `Pour`, `WakeUp`): the scripts play them
