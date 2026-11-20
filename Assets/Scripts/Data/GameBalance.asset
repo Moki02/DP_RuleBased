@@ -19,7 +19,7 @@ MonoBehaviour:
   allowBuyingAnywhere: 0
   debugCleanStorageLiters: 50
   collapseEndsGame: 0
-  dayLengthSeconds: 240
+  dayLengthSeconds: 300
   nightLockdownSeconds: 60
   debugClockSpeed: 4
   collapseClockPenalty: 30

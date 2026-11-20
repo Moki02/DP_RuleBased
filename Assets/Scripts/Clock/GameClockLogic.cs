@@ -1,7 +1,7 @@
 // ============================================================================
 // GameClockLogic.cs
 // The day/night clock as plain C# (no MonoBehaviour), so it can be tested.
-// A day is daylight followed by the night lockdown: 240 s + 60 s = 300 s by default.
+// A day is daylight followed by the night lockdown: 300 s + 60 s = 360 s by default (T29/T30).
 // The day counter starts at 1. At the end of daylight it fires NightStarted(day); at the
 // end of the night it moves to the next day and fires NewDay(newDay).
 //

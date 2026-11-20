@@ -19,7 +19,7 @@ namespace TheLastDrop
     {
         [Header("Events (extra)")]
         [Tooltip("OFF (GDD R10.4 as written): the event can start any time between Event Window Min and Max, " +
-                 "even in the night lockdown (240-260 s in the full game). " +
+                 "even in the night lockdown (never in the full game: daylight is 300 s, the window ends at 260 s). " +
                  "ON: the window is cut at the end of daylight, so events never start at night.")]
         public bool eventsOnlyInDaylight = false;
 
