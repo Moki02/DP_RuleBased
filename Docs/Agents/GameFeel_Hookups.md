@@ -1,5 +1,11 @@
 # Game feel hook-up list
 
+> **Team picks 2026-11-21:** only the picked sounds are left in `Assets/Audio` (list and
+> "still need new sounds" in `Assets/Audio/CREDITS.md`). Where a row below names options
+> that were deleted, use the pick from CREDITS, or wait for the new set. Screen shake: the
+> team chose the **big** shake (`shakeBig`) for every shake moment. Floating numbers are
+> half their first size.
+
 For the team to wire up later. **Nothing here is wired into the game yet** (George's call:
 "don't hook anything in the hooking up list"). Sound file names are the options in
 `Assets/Audio` (see `Assets/Audio/CREDITS.md`); pick one per moment in FeelLab first.
@@ -36,7 +42,7 @@ Feel components (all in `Assets/Scripts/Feel`, tuning in `Assets/VFX/Resources/F
 | Sprint breath | `sfx_player_sprintbreath_01..02` | none | ➕ `PlayerLocomotion_Manager.HandleGroundedMovement` computes `isSprinting` locally. Smallest change: expose `public bool IsSprinting { get; private set; }`, then a loop fades in while true. |
 | Drinking gulp | `sfx_player_drink_01..03` | `FloatingText.ShowAmount(+hyd, " HYD", head)` | ✅ `PlayerHydration_Manager.IsDrinking` (poll: play gulps while true). ➕ Cleaner: `public event Action Drank` invoked in `HandleDrinkAction` / `DrinkFromCanteen`. |
 | Canteen fill (at tap) | `sfx_player_canteenfill_01..02` | `VFX_PourStream` at the tap | ✅ `HubTap_Manager.Refill(deltaTime)` is called every frame while filling. ➕ Add `public bool IsRefilling` (true while Refill ran this frame) to start/stop the loop. |
-| Collapse | `sfx_player_collapse_01..03` | `CameraShake.Add(shakeMedium)` + `CollapseFade.Play(...)` | ✅ `PlayerHydration_Manager.OnCollapsed` (event). `CollapseManager.CollapseRoutine` already fades with `SimpleHud.SetFade`; swapping it for `CollapseFade` is optional. |
+| Collapse | `sfx_player_collapse_01..03` | `CameraShake.Add(shakeBig)` + `CollapseFade.Play(...)` | ✅ `PlayerHydration_Manager.OnCollapsed` (event). `CollapseManager.CollapseRoutine` already fades with `SimpleHud.SetFade`; swapping it for `CollapseFade` is optional. |
 | Low HYD heartbeat / breathing | `sfx_player_heartbeat_01..03`, `sfx_player_lowhyd_breath_01` | `LowHydVignette` | ✅ Read `PlayerStats_Manager.player_Hydration / player_MaxHydration`; start the loop below the vignette's start point (`FeelSettings.vignetteStartsAt`, default 30%). Volume = `vignette.Strength`. |
 | Cough when sick | `sfx_player_cough_01..03` | `VFX_SickFlies` parented to the player while sick | ✅ `PlayerHydration_Manager.SickSecondsLeft > 0` (poll). Cough at random every 4 to 8 s while sick. |
 | HYD lost (e.g. drinking dirty water, pouring HYD) | none | `FloatingText.ShowAmount(-x, " HYD", head)` | ✅ `LockBasin_Manager` pours from HYD (`TakeFromHyd`, private). ➕ `public event Action<float> PouredHyd`. |
@@ -58,16 +64,16 @@ Feel components (all in `Assets/Scripts/Feel`, tuning in `Assets/VFX/Resources/F
 | Moment | Sound options | Effect / feel | Trigger |
 |---|---|---|---|
 | Pouring into a lock basin (loop) | `sfx_hub_tap_01` / `sfx_hub_pour_01` | `VFX_PourStream` into the basin | ➕ `LockBasin_Manager.Update` pours while held. Add `public bool IsPouring`. |
-| Lock basin full / gate unlocks | `sfx_gates_success_01..02` | `VFX_DustPuff` + `CameraShake.Add(shakeSmall)` | ✅ `LockBasin_Manager.Opened` (event). |
+| Lock basin full / gate unlocks | `sfx_gates_success_01..02` | `VFX_DustPuff` + `CameraShake.Add(shakeBig)` | ✅ `LockBasin_Manager.Opened` (event). |
 | Valve wheel turning | `sfx_gates_valve_01..03` | none | ➕ `ValveGate.StartMinigame` (private) / `ValveTimingGame.Begin` (public). Play on Begin. |
 | Minigame needle tick | `sfx_gates_tick_01..03` | none | ➕ `ValveTimingGame.Update` moves the needle. Add `public event Action NeedleTick` when it passes the centre / each sweep. |
 | Green hit | `sfx_gates_hit_01..03` | `HitFeedback.Hit()` (flash, hit-stop, `UiHitBurst`) | ✅ `ValveTimingGame.onHit` (UnityEvent): drag `HitFeedback.Hit` in. Set HitFeedback's Flash Target / Burst Parent to the minigame needle. |
 | Miss | `sfx_gates_miss_01..02` | `HitFeedback.Miss()` | ✅ `ValveTimingGame.onMiss` (UnityEvent). |
 | Minigame success | `sfx_gates_success_01..02` | `UiPunch` on the panel | ✅ `ValveGate.onOpened` (UnityEvent) / `ValveGate.Opened` (event). |
-| Minigame fail | `sfx_gates_fail_01..03` | `CameraShake.Add(shakeSmall)` | ✅ `ValveGate.onFailed` (UnityEvent); also `SurvivalDirector.MinigameLost()`. |
-| Heavy metal gate sliding | `sfx_gates_gateslide_01..03` (+ Freesound gate) | `VFX_DustPuff` at the gate base + `CameraShake.Add(shakeSmall)` | ✅ `GateSlider.onStartOpening` / `onStartClosing` (UnityEvents). |
+| Minigame fail | `sfx_gates_fail_01..03` | `CameraShake.Add(shakeBig)` | ✅ `ValveGate.onFailed` (UnityEvent); also `SurvivalDirector.MinigameLost()`. |
+| Heavy metal gate sliding | `sfx_gates_gateslide_01..03` (+ Freesound gate) | `VFX_DustPuff` at the gate base + `CameraShake.Add(shakeBig)` | ✅ `GateSlider.onStartOpening` / `onStartClosing` (UnityEvents). |
 | Room door rising | `sfx_gates_doorrise_01..02` (+ Freesound stone door) | `VFX_DustPuff` + small shake | ✅ `RoomDoor.onOpened` (UnityEvent) / `RoomDoor.onUnlocked`, `RoomDoor.Unlocked` (event). |
-| Gate slam at night | `sfx_gates_gateslam_01..03` | `VFX_DustPuff` + `CameraShake.Add(shakeSmall)` | ✅ `GateSlider.onStartClosing`, or `GameClock_Manager.NightStarted` (event) for one slam for all gates. |
+| Gate slam at night | `sfx_gates_gateslam_01..03` | `VFX_DustPuff` + `CameraShake.Add(shakeBig)` | ✅ `GateSlider.onStartClosing`, or `GameClock_Manager.NightStarted` (event) for one slam for all gates. |
 
 ## Maze
 
@@ -86,11 +92,11 @@ Feel components (all in `Assets/Scripts/Feel`, tuning in `Assets/VFX/Resources/F
 |---|---|---|---|
 | Dusk warning (bell / siren) | `sfx_world_duskwarning_01..03` | `UiPunch` on the clock | ➕ `NightLockdown.UpdateWarnings` shows `SimpleHud.Toast("Lockdown in ...")` at each warning time. Add `public event Action<float> Warning` (seconds left) there. |
 | Tension near dusk (ambience) | `sfx_ambience_tension_01..02` | none | Same warning window (fade in during the last minute). |
-| Lockdown | `sfx_world_lockdown_01..03` | `CameraShake.Add(shakeSmall)` | ✅ `GameClock_Manager.NightStarted` (event). |
+| Lockdown | `sfx_world_lockdown_01..03` | `CameraShake.Add(shakeBig)` | ✅ `GameClock_Manager.NightStarted` (event). |
 | Dawn | `sfx_world_dawn_01..02` | none | ✅ `GameClock_Manager.NewDay` (event). |
-| Thunderstorm (loop) + thunder | `sfx_ambience_storm_01..03`, `sfx_ambience_rain_01`, `sfx_world_thunder_01..03` | `VFX_Rain` following the camera; random thunder + `CameraShake.Add(shakeMedium)` | ➕ `EventManager.StartStorm / StartRain / EndStorm` are private. Add `public event Action<GameEventType> EventStarted, EventEnded`. |
+| Thunderstorm (loop) + thunder | `sfx_ambience_storm_01..03`, `sfx_ambience_rain_01`, `sfx_world_thunder_01..03` | `VFX_Rain` following the camera; random thunder + `CameraShake.Add(shakeBig)` | ➕ `EventManager.StartStorm / StartRain / EndStorm` are private. Add `public event Action<GameEventType> EventStarted, EventEnded`. |
 | Heatwave | `sfx_ambience_heatwave_01..03` | `VFX_DustBlowing` + `VFX_SandStreaks` following the camera | ➕ `EventManager.StartHeatwave` (private), same events as above. |
-| Drought stage change sting | `sfx_stinger_droughtstage_01..03` | `CameraShake.Add(shakeSmall)` | ➕ `StageManager.ApplyStage(index, announce)` (private; `announce` = a real change). Add `public event Action<int> StageChanged` when `announce` is true. |
+| Drought stage change sting | `sfx_stinger_droughtstage_01..03` | `CameraShake.Add(shakeBig)` | ➕ `StageManager.ApplyStage(index, announce)` (private; `announce` = a real change). Add `public event Action<int> StageChanged` when `announce` is true. |
 
 ## UI
 

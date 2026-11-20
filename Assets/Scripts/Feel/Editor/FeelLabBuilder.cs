@@ -150,7 +150,7 @@ namespace TheLastDrop.Feel.EditorTools
             var go = new GameObject("FloatingText");
             var tmp = go.AddComponent<TextMeshPro>();
             tmp.text = "+1.5 L";
-            tmp.fontSize = 5f;
+            tmp.fontSize = 2.5f; // team pick 2026-11-21: half the first size
             tmp.fontStyle = FontStyles.Bold;
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.textWrappingMode = TextWrappingModes.NoWrap;
