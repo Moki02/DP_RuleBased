@@ -51,14 +51,40 @@ namespace TheLastDrop
             return canvas;
         }
 
+        // Views already handed out from the scene (so two owners never share one copy).
+        static readonly System.Collections.Generic.HashSet<int> claimedSceneViews = new System.Collections.Generic.HashSet<int>();
+
         /// <summary>
-        /// Makes a copy of a UI prefab and returns its view script (the component holding the
-        /// links to its texts, buttons ...). Uses <paramref name="assigned"/> if one was dragged
-        /// in, otherwise the prefab at Resources/<paramref name="resourcePath"/>. Returns null if
-        /// there is neither (the caller then builds the default look in code).
+        /// Finds a <typeparamref name="T"/> placed in the open scene(s), also on switched-off objects
+        /// (the screens under the "UI" object start hidden). Switches it and its parents on, so the
+        /// caller gets it in the same state as a fresh copy of the prefab. Each one is handed out
+        /// only once. Returns null if the scene has none.
+        /// </summary>
+        public static T FindInScene<T>() where T : Component
+        {
+            foreach (var v in Object.FindObjectsByType<T>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (v == null || !v.gameObject.scene.IsValid() || claimedSceneViews.Contains(v.GetInstanceID())) continue;
+                claimedSceneViews.Add(v.GetInstanceID());
+                for (var t = v.transform; t != null; t = t.parent)
+                    if (!t.gameObject.activeSelf) t.gameObject.SetActive(true);
+                return v;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Returns the view script (the component holding the links to its texts, buttons ...) of
+        /// a UI screen. In this order: the copy already placed in the scene (under "UI", so the
+        /// artists can edit it in the Hierarchy), else a copy of <paramref name="assigned"/> if one
+        /// was dragged in, else a copy of the prefab at Resources/<paramref name="resourcePath"/>.
+        /// Returns null if there is none of these (the caller then builds the default look in code).
         /// </summary>
         public static T InstantiateView<T>(GameObject assigned, string resourcePath, Transform parent) where T : Component
         {
+            var placed = FindInScene<T>();
+            if (placed != null) return placed;
+
             var prefab = assigned != null ? assigned : Resources.Load<GameObject>(resourcePath);
             if (prefab == null) return null;
             var go = Object.Instantiate(prefab, parent, false);
