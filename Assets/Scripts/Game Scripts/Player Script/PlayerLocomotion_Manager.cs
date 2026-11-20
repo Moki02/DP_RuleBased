@@ -234,8 +234,11 @@ public class PlayerLocomotion_Manager : MonoBehaviour
     public void ResetFall()
     {
         verticalVelocity = 0f;
+        planarVelocity = Vector3.zero;
         IsJumping = false;
         FallingDuration = 0f;
+        if (IsCrouching && player != null)
+            TryStandUp();   // e.g. waking up after collapsing while crouched
     }
 
     /// <summary>Walks, sprints or crouch-walks along the input, relative to the camera.</summary>
