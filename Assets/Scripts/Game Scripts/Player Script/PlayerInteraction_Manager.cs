@@ -39,6 +39,9 @@ public class PlayerInteraction_Manager : MonoBehaviour
     private Interactable_Manager currentInteractable; // the closest one in reach this frame (its prompt shows)
     private Interactable_Manager activeInteractable;  // the Hold one being used right now (needs StopInteraction later)
 
+    /// <summary>The Hold interactable being used right now (E held), or null. The HUD's hold fill reads it (T43).</summary>
+    public Interactable_Manager ActiveHold => activeInteractable;
+
     private void Awake()
     {
         instance = this;
