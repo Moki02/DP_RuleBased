@@ -38,7 +38,7 @@ namespace TheLastDrop
         /// <summary>The save file's name inside Application.persistentDataPath.</summary>
         public const string FileName = "thelastdrop_save.json";
         /// <summary>The scene LoadAndStart opens.</summary>
-        public const string GameSceneName = "Playtest_Maze";
+        public const string GameSceneName = "Salok_Environment";
 
         /// <summary>The manager in this scene (set in Awake).</summary>
         public static SaveManager Instance { get; private set; }

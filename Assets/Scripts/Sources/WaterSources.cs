@@ -272,6 +272,10 @@ namespace TheLastDrop
             var s = Station("RainCatcher", balance.rainCatcherTile);
             // Roof grows with the catch area (W3 / W8): a square of that many m².
             float side = Mathf.Sqrt(Mathf.Max(1f, CatchArea));
+            // The artists' model for this catch area (4 m² Normal, 8 m² Wider, 16 m² Bigger), if there is one.
+            string model = CatchArea >= 16f ? "RainCatcher_Bigger" : CatchArea >= 8f ? "RainCatcher_Wider" : "RainCatcher_Normal";
+            if (HubPlaceholders.ArtistModel(s, model) != null)
+                return SourceVisuals.Label(s, balance.sourceLabelHeight, balance.sourceLabelFontSize);
             SourceVisuals.Part(s, "Roof", PrimitiveType.Cube, new Vector3(0f, 2.2f, 0f), new Vector3(side, 0.1f, side), new Color(0.55f, 0.6f, 0.65f));
             SourceVisuals.Part(s, "Pipe", PrimitiveType.Cylinder, new Vector3(0f, 1.4f, 0f), new Vector3(0.12f, 0.8f, 0.12f), new Color(0.3f, 0.3f, 0.3f));
             SourceVisuals.Part(s, "Barrel", PrimitiveType.Cylinder, new Vector3(0f, 0.5f, 0f), new Vector3(0.9f, 0.5f, 0.9f), new Color(0.2f, 0.45f, 0.75f));
@@ -284,6 +288,8 @@ namespace TheLastDrop
             for (int i = 0; i < count; i++)
             {
                 float x = count > 1 ? (i == 0 ? -0.8f : 0.8f) : 0f;
+                var art = HubPlaceholders.ArtistModel(s, "SolarStill");
+                if (art != null) { art.transform.localPosition = new Vector3(x, 0f, 0f); continue; }
                 SourceVisuals.Part(s, $"Basin{i + 1}", PrimitiveType.Cube, new Vector3(x, 0.15f, 0f), new Vector3(1.2f, 0.3f, 0.9f), new Color(0.15f, 0.15f, 0.15f));
                 var glass = SourceVisuals.Part(s, $"Glass{i + 1}", PrimitiveType.Cube, new Vector3(x, 0.45f, 0f), new Vector3(1.2f, 0.05f, 0.95f), new Color(0.6f, 0.85f, 1f));
                 glass.transform.localRotation = Quaternion.Euler(15f, 0f, 0f);
@@ -294,6 +300,8 @@ namespace TheLastDrop
         FacingLabel BuildDeepWell()
         {
             var s = Station("DeepWell", balance.deepWellTile);
+            if (HubPlaceholders.ArtistModel(s, "DeepWell") != null)
+                return SourceVisuals.Label(s, balance.sourceLabelHeight, balance.sourceLabelFontSize);
             SourceVisuals.Part(s, "Wall", PrimitiveType.Cylinder, new Vector3(0f, 0.4f, 0f), new Vector3(1.4f, 0.4f, 1.4f), new Color(0.55f, 0.5f, 0.45f));
             SourceVisuals.Part(s, "Water", PrimitiveType.Cylinder, new Vector3(0f, 0.81f, 0f), new Vector3(1.1f, 0.01f, 1.1f), new Color(0.1f, 0.25f, 0.45f));
             SourceVisuals.Part(s, "Post", PrimitiveType.Cube, new Vector3(0f, 1.4f, 0f), new Vector3(1.6f, 0.1f, 0.1f), new Color(0.4f, 0.28f, 0.15f));

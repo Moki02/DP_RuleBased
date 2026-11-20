@@ -9,8 +9,8 @@ EditorBuildSettings:
     path: Assets/Scenes/MainMenu.unity
     guid: c59e5227e5699f84d88737eedb4fad9c
   - enabled: 1
-    path: Assets/Scenes/Playtest_Maze.unity
-    guid: d9a31009111070c42bfe1a40ef362306
+    path: Assets/Scenes/Salok_Environment.unity
+    guid: a47f5c914171e8240ade091f192b209b
   - enabled: 1
     path: Assets/Scenes/Win.unity
     guid: 15d869877ce389945a2844396d82aa09

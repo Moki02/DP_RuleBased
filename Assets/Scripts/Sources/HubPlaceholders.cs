@@ -26,6 +26,9 @@
 //   CleanTank_Tapayan, CleanTank_PlasticDrum, CleanTank_FerrocementTank,
 //   CleanTank_UndergroundCistern, SpareJug
 // and it is used instead (pivot on the floor, 1 unit = 1 m). The label stays.
+// The water sources use the same folder: RainCatcher_Normal / _Wider / _Bigger (by catch
+// area), SolarStill, DeepWell, BiosandFilter. Salok > Build > 1. Set up finished models
+// makes all of these from Assets/Art/Models/Finished Model.
 // HOW TO EDIT: tiles and jug numbers are in GameBalance > Hub placeholders.
 // ============================================================================
 
@@ -307,14 +310,20 @@ namespace TheLastDrop
 
         // Uses an artist's prefab from Resources/HubModels if there is one. Its colliders are
         // kept off so the base stays walkable, like the gray boxes.
-        static bool TryArtistModel(Transform parent, string modelName)
+        static bool TryArtistModel(Transform parent, string modelName) => ArtistModel(parent, modelName) != null;
+
+        /// <summary>
+        /// An artist's model from Resources/HubModels under <paramref name="parent"/> (colliders off),
+        /// or null if there is none. Also used by WaterSources and BiosandFilter.
+        /// </summary>
+        public static GameObject ArtistModel(Transform parent, string modelName)
         {
             var prefab = Resources.Load<GameObject>(ModelFolder + modelName);
-            if (prefab == null) return false;
+            if (prefab == null) return null;
             var go = Instantiate(prefab, parent, false);
             go.name = modelName;
             foreach (var col in go.GetComponentsInChildren<Collider>(true)) col.enabled = false;
-            return true;
+            return go;
         }
     }
 }

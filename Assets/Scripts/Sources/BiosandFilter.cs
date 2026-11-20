@@ -153,8 +153,11 @@ namespace TheLastDrop
             float side = balance != null ? balance.biosandSideOffset : 1.5f;
             var holder = new GameObject("BiosandFilter_Model");
             holder.transform.position = t.position + t.right * side;
+            if (HubPlaceholders.ArtistModel(holder.transform, "BiosandFilter") == null)
+            {
             SourceVisuals.Part(holder.transform, "Drum", PrimitiveType.Cylinder, new Vector3(0f, 0.6f, 0f), new Vector3(0.7f, 0.6f, 0.7f), new Color(0.85f, 0.75f, 0.5f));
             SourceVisuals.Part(holder.transform, "Lid", PrimitiveType.Cylinder, new Vector3(0f, 1.22f, 0f), new Vector3(0.75f, 0.03f, 0.75f), new Color(0.35f, 0.3f, 0.25f));
+            }
             return holder;
         }
 
