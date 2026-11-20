@@ -162,6 +162,24 @@ public partial class @Player_Controls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Player Crouch"",
+                    ""type"": ""Button"",
+                    ""id"": ""5c0e4a8e-2f7b-4d61-9a43-1c7b8e2d6f01"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Player Jump"",
+                    ""type"": ""Button"",
+                    ""id"": ""8d3f6b21-7a94-4c0e-b5d2-3e9f1a6c7b02"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -208,6 +226,28 @@ public partial class @Player_Controls: IInputActionCollection2, IDisposable
                     ""action"": ""Player Interact"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a1b2c3d4-0c0c-4e5f-8a9b-c0d1e2f3a403"",
+                    ""path"": ""<Keyboard>/c"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Player Crouch"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b2c3d4e5-1d1d-4f60-9bac-d1e2f3a4b504"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Player Jump"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -226,6 +266,8 @@ public partial class @Player_Controls: IInputActionCollection2, IDisposable
         m_PlayerAction_PlayerDrink = m_PlayerAction.FindAction("Player Drink", throwIfNotFound: true);
         m_PlayerAction_PlayerPause = m_PlayerAction.FindAction("Player Pause", throwIfNotFound: true);
         m_PlayerAction_PlayerInteract = m_PlayerAction.FindAction("Player Interact", throwIfNotFound: true);
+        m_PlayerAction_PlayerCrouch = m_PlayerAction.FindAction("Player Crouch", throwIfNotFound: true);
+        m_PlayerAction_PlayerJump = m_PlayerAction.FindAction("Player Jump", throwIfNotFound: true);
     }
 
     ~@Player_Controls()
@@ -390,6 +432,8 @@ public partial class @Player_Controls: IInputActionCollection2, IDisposable
     private readonly InputAction m_PlayerAction_PlayerDrink;
     private readonly InputAction m_PlayerAction_PlayerPause;
     private readonly InputAction m_PlayerAction_PlayerInteract;
+    private readonly InputAction m_PlayerAction_PlayerCrouch;
+    private readonly InputAction m_PlayerAction_PlayerJump;
     public struct PlayerActionActions
     {
         private @Player_Controls m_Wrapper;
@@ -398,6 +442,8 @@ public partial class @Player_Controls: IInputActionCollection2, IDisposable
         public InputAction @PlayerDrink => m_Wrapper.m_PlayerAction_PlayerDrink;
         public InputAction @PlayerPause => m_Wrapper.m_PlayerAction_PlayerPause;
         public InputAction @PlayerInteract => m_Wrapper.m_PlayerAction_PlayerInteract;
+        public InputAction @PlayerCrouch => m_Wrapper.m_PlayerAction_PlayerCrouch;
+        public InputAction @PlayerJump => m_Wrapper.m_PlayerAction_PlayerJump;
         public InputActionMap Get() { return m_Wrapper.m_PlayerAction; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -419,6 +465,12 @@ public partial class @Player_Controls: IInputActionCollection2, IDisposable
             @PlayerInteract.started += instance.OnPlayerInteract;
             @PlayerInteract.performed += instance.OnPlayerInteract;
             @PlayerInteract.canceled += instance.OnPlayerInteract;
+            @PlayerCrouch.started += instance.OnPlayerCrouch;
+            @PlayerCrouch.performed += instance.OnPlayerCrouch;
+            @PlayerCrouch.canceled += instance.OnPlayerCrouch;
+            @PlayerJump.started += instance.OnPlayerJump;
+            @PlayerJump.performed += instance.OnPlayerJump;
+            @PlayerJump.canceled += instance.OnPlayerJump;
         }
 
         private void UnregisterCallbacks(IPlayerActionActions instance)
@@ -435,6 +487,12 @@ public partial class @Player_Controls: IInputActionCollection2, IDisposable
             @PlayerInteract.started -= instance.OnPlayerInteract;
             @PlayerInteract.performed -= instance.OnPlayerInteract;
             @PlayerInteract.canceled -= instance.OnPlayerInteract;
+            @PlayerCrouch.started -= instance.OnPlayerCrouch;
+            @PlayerCrouch.performed -= instance.OnPlayerCrouch;
+            @PlayerCrouch.canceled -= instance.OnPlayerCrouch;
+            @PlayerJump.started -= instance.OnPlayerJump;
+            @PlayerJump.performed -= instance.OnPlayerJump;
+            @PlayerJump.canceled -= instance.OnPlayerJump;
         }
 
         public void RemoveCallbacks(IPlayerActionActions instance)
@@ -466,5 +524,7 @@ public partial class @Player_Controls: IInputActionCollection2, IDisposable
         void OnPlayerDrink(InputAction.CallbackContext context);
         void OnPlayerPause(InputAction.CallbackContext context);
         void OnPlayerInteract(InputAction.CallbackContext context);
+        void OnPlayerCrouch(InputAction.CallbackContext context);
+        void OnPlayerJump(InputAction.CallbackContext context);
     }
 }
