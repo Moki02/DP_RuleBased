@@ -8,7 +8,11 @@
 // Q is held). The Drink action here only starts the drink animation once per press, so
 // water is never counted twice.
 //
-// DESIGN RULES: Controls table (WASD, Shift sprint, E interact, Q drink, Esc pause).
+// Crouch (C, toggle) and Jump (Space) are stored as one-frame flags for PlayerLocomotion_Manager.
+// Jump is only stored while the player has control, because Space is also the Valve Timing key.
+//
+// DESIGN RULES: Controls table (WASD, Shift sprint, E interact, Q drink, Esc pause; C crouch and
+// Space jump are new, still to be added to the GDD).
 //
 // HOW TO USE: on the Player prefab. Key bindings are in the Player_Controls Input Actions asset.
 // HOW TO EDIT: change keys in that asset, not here.
@@ -51,6 +55,13 @@ public class PlayerInput_Manager : MonoBehaviour
     [Tooltip("True only in the frame E was pressed (Press interactions). Cleared in LateUpdate.")]
     public bool interactPressed;
 
+    [Header("Crouch and Jump Input")]
+    [Tooltip("True only in the frame C was pressed (crouch toggle). Cleared in LateUpdate.")]
+    public bool crouchPressed;
+    [Tooltip("True only in the frame Space was pressed while the player had control. Cleared in LateUpdate. " +
+             "A Space press during a minigame or menu is never stored, so it can't turn into a jump.")]
+    public bool jumpPressed;
+
     private void Awake()
     {
         if (instance == null)
@@ -68,6 +79,8 @@ public class PlayerInput_Manager : MonoBehaviour
     private void LateUpdate()
     {
         interactPressed = false;
+        crouchPressed = false;
+        jumpPressed = false;
     }
 
     private void OnEnable()
@@ -86,6 +99,8 @@ public class PlayerInput_Manager : MonoBehaviour
     {
         interactInput = false;
         interactPressed = false;
+        crouchPressed = false;
+        jumpPressed = false;
 
         // Fix: the actions were never switched off, so after a scene reload (Restart, collapse
         // reload, main menu) the old player's actions kept running alongside the new ones.
@@ -146,6 +161,16 @@ public class PlayerInput_Manager : MonoBehaviour
         playerControls.PlayerAction.PlayerInteract.canceled += i =>
         {
             interactInput = false;
+        };
+
+        playerControls.PlayerAction.PlayerCrouch.performed += i => crouchPressed = true;
+
+        // Space is also the Valve Timing minigame's key: only store it while the player has
+        // control (Exploring), so a minigame press never becomes a jump.
+        playerControls.PlayerAction.PlayerJump.performed += i =>
+        {
+            if (Game_Manager.instance == null || Game_Manager.instance.CanControlPlayer())
+                jumpPressed = true;
         };
     }
 

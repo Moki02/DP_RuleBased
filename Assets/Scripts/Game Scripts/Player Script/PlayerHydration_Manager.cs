@@ -2,7 +2,8 @@
 // PlayerHydration_Manager.cs
 // The player's HYD: drain every second, the four states, drinking, Sick, and collapse.
 //
-//   drain = base drain for the activity (standing / walking / sprinting / pumping / minigame)
+//   drain = base drain for the activity (standing / walking / sprinting / pumping / minigame /
+//           crouched still / crouch-walking)
 //           × every multiplier in HydrationModifiers (drought stage, events, ...)
 //           × skills (E1 Salakot, E2 Steady Breath)
 //           × Thirsty sprint (×1.5 unless M3 Pacing) × Sick (×1.5) × hub shade (×0.5)
@@ -13,6 +14,10 @@
 // Q key directly). Pressing Q also fires PlayerInput_Manager's "PlayerDrink" action, which
 // only plays the drink animation (HandleDrinkAction); the animation's event calls
 // DrinkFromCanteen, which is now empty on purpose, so water is never counted twice.
+//
+// Jumping (new): each jump costs GameBalance > Jump Hyd Cost × the same multipliers, once at
+// take-off (TryPayJumpCost). No jump below that cost, while Dehydrated or Collapsed, in a
+// minigame or menu, or while pumping (CanJump).
 //
 // Collapse (R11.1): at 0 HYD this fires OnCollapsed once. PlayerDeath_Manager (animation,
 // freeze) and CollapseManager (fade, costs, waking up) listen to it.
@@ -113,6 +118,9 @@ public class PlayerHydration_Manager : MonoBehaviour, ISaveable
     float DrainSprint => balance != null ? balance.drainSprint : drain_Sprint;
     float DrainPump => balance != null ? balance.drainPump : drain_Pump;
     float DrainMinigame => balance != null ? balance.drainMinigame : drain_Idle;
+    float DrainCrouch => balance != null ? balance.crouchDrain : 0.35f;
+    float DrainCrouchIdle => balance != null ? balance.crouchIdleDrain : 0.2f;
+    float JumpHydCost => balance != null ? balance.jumpHydCost : 3f;
     float HubShade => balance != null ? balance.hubShadeMult : hubDrainMultiplier;
     float ThirstyBelow => balance != null ? balance.thirstyAt + 1f : 60f;      // 59 → below 60 is Thirsty
     float DehydratedBelow => balance != null ? balance.dehydratedAt + 1f : 30f; // 29 → below 30 is Dehydrated
@@ -225,25 +233,39 @@ public class PlayerHydration_Manager : MonoBehaviour, ISaveable
         float moveAmount = player.playerInput_Manager.moveAmount;
         bool canMove = Game_Manager.instance == null || Game_Manager.instance.CanControlPlayer();
         bool moving = moveAmount > 0 && canMove && !isPlayingMinigame;
-        bool sprinting = moving && player.playerInput_Manager.sprintInput && CanSprint();
+        bool crouching = IsCrouching();
+        bool sprinting = moving && player.playerInput_Manager.sprintInput && CanSprint() && !crouching;
         bool inHub = IsInsideHub();
 
         float drain;
         if (isPlayingMinigame) drain = DrainMinigame;          // R9.1: same as standing
         else if (isPumping) drain = DrainPump;
         else if (sprinting) drain = DrainSprint;
+        else if (moving && crouching) drain = DrainCrouch;     // crouch-walking: less than walking
         else if (moving) drain = DrainWalk;
+        else if (crouching) drain = DrainCrouchIdle;           // crouched still: less than standing
         else drain = DrainIdle;
 
         // Thirsty: sprinting costs ×1.5 (M3 Pacing removes it).
         if (currentHydrationState == HydrationState.Thirsty && sprinting)
             drain *= ThirstySprintMult;
 
-        // Skills: E1 Salakot (all drain), E2 Steady Breath (walking and sprinting).
-        drain *= Skills.F("drainMultAll", 1f);
-        if (moving) drain *= Skills.F("drainMultMove", 1f);
+        drain *= DrainMultiplier(moving, sprinting, inHub);
 
-        // Drought stage, events and anything else other systems add (R2.1: multiply, never add).
+        LastDrainPerSecond = drain;
+        player.playerStats_Manager.ChangeHydration(-drain * Time.deltaTime);
+    }
+
+    // Everything a base drain is multiplied by (R2.1: multiply, never add): skills, drought
+    // stage, events, old-scene multipliers, Sick and hub shade. Used by the drain every second
+    // and by the one-off jump cost.
+    private float DrainMultiplier(bool moving, bool sprinting, bool inHub)
+    {
+        // Skills: E1 Salakot (all drain), E2 Steady Breath (walking and sprinting).
+        float mult = Skills.F("drainMultAll", 1f);
+        if (moving) mult *= Skills.F("drainMultMove", 1f);
+
+        // Drought stage, events and anything else other systems add.
         var ctx = new DrainContext
         {
             Moving = moving,
@@ -252,16 +274,61 @@ public class PlayerHydration_Manager : MonoBehaviour, ISaveable
             InHub = inHub,
             Day = GameClock_Manager.Instance != null ? GameClock_Manager.Instance.Day : 1
         };
-        drain *= HydrationModifiers.Product(ctx);
+        mult *= HydrationModifiers.Product(ctx);
 
         // Old-scene multipliers (1 unless someone set them in the Inspector).
-        drain *= droughtHeatMultiplier * eventMultiplier * skillMultiplier;
+        mult *= droughtHeatMultiplier * eventMultiplier * skillMultiplier;
 
-        if (sickTimer > 0) drain *= SickMult;
-        if (inHub) drain *= HubShade;                           // R2.2
+        if (sickTimer > 0) mult *= SickMult;
+        if (inHub) mult *= HubShade;                            // R2.2
+        return mult;
+    }
 
-        LastDrainPerSecond = drain;
-        player.playerStats_Manager.ChangeHydration(-drain * Time.deltaTime);
+    private bool IsCrouching()
+    {
+        return player.playerLocomotion_Manager != null && player.playerLocomotion_Manager.IsCrouching;
+    }
+
+    // ------------------------------------------------------------------ Jumping (new, GDD to do)
+
+    /// <summary>
+    /// False while Dehydrated or Collapsed, in a minigame or menu, while pumping, with hydration
+    /// on and less HYD than one jump costs.
+    /// </summary>
+    public bool CanJump()
+    {
+        if (currentHydrationState == HydrationState.Dehydrated ||
+            currentHydrationState == HydrationState.Collapsed)
+            return false;
+        if (isPlayingMinigame || isPumping)
+            return false;
+        if (Game_Manager.instance != null && !Game_Manager.instance.CanControlPlayer())
+            return false;
+        if (hydrationOff)
+            return true;
+        // Never below the base cost, nor below what this jump will really take.
+        return player.playerStats_Manager.player_Hydration >= Mathf.Max(JumpHydCost, JumpCost());
+    }
+
+    /// <summary>
+    /// Takes one jump's HYD (GameBalance > Jump Hyd Cost × the same multipliers as any drain).
+    /// Returns false, taking nothing, if the jump isn't allowed.
+    /// </summary>
+    public bool TryPayJumpCost()
+    {
+        if (!CanJump())
+            return false;
+        if (hydrationOff)
+            return true;
+        player.playerStats_Manager.ChangeHydration(-JumpCost());
+        UpdateHydrationState();
+        return true;
+    }
+
+    /// <summary>HYD one jump costs right now (base × stage heat × events × skills).</summary>
+    public float JumpCost()
+    {
+        return JumpHydCost * DrainMultiplier(true, false, IsInsideHub());
     }
 
     /// <summary>True while the player is inside the hub's box (shade, R2.2).</summary>
@@ -345,7 +412,8 @@ public class PlayerHydration_Manager : MonoBehaviour, ISaveable
 
         player.playerAnimator_Manager.ResetActionAnimation();
 
-        player.animator.CrossFade("Walking Blend Tree", 0.2f);
+        // Blend the Drink layer back out (the old controller's "Walking Blend Tree" is gone).
+        player.playerAnimator_Manager.ReturnToLocomotion();
     }
 
     /// <summary>Hub tap (R2.4): drink straight from Clean Storage at the drinking rate, stopping at full HYD.</summary>

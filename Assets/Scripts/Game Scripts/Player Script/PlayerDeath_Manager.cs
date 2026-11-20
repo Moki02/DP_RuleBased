@@ -16,7 +16,8 @@
 // CollapseManager).
 //
 // HOW TO USE: on the Player prefab. "Respawn Point" is only needed in old scenes.
-// HOW TO EDIT: the animation's state name is "Collapse Animation". Wake-up numbers are in
+// HOW TO EDIT: the animations' state names are "Collapse Animation" and "Wake Up Animation"
+// (both in the Animator's "Actions" layer). Wake-up numbers are in
 // GameBalance (Collapse and game over); "Revive Hydration" is only for old scenes.
 // ============================================================================
 
@@ -39,6 +40,8 @@ public class PlayerDeath_Manager : MonoBehaviour
     [Header("Animation")]
     [Tooltip("Animator state played when the player collapses.")]
     public string collapseAnimation = "Collapse";
+    [Tooltip("Animator state played when the player wakes up after a collapse (empty = none).")]
+    public string wakeUpAnimation = "WakeUp";
 
     [Tooltip("True from the collapse until ReviveAt (read only).")]
     public bool isDead = false;
@@ -81,7 +84,11 @@ public class PlayerDeath_Manager : MonoBehaviour
         if (animator != null)
         {
             animator.updateMode = AnimatorUpdateMode.UnscaledTime;
-            animator.Play(collapseAnimation, 0, 0f);
+            // The state lives in the "Actions" layer now: let PlayerAnimator_Manager find it.
+            if (player != null && player.playerAnimator_Manager != null)
+                player.playerAnimator_Manager.PlayTargetActionAnimation(collapseAnimation, true);
+            else
+                animator.Play(collapseAnimation, 0, 0f);
         }
 
         // The maze game: CollapseManager shows the fade and handles the rest.
@@ -127,8 +134,17 @@ public class PlayerDeath_Manager : MonoBehaviour
             animator.updateMode = originalUpdateMode;
         }
 
+        if (player.playerLocomotion_Manager != null)
+            player.playerLocomotion_Manager.ResetFall();
+
         if (player.playerAnimator_Manager != null)
+        {
             player.playerAnimator_Manager.ResetActionAnimation();
+            // Getting up. The player can't move until the WakeUp state ends (it returns to
+            // locomotion by itself; PlayerSyntyAnimator then gives control back).
+            if (!string.IsNullOrEmpty(wakeUpAnimation))
+                player.playerAnimator_Manager.PlayTargetActionAnimation(wakeUpAnimation, true);
+        }
 
         isDead = false;
 
