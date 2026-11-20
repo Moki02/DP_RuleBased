@@ -1262702,6 +1262702,7 @@ MonoBehaviour:
   reviveHydration: 50
   collapseHUD: {fileID: 0}
   collapseAnimation: Collapse
+  wakeUpAnimation: WakeUp
   isDead: 0
 --- !u!114 &1811445745
 MonoBehaviour:
@@ -1262773,6 +1262774,8 @@ MonoBehaviour:
   sprintInput: 0
   interactInput: 0
   interactPressed: 0
+  crouchPressed: 0
+  jumpPressed: 0
 --- !u!114 &1811445748
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1262792,9 +1262795,23 @@ MonoBehaviour:
   player_WalkingSpeed: 0
   player_RunningSpeed: 0
   player_RotationalSpeed: 0
+  speedChangeDamping: 12
   gravity: -20
   groundedPull: -2
   fallResetHeight: -20
+  groundProbeDistance: 0.25
+  groundLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  crouchHeightRatio: 0.65
+  fallbackCrouchSpeed: 2
+  fallbackJumpHeight: 1.2
+  jumpCooldown: 0.25
+  jumpBlockAfterControlRegained: 0.3
+  minAirSpeed: 1.5
+  turnToCameraWhenIdle: 1
+  idleTurnStartAngle: 90
+  idleTurnSpeed: 180
 --- !u!114 &1811445749
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1262859,6 +1262876,124 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0.9, z: 0}
+--- !u!114 &1811445752
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1811445742}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2089a53b2de6ad94a8de4c7367abb872, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerSyntyAnimator
+  clipWalkSpeed: 1.4
+  clipRunSpeed: 2.5
+  clipSprintSpeed: 7
+  clipCrouchSpeed: 1.4
+  animSpeedScale: 1
+  maxPlaybackSpeed: 1.75
+  animSpeedDamping: 10
+  tiredWalkEnabled: 1
+  tiredAnimMoveSpeed: 1.9
+  tiredHeadDown: 0.35
+  tiredBodyDown: 0.25
+  tiredLeanScale: 0.4
+  tiredBlendTime: 0.6
+  buttonHoldThreshold: 0.15
+  enableLean: 1
+  leanCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 1
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 1
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  leanScale: 1
+  enableHeadLook: 1
+  enableBodyLook: 1
+  headLookXCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: -1
+      value: -1
+      inSlope: 0
+      outSlope: 1
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 1
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  bodyLookXCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: -1
+      value: -1
+      inSlope: 0
+      outSlope: 1
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 1
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  headFollowsCamera: 1
+  headLookMaxAngle: 80
+  headLookCutoffAngle: 130
+  lookDownLimit: -0.3
+  actionLayerNames:
+  - Actions
+  - UpperBodyActions
+  actionLayerFadeSpeed: 8
+  pumpAnimation: 1
+  pourAnimation: 1
+  debugRealSpeed: 0
+  debugMoveSpeedParam: 0
+  debugPlaybackSpeed: 0
+  debugGait: 
+  debugTiredWeight: 0
+  debugAction: 
 --- !u!43 &1811446332
 Mesh:
   m_ObjectHideFlags: 0
@@ -1488268,10 +1488403,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5092394090777857079, guid: 1af99d78b4607004db830d6882ba90d1, type: 3}
-      propertyPath: m_Avatar
-      value: 
-      objectReference: {fileID: 9000000, guid: 0ad932253e8dc8841948afa5d1a0d051, type: 3}
     - target: {fileID: 6527200193461517845, guid: 1af99d78b4607004db830d6882ba90d1, type: 3}
       propertyPath: m_Name
       value: Salakot_attachment
@@ -1488311,6 +1488442,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6945480728081109394, guid: 1af99d78b4607004db830d6882ba90d1, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1811445743}
+    - targetCorrespondingSourceObject: {fileID: 6945480728081109394, guid: 1af99d78b4607004db830d6882ba90d1, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1811445752}
   m_SourcePrefab: {fileID: 100100000, guid: 1af99d78b4607004db830d6882ba90d1, type: 3}
 --- !u!114 &2511894121104571046 stripped
 MonoBehaviour:
