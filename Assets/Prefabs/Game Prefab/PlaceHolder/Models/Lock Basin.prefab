@@ -103,6 +103,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -275,7 +276,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3341387493195253866}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -288,6 +289,8 @@ MeshRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -309,9 +312,11 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!135 &4134596960330216928
 SphereCollider:
@@ -444,6 +449,7 @@ Transform:
   m_Children:
   - {fileID: 3727431328457442816}
   - {fileID: 5653593703350578911}
+  - {fileID: 1143055336674829283}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &6828646180315552984
@@ -461,7 +467,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4906799194672291722}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -474,6 +480,8 @@ MeshRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -495,9 +503,11 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &2379763262273186160
 BoxCollider:
@@ -539,7 +549,27 @@ MonoBehaviour:
   pourRate: 1
   basinBar: {fileID: 1058988176415431590}
   basinText: {fileID: 6418885375901584442}
+  showBasinUI: 1
   gateObject: {fileID: 0}
+  gateObjects: []
+  openWithValveMinigame: 0
+  minigameSettings:
+    bandWidth: 0
+    needleSpeed: 0
+    hitsToWin: 0
+    missesToLose: 0
+  difficultyT: -1
+  lockoutSeconds: 10
+  failHydLog: 5
+  isExitGate: 0
+  proximityRange: 0
+  pourPrompt: Hold [E] to pour water  ({0:0.0} / {1:0.#} L)
+  openPrompt: Press [E] to open the valve
+  jammedPrompt: Valve jammed ({0}s)
+  nightPrompt: Gate locked for the night
+  pourHydPrompt: 'Canteen empty: hold [E] to pour from your HYD  ({0:0.0} / {1:0.#}
+    L)'
+  tooThirstyPrompt: Too thirsty to pour (HYD {0:0}). Drink first.
 --- !u!1 &5380976435654919503
 GameObject:
   m_ObjectHideFlags: 0
@@ -615,3 +645,65 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c16c18a03d11248408e4b2cfca895cf9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1001 &600750857094644744
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1164603709775493104}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: cd2ed37b1661c074d9bbc8e0ea7adf17, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.50000113
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cd2ed37b1661c074d9bbc8e0ea7adf17, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cd2ed37b1661c074d9bbc8e0ea7adf17, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.42969322
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cd2ed37b1661c074d9bbc8e0ea7adf17, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cd2ed37b1661c074d9bbc8e0ea7adf17, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cd2ed37b1661c074d9bbc8e0ea7adf17, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cd2ed37b1661c074d9bbc8e0ea7adf17, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cd2ed37b1661c074d9bbc8e0ea7adf17, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cd2ed37b1661c074d9bbc8e0ea7adf17, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: cd2ed37b1661c074d9bbc8e0ea7adf17, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cd2ed37b1661c074d9bbc8e0ea7adf17, type: 3}
+      propertyPath: m_Name
+      value: FinishedModel
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: cd2ed37b1661c074d9bbc8e0ea7adf17, type: 3}
+--- !u!4 &1143055336674829283 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: cd2ed37b1661c074d9bbc8e0ea7adf17, type: 3}
+  m_PrefabInstance: {fileID: 600750857094644744}
+  m_PrefabAsset: {fileID: 0}

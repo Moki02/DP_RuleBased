@@ -9,7 +9,8 @@
 // While the menu is open the player can't move and the cursor is free. The clock pauses
 // only while Build or Skills is open AT THE HUB; the Map page never pauses it.
 // It can't open while the game is paused, in a minigame, collapsed, or behind the title /
-// end screens (MenuState.Enter says no). If one of those takes over while it's open (for
+// end screens (MenuState.Enter says no). During the guided tutorial a page it hasn't taught
+// yet stays shut with a toast (TutorialGate.AllowsMenu). If one of those takes over while it's open (for
 // example the player collapses), it closes itself.
 // The menu remembers the last page and the last selected card on each page (MenuMemory),
 // and that memory is saved with the game.
@@ -258,18 +259,35 @@ namespace TheLastDrop
             if (!wasOpen)
             {
                 if (key == MenuKey.Esc) return; // Esc with the menu closed: nothing to do
+                // Guided tutorial: a page it hasn't taught yet stays shut (Tab falls back to the
+                // map if only the map is open).
+                var page = key == MenuKey.M ? MenuPage.Map : key == MenuKey.B ? MenuPage.Build : Memory.LastPage;
+                if (!TutorialGate.AllowsMenu(page))
+                {
+                    if (key == MenuKey.Tab && TutorialGate.AllowsMenu(MenuPage.Map)) key = MenuKey.M;
+                    else { if (MenuStateFree) TutorialGate.ReportBlocked(page); return; }
+                }
                 // Ask first, so a key pressed while a note, minigame, pause or another screen is
                 // up does nothing at all: the player has to close the note before Tab / B / M
                 // work, and the page Tab opens next time doesn't change.
                 if (!MenuState.Enter()) return;
             }
+            else if (key == MenuKey.B && Memory.Current != MenuPage.Build && !TutorialGate.AllowsMenu(MenuPage.Build))
+            {
+                TutorialGate.ReportBlocked(MenuPage.Build);
+                return;
+            }
             Memory.Press(key);
             ApplyMemory(wasOpen);
         }
 
+        // True when nothing else is on screen (a blocked key only says why then).
+        static bool MenuStateFree => Game_Manager.instance == null || Game_Manager.instance.CanControlPlayer();
+
         /// <summary>Goes to a page (header tabs, "Skills ›", "‹ Build").</summary>
         public void SwitchTo(MenuPage page)
         {
+            if (!TutorialGate.AllowsMenu(page)) { TutorialGate.ReportBlocked(page); return; } // guided tutorial
             bool wasOpen = IsOpen;
             if (!wasOpen && !MenuState.Enter()) return;
             Memory.SwitchTo(page);

@@ -168,14 +168,16 @@ namespace TheLastDrop
             bool teamMenuVisible = paused && gm.pauseMenu != null && gm.pauseMenu.activeInHierarchy &&
                                    gm.pauseMenu.GetComponentInParent<Canvas>(true) != null;
 
-            if (teamMenuVisible && !pauseButtonAdded) AddQuitButton(gm.pauseMenu.transform);
+            // The pause menu prefab with PauseMenuUI (T42) has its own Save and quit button.
+            if (teamMenuVisible && !pauseButtonAdded &&
+                gm.pauseMenu.GetComponentInChildren<PauseMenuUI>(true) == null) AddQuitButton(gm.pauseMenu.transform);
 
             if (paused && !teamMenuVisible && !pausePanelShown)
             {
                 pausePanelShown = true;
                 SimpleHud.ShowPanel("PAUSED", "Esc to resume.",
                     ("Resume", new System.Action(Resume)),
-                    (IsDemo ? DemoQuitToMenuLabel : QuitToMenuLabel, new System.Action(SaveAndQuitToMenu)));
+                    (IsDemo ? DemoQuitToMenuLabel : QuitToMenuLabel, new System.Action(AskSaveAndQuitToMenu)));
             }
             else if (!paused && pausePanelShown)
             {
@@ -202,8 +204,13 @@ namespace TheLastDrop
                                      new Color(0.16f, 0.16f, 0.16f), Color.white, null);
                 UiBuilder.Place((RectTransform)b.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 60f), new Vector2(380f, 60f));
             }
-            b.onClick.AddListener(SaveAndQuitToMenu);
+            b.onClick.AddListener(AskSaveAndQuitToMenu);
         }
+
+        // "Are you sure?" first (T42).
+        void AskSaveAndQuitToMenu() =>
+            ConfirmDialog.Ask(IsDemo ? "Quit to the main menu?\nDemo runs are not saved." : "Save and quit to the main menu?",
+                              SaveAndQuitToMenu);
 
         static bool IsDemo => BalanceProvider.Current != null && BalanceProvider.Current.isDemoMode;
 
@@ -213,10 +220,10 @@ namespace TheLastDrop
             if (gm != null) gm.ResumeGame();
         }
 
-        void SaveAndQuitToMenu()
+        /// <summary>Saves (not in Demo mode) and goes to the main menu. The pause menu calls this after asking.</summary>
+        public static void SaveAndQuitToMenu()
         {
             if (!IsDemo && SaveManager.Instance != null) SaveManager.Instance.Save();
-            pausePanelShown = false;
             holdFrozen = false;
             SceneFlow.ToMainMenu();
         }

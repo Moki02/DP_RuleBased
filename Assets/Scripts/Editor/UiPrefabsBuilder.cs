@@ -10,6 +10,7 @@
 //   Assets/Resources/UI/SimpleHud.prefab    - status lines, toasts, banners, fade, pop-up panel (SimpleHudView)
 //   Assets/Resources/UI/HowToPlay.prefab    - the How to Play screen shown after loading (HowToPlayView)
 //   Assets/Resources/UI/Compass.prefab      - the compass strip at the top of the HUD (CompassView)
+//   Assets/Resources/UI/Tutorial.prefab     - the guided tutorial's objective, card, guide, first collapse screen (TutorialView)
 // The game loads these by itself. A different prefab can also be dragged into the slots on
 // GameMenu ("Menu Prefab", "Card Prefab") and MapScreen ("Map Prefab") on the Systems object.
 //
@@ -68,6 +69,7 @@ namespace TheLastDrop.EditorTools
                 Make("SimpleHud", made, () => SimpleHudView.BuildDefault(null).gameObject);
                 Make("HowToPlay", made, () => HowToPlayView.BuildDefault(null).gameObject);
                 Make("Compass", made, () => CompassView.BuildDefault(null).gameObject);
+                Make("Tutorial", made, () => TutorialView.BuildDefault(null).gameObject);
             }
             finally
             {

@@ -1,0 +1,27 @@
+Salok, EMC107 Group 1
+George Immanuel Halabi: Designer
+Jose Romeo Miguel Angeles: Developer
+Krizzia Mae Ycay: Artist (character, UI, 2D)
+Jonnifer Babelonia: Artist (environment)
+
+# Assets
+POLYGON Ancient Egypt - Synty Studios - Synty EULA
+POLYGON Apocalypse Wasteland - Synty Studios - Synty EULA
+POLYGON Dungeon - Synty Studios - Synty EULA
+POLYGON Farm - Synty Studios - Synty EULA
+POLYGON Generic - Synty Studios - Synty EULA
+POLYGON Western Frontier - Synty Studios - Synty EULA
+ANIMATION Base Locomotion - Synty Studios - Synty EULA
+Dry Ground 01 texture - Poly Haven - CC0 (to confirm)
+Low Poly Man (placeholder character) - author and licence to confirm
+TextMesh Pro - Unity Technologies - Unity Companion License
+
+# Fonts
+Barlow Condensed - Jeremy Tribby - SIL Open Font License 1.1
+Inter - Rasmus Andersson - SIL Open Font License 1.1
+JetBrains Mono - JetBrains - SIL Open Font License 1.1
+Rockwell Condensed Bold - Monotype - commercial (licence to confirm)
+Liberation Sans - Red Hat (TextMesh Pro default) - SIL Open Font License 1.1
+
+# Sounds
+

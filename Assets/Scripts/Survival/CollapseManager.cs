@@ -15,6 +15,7 @@
 // DESIGN RULES: R11.1 to R11.5, R3.5 (banking on waking).
 //
 // HOW TO USE: added to the game scene by itself (needs a BalanceProvider). Nothing to set.
+// After waking it fires WokeUp with what was lost and kept (the tutorial's first collapse screen).
 // It listens to PlayerHydration_Manager.OnCollapsed; PlayerDeath_Manager listens too and
 // plays the collapse animation and freezes the game (Game_Manager state Collapsed).
 // HOW TO EDIT: GameBalance > Collapse and game over, and Clock > Collapse Clock Penalty.
@@ -25,6 +26,25 @@ using UnityEngine;
 
 namespace TheLastDrop
 {
+    /// <summary>What a collapse cost and what was kept (CollapseManager.WokeUp).</summary>
+    public struct CollapseReport
+    {
+        /// <summary>Litres of canteen water lost (0 with E5 Second Wind).</summary>
+        public float lostCanteen;
+        /// <summary>True if E5 Second Wind kept the canteen.</summary>
+        public bool keptCanteen;
+        /// <summary>Litres of unbanked water lost.</summary>
+        public float lostUnbanked;
+        /// <summary>Litres of unbanked water that survived and were banked on waking.</summary>
+        public float banked;
+        /// <summary>Clock seconds lost.</summary>
+        public float clockSeconds;
+        /// <summary>Litres drunk from Clean Storage on waking.</summary>
+        public float wakeLitres;
+        /// <summary>Clean Storage after waking.</summary>
+        public float cleanStorageLeft;
+    }
+
     /// <summary>Runs collapses, waking up at the hub, and game over.</summary>
     public class CollapseManager : MonoBehaviour
     {
@@ -100,6 +120,7 @@ namespace TheLastDrop
                 res.unbankedWater = Mathf.Max(0f, res.unbankedWater - lostUnbanked);
             }
             float clockCost = balance != null ? balance.collapseClockPenalty : 30f;
+            float carriedHome = res != null ? res.unbankedWater : 0f; // what is left to bank (for WokeUp)
 
             // The player is carried home, so the unbanked water that survived the collapse is
             // banked now (R3.5, no Safe Return bonus) - BEFORE the game over check, so water the
@@ -143,7 +164,26 @@ namespace TheLastDrop
             string kept = Skills.B("keepCanteenOnCollapse", false) ? "canteen kept (Second Wind)" : $"-{lostCanteen:0.0} L canteen";
             SimpleHud.Banner("YOU COLLAPSED", $"{kept}, -{lostUnbanked:0.0} L unbanked, -{clockCost:0} s. You drank {wakeLitres:0.#} L at home.", 5f);
             running = false;
+
+            // Tell listeners (the tutorial's first collapse screen) what was lost and kept.
+            WokeUp?.Invoke(new CollapseReport
+            {
+                lostCanteen = lostCanteen,
+                keptCanteen = Skills.B("keepCanteenOnCollapse", false),
+                lostUnbanked = lostUnbanked,
+                banked = carriedHome,
+                clockSeconds = clockCost,
+                wakeLitres = wakeLitres,
+                cleanStorageLeft = res.cleanStorage
+            });
         }
+
+        /// <summary>Fired after the player wakes at the hub (not on game over), with what the collapse cost.</summary>
+        public static event System.Action<CollapseReport> WokeUp;
+
+        // Static events survive between Play sessions when domain reload is off: start clean.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStatics() => WokeUp = null;
 
         // Where the player wakes: the maze's spawn, or the old respawn point.
         void GetSpawn(out Vector3 pos, out Quaternion rot)

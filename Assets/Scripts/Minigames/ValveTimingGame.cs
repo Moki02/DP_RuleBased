@@ -138,6 +138,7 @@ namespace TheLastDrop
         int startFrame;
         float currentT = -1f;
         float needleSpeed;   // this game's speed right now: the settings' speed, raised by green hits
+        bool speedUpOn = true; // false = no speed-up this game (the guided tutorial's first game)
 
         /// <summary>The settings of the game being played (null before the first game).</summary>
         public ValveTimingSettings CurrentSettings => settings;
@@ -183,7 +184,8 @@ namespace TheLastDrop
         /// GDD R9.6). <paramref name="difficultyT"/> is only shown on the F1 debug line (-1 = not known).
         /// Returns false if a game is already running or setup is missing.
         /// </summary>
-        public bool Begin(ValveTimingSettings gameSettings, Action<MinigameResult> onFinished, float difficultyT = -1f)
+        public bool Begin(ValveTimingSettings gameSettings, Action<MinigameResult> onFinished, float difficultyT = -1f,
+                          bool speedUp = true)   // false = the needle never speeds up (guided tutorial)
         {
             if (playing) return false;
             if (balance == null) balance = BalanceProvider.Current;   // slot left empty: use the game's GameBalance
@@ -200,6 +202,7 @@ namespace TheLastDrop
 
             settings = gameSettings;
             currentT = difficultyT;
+            speedUpOn = speedUp;
             this.onFinished = onFinished;
 
             hits = 0;
@@ -275,7 +278,7 @@ namespace TheLastDrop
             {
                 hits++;
                 // Speed-up after each of the first few green hits (GameBalance.valveSpeedUps).
-                needleSpeed = ValveDifficulty.SpeedAfterHits(settings.needleSpeed, hits,
+                needleSpeed = !speedUpOn ? settings.needleSpeed : ValveDifficulty.SpeedAfterHits(settings.needleSpeed, hits,
                                                              balance != null ? balance.valveSpeedUpMult : 1f,
                                                              balance != null ? balance.valveSpeedUps : 0);
                 wheelTarget -= 360f / Mathf.Max(1, settings.hitsToWin);   // one notch clockwise

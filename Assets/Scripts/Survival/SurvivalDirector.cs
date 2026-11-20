@@ -33,6 +33,13 @@ namespace TheLastDrop
         /// <summary>The director in this scene (null in old scenes).</summary>
         public static SurvivalDirector Instance { get; private set; }
 
+        /// <summary>Fired after water is banked: (litres carried home, Safe Return bonus litres). Used by the tutorial.</summary>
+        public static event System.Action<float, float> Banked;
+
+        // Static events survive between Play sessions when domain reload is off: start clean.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStatics() => Banked = null;
+
         GameBalance balance;
         MazeBuilder maze;
         MapRevealTracker tracker;
@@ -126,6 +133,7 @@ namespace TheLastDrop
             if (bonus > 0f) msg += $"  (+{bonus:0.0} L Safe Return)";
             if (toJugs > 0f) msg += $"  ({toJugs:0.0} L into spare jugs)";
             SimpleHud.Toast(msg, 4f);
+            Banked?.Invoke(carried, bonus);
         }
 
         // ------------------------------------------------------------------ HUD text

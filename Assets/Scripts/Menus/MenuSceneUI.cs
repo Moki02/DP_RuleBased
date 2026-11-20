@@ -9,6 +9,8 @@
 //   - the buttons call its public methods (set in each Button's On Click list):
 //       NewGame, Continue, Demo, OpenSettings, CloseSettings, Quit;
 //   - hides the Continue button when there is no save (R11.8);
+//   - the "Skip tutorial" toggle calls SetSkipTutorial (On Value Changed); it shows ticked once the
+//     guided tutorial has been finished or skipped (Salok > Tutorial > Set Up Tutorial adds it);
 //   - the Settings sliders call SetMusicVolume / SetSfxVolume / SetMouseSensitivity
 //     (On Value Changed) and it writes the value next to each slider.
 // Starting a run shows the loading screen (SceneFlow / LoadingScreen).
@@ -41,6 +43,9 @@ namespace TheLastDrop
         [Header("Buttons")]
         [Tooltip("Hidden when there is no save to continue.")]
         public Button continueButton;
+        [Tooltip("\"Skip tutorial\" toggle. Ticked = New Game starts without the guided tutorial. It ticks itself once " +
+                 "the tutorial has been finished or skipped; untick it to play the tutorial again. Optional.")]
+        public Toggle skipTutorialToggle;
 
         [Header("Settings")]
         public Slider musicSlider;
@@ -58,6 +63,7 @@ namespace TheLastDrop
                 new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
 
             if (continueButton != null) continueButton.gameObject.SetActive(SaveManager.HasSave);
+            if (skipTutorialToggle != null) skipTutorialToggle.SetIsOnWithoutNotify(TutorialDirector.SkipNextNewGame);
 
             Setup(musicSlider, 0f, 1f, GameSettings.MusicVolume);
             Setup(sfxSlider, 0f, 1f, GameSettings.SfxVolume);
@@ -84,6 +90,9 @@ namespace TheLastDrop
 
         /// <summary>Demo: a fresh run with the demo numbers (R13.1).</summary>
         public void Demo() => SceneFlow.StartGame(SceneFlow.StartMode.Demo);
+
+        /// <summary>"Skip tutorial" toggle (On Value Changed): ticked = New Game starts without the guided tutorial.</summary>
+        public void SetSkipTutorial(bool skip) => TutorialDirector.SkipNextNewGame = skip;
 
         /// <summary>Shows Settings, hides the main buttons.</summary>
         public void OpenSettings() => ShowSettings(true);

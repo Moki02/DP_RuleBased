@@ -8,7 +8,7 @@
 //     The sun rises in the east (+X), is highest in the south at noon and sets in the west;
 //     the moon does the same during the night, a bit lower. North is +Z (like the compass).
 //
-// DESIGN RULES: R1.5 (240 s daylight), R8.19 (60 s night lockdown). Look: pending GDD entry
+// DESIGN RULES: R1.5 (300 s daylight, T29/T30), R8.19 (60 s night lockdown). Look: pending GDD entry
 // (sky dome day/night, 2026-11-13).
 //
 // HOW TO USE: DayNightCycle calls these. You don't put this on an object.

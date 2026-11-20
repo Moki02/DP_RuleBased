@@ -7,7 +7,9 @@
 // script only moves the bar's fill and writes the percent.
 //
 // It lives across the scene change and removes itself once the new scene has run its first
-// frame. If the prefab is missing, a plain black one is built in code so loading still works.
+// frame. A copy is also placed (hidden) in each scene under "UI > Loading"; that copy is used
+// first, so it can be edited in the scene. If neither exists, a plain black one is built in
+// code so loading still works.
 //
 // DESIGN RULES: none (pending UI list: loading screen).
 //
@@ -47,8 +49,20 @@ namespace TheLastDrop
         {
             if (active != null) return; // already loading something (real time, so a frozen game is fine)
 
-            var prefab = Resources.Load<GameObject>(PrefabResource);
-            GameObject go = prefab != null ? Instantiate(prefab) : BuildFallback();
+            // The copy placed in the scene (UI > Loading, hidden) first, so the artists can edit it
+            // there; else the prefab from Resources; else the plain built-in look.
+            GameObject go;
+            var placed = UiBuilder.FindInScene<LoadingScreen>();
+            if (placed != null)
+            {
+                go = placed.gameObject;
+                go.transform.SetParent(null, false); // DontDestroyOnLoad only works on a top object
+            }
+            else
+            {
+                var prefab = Resources.Load<GameObject>(PrefabResource);
+                go = prefab != null ? Instantiate(prefab) : BuildFallback();
+            }
             go.name = "LoadingScreen";
             DontDestroyOnLoad(go);
             active = go.GetComponent<LoadingScreen>();

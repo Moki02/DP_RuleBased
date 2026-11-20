@@ -76,6 +76,9 @@ namespace TheLastDrop
         /// <summary>What is running now (None between events).</summary>
         public Phase Current => phase;
 
+        /// <summary>Fired when the day's event starts (Calm too). Used by the tutorial's weather lesson.</summary>
+        public event System.Action<GameEventType> EventStarted;
+
         /// <summary>True while any event (or a storm's warning) is running (R10.7).</summary>
         public bool EventRunning => phase != Phase.None;
 
@@ -272,6 +275,7 @@ namespace TheLastDrop
         /// <summary>Starts an event now. Anything not built (nice-to-have) runs as Calm (R10.5).</summary>
         void StartEvent(GameEventType type)
         {
+            EventStarted?.Invoke(type);
             switch (type)
             {
                 case GameEventType.Thunderstorm: StartStorm(); break;

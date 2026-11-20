@@ -9,6 +9,8 @@
 //        Lose: -5 HYD (SurvivalRules.MinigameLost); the water stays, but the minigame is
 //        locked for 10 s (R9.3). Esc: no penalty.
 //        At night the gate is shut even if it was opened, and reopens at dawn (R8.21, R8.23).
+//        Guided tutorial: the hub gate minigame during the gate lesson is easier (wider band,
+//        slower needle, no speed-up) and free to fail (no HYD cost, no lockout); see TutorialGate.
 //
 // The rules themselves live in GateLockLogic (plain C#, tested). Water poured stays in the
 // basin between visits.
@@ -103,6 +105,7 @@ public class LockBasin_Manager : Interactable_Manager, INightLockable
     private GameResources_Manager resources;
     private bool isUnlocked = false;   // old mode only
     private bool nightLocked;
+    private bool easyGame;             // this minigame is the guided tutorial one (TutorialGate)
 
     private void Awake()
     {
@@ -280,7 +283,10 @@ public class LockBasin_Manager : Interactable_Manager, INightLockable
         }
         if (!Lock.StartMinigame(Time.time))
             return;
-        if (!game.Begin(minigameSettings, OnMinigameResult, difficultyT))
+        // Guided tutorial: the first hub gate minigame is easier and free to fail (TutorialGate).
+        easyGame = TutorialGate.EasyMinigame(this);
+        var settings = easyGame ? TutorialGate.EasySettings(minigameSettings) : minigameSettings;
+        if (!game.Begin(settings, OnMinigameResult, difficultyT, speedUp: !easyGame))
         {
             Lock.FinishMinigame(MinigameResult.Quit, Time.time, 0f); // couldn't start: back to Full
             return;
@@ -291,7 +297,7 @@ public class LockBasin_Manager : Interactable_Manager, INightLockable
     private void OnMinigameResult(MinigameResult result)
     {
         SetPlayingState(false);
-        Lock.FinishMinigame(result, Time.time, lockoutSeconds);
+        Lock.FinishMinigame(result, Time.time, easyGame ? 0f : lockoutSeconds);
 
         switch (result)
         {
@@ -299,6 +305,10 @@ public class LockBasin_Manager : Interactable_Manager, INightLockable
                 Debug.Log($"[LockBasin] {name}: valve won, gate open.", this);
                 ApplyGateLook();
                 Opened?.Invoke(this);
+                break;
+            case MinigameResult.Lost when easyGame:
+                // Tutorial game: no HYD cost and no lockout.
+                SimpleHud.Toast("No cost this time. Press [E] to try again.", 3f);
                 break;
             case MinigameResult.Lost:
                 Debug.Log($"[LockBasin] {name}: valve lost: -{failHydLog:0.#} HYD (R9.3), " +

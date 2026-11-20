@@ -4,7 +4,7 @@
 // steps never skip an event, the debug speed, pausing, and that the clock and the zone 2
 // turn schedule agree with each other.
 //
-// DESIGN RULES: R1.5, R8.19 (240 s daylight + 60 s night), R8.24 (turn schedule).
+// DESIGN RULES: R1.5, R8.19 (300 s daylight + 60 s night, T29/T30), R8.24 (turn schedule).
 //
 // HOW TO USE: Window > General > Test Runner > EditMode > Run All.
 // HOW TO EDIT: the numbers below are GameBalance's default day and night lengths.
@@ -39,19 +39,19 @@ namespace TheLastDrop
         public void CleanUp() => Object.DestroyImmediate(defaults);
 
         [Test]
-        public void Defaults_Are240DaylightAnd60Night()
+        public void Defaults_Are300DaylightAnd60Night()
         {
-            Assert.AreEqual(240f, clock.DaylightSeconds);
+            Assert.AreEqual(300f, clock.DaylightSeconds);
             Assert.AreEqual(60f, clock.NightSeconds);
-            Assert.AreEqual(300f, clock.DayLength);
+            Assert.AreEqual(360f, clock.DayLength);
             Assert.AreEqual(1, clock.Day);
             Assert.IsFalse(clock.IsNight);
         }
 
         [Test]
-        public void NightStartsAt240_NewDayAt300()
+        public void NightStartsAt300_NewDayAt360()
         {
-            clock.Advance(239f);
+            clock.Advance(299f);
             CollectionAssert.IsEmpty(events);
             Assert.IsFalse(clock.IsNight);
 
@@ -70,7 +70,7 @@ namespace TheLastDrop
         [Test]
         public void BigStep_FiresEveryEventInOrder()
         {
-            clock.Advance(3f * 300f); // three whole days in one go
+            clock.Advance(3f * 360f); // three whole days in one go
             CollectionAssert.AreEqual(new[] { "night 1", "day 2", "night 2", "day 3", "night 3", "day 4" }, events);
             Assert.AreEqual(4, clock.Day);
         }
@@ -80,7 +80,7 @@ namespace TheLastDrop
         {
             clock.SpeedMultiplier = defaults.debugClockSpeed;
             Assert.AreEqual(4f, clock.SpeedMultiplier);
-            clock.Advance(60f); // 60 s × 4 = 240 s of game time
+            clock.Advance(75f); // 75 s × 4 = 300 s of game time
             CollectionAssert.AreEqual(new[] { "night 1" }, events);
         }
 
@@ -108,7 +108,7 @@ namespace TheLastDrop
         [Test]
         public void SetTime_JumpsWithoutEvents()
         {
-            clock.SetTime(5, 250f);
+            clock.SetTime(5, 330f);
             Assert.AreEqual(5, clock.Day);
             Assert.IsTrue(clock.IsNight);
             CollectionAssert.IsEmpty(events);
@@ -130,7 +130,7 @@ namespace TheLastDrop
             };
             clock.NewDay += d => Assert.AreEqual(Zone2TurnMath.TurnsForDay(d, false, n), turns, $"dawn of day {d}");
 
-            for (int i = 0; i < 10 * 30; i++) clock.Advance(10f); // 10 days in 10 s steps
+            for (int i = 0; i < 10 * 36; i++) clock.Advance(10f); // 10 days of 360 s in 10 s steps
             Assert.AreEqual(11, clock.Day);
         }
     }

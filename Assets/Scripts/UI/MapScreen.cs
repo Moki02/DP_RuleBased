@@ -251,6 +251,7 @@ namespace TheLastDrop
         public bool Open()
         {
             if (IsOpen) return true;
+            if (!TutorialGate.AllowsMenu(MenuPage.Map)) { TutorialGate.ReportBlocked(MenuPage.Map); return false; } // guided tutorial
             if (!MenuState.Enter()) return false;
             Show();
             return true;

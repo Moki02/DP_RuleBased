@@ -19,7 +19,7 @@
 // 0.8 = night lockdown starts, 1 = next dawn. Daylight is always 0-0.8 and night 0.8-1,
 // whatever the real lengths in GameBalance (DayNightMath.SkyTime).
 //
-// DESIGN RULES: R1.5 (240 s daylight), R8.19 (60 s night lockdown). Look: pending GDD entry
+// DESIGN RULES: R1.5 (300 s daylight, T29/T30), R8.19 (60 s night lockdown). Look: pending GDD entry
 // (sky dome day/night, 2026-11-13).
 //
 // HOW TO USE: nothing to set up. It adds itself to the game scene (AutoSystems) and finds the

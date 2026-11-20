@@ -6,6 +6,7 @@
 //   - Hold type: every frame while E is held; StopInteraction is called when E is released,
 //     the player walks away, another one becomes closer, or the player loses control.
 // Nothing works while the game is paused, in a menu or minigame, or the player is collapsed.
+// During the guided tutorial, things it hasn't taught yet are skipped (TutorialGate.Allows).
 //
 // DESIGN RULES: Controls table (E), R8.9 (hold E to pour).
 //
@@ -38,6 +39,9 @@ public class PlayerInteraction_Manager : MonoBehaviour
 
     private Interactable_Manager currentInteractable; // the closest one in reach this frame (its prompt shows)
     private Interactable_Manager activeInteractable;  // the Hold one being used right now (needs StopInteraction later)
+
+    /// <summary>The Hold interactable being used right now (E held), or null. The HUD's hold fill reads it (T43).</summary>
+    public Interactable_Manager ActiveHold => activeInteractable;
 
     private void Awake()
     {
@@ -145,6 +149,7 @@ public class PlayerInteraction_Manager : MonoBehaviour
                  Interactable_Manager.allInteractables)
         {
             if (interactable == null ||
+                !TheLastDrop.TutorialGate.Allows(interactable) || // not taught yet (guided tutorial)
                 !interactable.CanInteract(player))
                 continue;
 

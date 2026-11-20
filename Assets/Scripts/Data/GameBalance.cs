@@ -52,8 +52,8 @@ namespace TheLastDrop
         // ------------------------------------------------------------------ Clock (R1.5)
         [Header("Clock")]
         [Tooltip("Daylight: real seconds from dawn until the night lockdown starts (R1.5). " +
-                 "A whole day is this plus Night Lockdown Seconds (240 + 60 = 300 s).")]
-        [Min(1f)] public float dayLengthSeconds = 240f;
+                 "A whole day is this plus Night Lockdown Seconds (300 + 60 = 360 s; T29/T30).")]
+        [Min(1f)] public float dayLengthSeconds = 300f;
 
         [Tooltip("Night lockdown: real seconds from the start of the night until the next dawn (R8.19). " +
                  "Every gate is closed during this time (R8.21, R8.23).")]
@@ -502,7 +502,7 @@ namespace TheLastDrop
         {
             if (eventWindowMax < eventWindowMin) eventWindowMax = eventWindowMin;
             if (dehydratedAt > thirstyAt) dehydratedAt = thirstyAt;
-            // A whole day is daylight + night (240 + 60 = 300 s); events roll up to 260 s into it (R10.4).
+            // A whole day is daylight + night (300 + 60 = 360 s); events roll up to 260 s into it (R10.4).
             float wholeDay = dayLengthSeconds + nightLockdownSeconds;
             if (wholeDay > 0f && eventWindowMax > wholeDay) eventWindowMax = wholeDay;
             // The maze parts must go outwards in order: hub, then zone 1, then zone 2.

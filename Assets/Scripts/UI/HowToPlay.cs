@@ -5,8 +5,9 @@
 // closes it with START (or Enter) to begin.
 //
 // 2026-11-19: cut down to the story and the goal only. Every mechanic is now taught in play,
-// the first time the player meets it (TutorialHints.cs), so there is no long rules screen
-// and H no longer reopens it. The old full text is in the GDD's Rules tab.
+// the first time the player meets it (the guided tutorial, Assets/Scripts/Tutorial), so there
+// is no long rules screen and H no longer reopens it. The old full text is in the GDD's Rules
+// tab. This card is the tutorial's first step ("goal"): closing it starts the lessons.
 //
 // DESIGN RULES: none of its own (the goal, R1).
 //

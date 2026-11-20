@@ -1,0 +1,192 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2dcc9df4274fe45459b4befe3126bdd3, type: 3}
+  m_Name: TutorialTexts
+  m_EditorClassIdentifier: Assembly-CSharp::TheLastDrop.TutorialTexts
+  cardLabel: TUTORIAL
+  doneWord: Done
+  stuckHint: Stuck? Press <b>{key}</b> to skip this step.
+  lockedToast: '{what} opens later in the tutorial.'
+  skipButtonLabel: Skip tutorial
+  deathTitle: YOU COLLAPSED
+  deathLostHeading: LOST
+  deathKeptHeading: KEPT
+  deathNextHeading: NEXT TIME
+  deathContinueLabel: Continue
+  entries:
+  - id: goal
+    objective: Escape the maze. Every gate opens only for water.
+    card: 
+  - id: move
+    objective: Move around.
+    card: <b>WASD</b> to move, <b>mouse</b> to look, hold <b>Shift</b> to sprint.
+  - id: pump
+    objective: 'Pump water: hold <b>E</b> at the hand pump.'
+    card: The hand pump fills the <b>Raw Basin</b>. Stand next to it and hold <b>E</b>.
+      Each stroke adds {pumpStroke} L.
+  - id: rawBasin
+    objective: This is the Raw Basin.
+    card: 'The <b>Raw Basin</b> holds the water you pump. Raw water is dirty: drinking
+      it makes you sick.'
+  - id: pot
+    objective: Watch the boiling pot clean your water.
+    card: The <b>boiling pot</b> cleans raw water by itself ({boilRate} L/s) and
+      moves it into Clean Storage. Nothing to press.
+  - id: pot.empty
+    objective: 'Pump more water: the pot has nothing to boil.'
+    card: 
+  - id: storage
+    objective: This is Clean Storage.
+    card: '<b>Clean Storage</b> is your water, and also your money: Build items and
+      skills cost Clean Storage water.'
+  - id: hud
+    objective: 'Drink from your canteen: hold <b>Q</b>.'
+    card: The <b>HYD</b> bar is your body's water. It always drains (faster outside
+      and when you sprint); at 0 you collapse. Hold <b>Q</b> to drink from your <b>canteen</b>.
+  - id: hud.full
+    objective: Drink from your canteen (hold <b>Q</b>) once your HYD drops a little.
+    card: 
+  - id: tap
+    objective: 'Refill your canteen: hold <b>E</b> at the Refill tap.'
+    card: 'The tap takes water from Clean Storage: <b>Drink</b> fills you, <b>Refill</b>
+      fills your canteen. Always leave with a full canteen.'
+  - id: gatePour
+    objective: 'Open a hub gate: pour water into its lock basin (hold <b>E</b>).'
+    card: 'Every gate opens only for water. A hub gate''s basin takes {hubLock} L
+      and your canteen holds {canteenMax} L: pour, refill at the tap, come back.
+      Poured water stays in the basin.'
+  - id: gatePour.night
+    objective: Gates are shut for the night. Keep making water; the gate lesson goes
+      on at dawn.
+    card: 
+  - id: valve
+    objective: 'The basin is full: press <b>E</b> to turn the valve.'
+    card: A full basin unlocks the valve. Win the valve minigame and the gate opens
+      for good.
+  - id: valve.night
+    objective: Gates are shut for the night. The valve lesson goes on at dawn.
+    card: 
+  - id: valve.play
+    objective: 
+    card: The needle swings across the dial. Press <b>Space</b> while it is inside
+      the <color=#4DA3FF><b>green band</b></color>. {hits} hits opens the gate. Misses
+      cost nothing this time; <b>Esc</b> gives up.
+  - id: valve.miss
+    objective: 
+    card: Missed. Wait until the needle is inside the band, then press <b>Space</b>.
+  - id: valve.hit
+    objective: 
+    card: Hit! Keep going.
+  - id: maze
+    objective: Explore the maze. Be back at the hub before the lockdown.
+    card: Outside the hub's shade you get thirsty twice as fast. Hold <b>Q</b> to
+      drink from your canteen when you need to.
+  - id: maze.go
+    objective: Go through the gate you opened.
+    card: 
+  - id: maze.night
+    objective: 'Lockdown: stay in the hub until dawn, then go through the gate you
+      opened.'
+    card: 
+  - id: map
+    objective: 'Open your map: press <b>M</b>.'
+    card: 'The map fills in as you explore, and exploring pays water: {tileReward}
+      L per new tile, {sectionReward} L per mapped section, +{milestones} L at 25
+      / 50 / 75 / 100% of the maze. Press <b>F</b> to place a marker ({markers} at
+      most).'
+  - id: return
+    objective: Go back to the hub to bank what you earned.
+    card: 'Water you earn out here is <b>unbanked</b>: walk back into the hub to
+      keep it. Home before night: +{safeBonus}%.'
+  - id: build
+    objective: 'Open Build and Skills: press <b>Tab</b>.'
+    card: Spend Clean Storage on <b>Build</b> items and <b>Skills</b>. Tab opens
+      them (only at the hub); the clock stops while they're open.
+  - id: dusk
+    objective: 
+    card: Night is coming. At lockdown every gate shuts and the open maze drains
+      {lockdownDrain} HYD per second. Be in the <b>hub</b> or a <b>room</b>.
+  - id: lockdown
+    objective: 
+    card: 'Lockdown: every gate stays shut until dawn ({nightSeconds} s). The hub
+      and rooms are safe, and you can keep pumping.'
+  - id: room
+    objective: 
+    card: <b>Rooms</b> are safe at night. Each has a note (press <b>E</b>; read it
+      again in the journal, <b>J</b> on the map) and may have a cistern or a water
+      jug to fill your canteen.
+  - id: roomDoor
+    objective: 
+    card: 'Room doors open with the valve minigame. Losing costs nothing here: just
+      try again.'
+  - id: sick
+    objective: 
+    card: "Raw water made you <b>sick</b>: you drain \xD7{sickMult} for {sickSeconds}
+      s. Drink clean water only."
+  - id: bank
+    objective: 
+    card: 'Water banked: walking into the hub moves what you carry into Clean Storage.
+      Home before night: +{safeBonus}%.'
+  - id: valveGrate
+    objective: 
+    card: <b>Valve grates</b> need no water, only the valve minigame. They are shortcuts;
+      a loss costs {failHyd} HYD.
+  - id: zone2
+    objective: 
+    card: "Zone 2 just turned 90\xB0. It turns every {zone2Days} nights. Check your
+      map (<b>M</b>)."
+  - id: stage
+    objective: 
+    card: 'The drought got worse: <b>{stageName}</b>. You drain faster and the pump
+      gives less.'
+  - id: calamity
+    objective: 
+    card: '<b>State of Calamity</b>: the hand pump has run dry. Build another water
+      source, or the Deep-Set Cylinder.'
+  - id: weather.storm
+    objective: 
+    card: '<b>Thunderstorm</b>: while it rains your drain is halved, the Rain Catcher
+      fills, and your canteen refills in the open.'
+  - id: weather.heat
+    objective: 
+    card: "<b>Heatwave</b>: you drain \xD7{heatMult} until dawn, and stored water
+      evaporates faster tonight."
+  - id: weather.calm
+    objective: 
+    card: '<b>Calm day</b>: no weather today. Every day has one event: Calm, Thunderstorm
+      or Heatwave.'
+  - id: dehydrated
+    objective: 
+    card: 'You''re <b>dehydrated</b>: slower, and no sprinting. Drink (<b>Q</b>)
+      or head home.'
+  - id: death.lost
+    objective: 
+    card: 'Your canteen water ({lostCanteen} L)
+
+      Half your unbanked water ({lostUnbanked}
+      L)
+
+      {clockLost} s of the day'
+  - id: death.kept
+    objective: 
+    card: 'Clean Storage at home ({storageLeft} L after the {wakeLitres} L you drank
+      on waking)
+
+      The unbanked water you still carried, now banked ({banked}
+      L)
+
+      Everything you built and mapped'
+  - id: death.next
+    objective: 
+    card: 'Drink (<b>Q</b>) before HYD gets low. Turn back when your canteen is half
+      empty. Keep at least {gameOverLitres} L in Clean Storage: collapsing with less
+      ends the game.'
