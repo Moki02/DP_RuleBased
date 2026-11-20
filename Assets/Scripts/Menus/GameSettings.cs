@@ -6,6 +6,8 @@
 //     add sounds, put a SettingsVolume component next to each AudioSource and pick Music or
 //     SFX; it scales that source by the setting (live, also while the game runs).
 //   - Mouse sensitivity (0.25×-3×, 1 = the camera's normal speed). Player_Camera reads it.
+//   - Fullscreen and resolution (T42). Applied when the game starts and whenever they change
+//     (not in the editor: there the Game view sets the size).
 //
 // DESIGN RULES: none (pending UI list: settings menu).
 //
@@ -54,5 +56,65 @@ namespace TheLastDrop
 
         /// <summary>Writes the settings to disk (the Settings screen calls this when it closes).</summary>
         public static void Save() => PlayerPrefs.Save();
+
+        // ------------------------------------------------------------------ Display (T42)
+
+        const string FullscreenKey = "salok.fullscreen";
+        const string ResWidthKey = "salok.resolutionWidth";
+        const string ResHeightKey = "salok.resolutionHeight";
+
+        /// <summary>Fullscreen (borderless) or a window. Default: whatever the player started with.</summary>
+        public static bool Fullscreen
+        {
+            get => PlayerPrefs.GetInt(FullscreenKey, Screen.fullScreen ? 1 : 0) == 1;
+            set { PlayerPrefs.SetInt(FullscreenKey, value ? 1 : 0); ApplyDisplay(); Changed?.Invoke(); }
+        }
+
+        /// <summary>The saved resolution, or (0, 0) if none was picked yet (the game keeps the current one).</summary>
+        public static Vector2Int Resolution
+        {
+            get => new Vector2Int(PlayerPrefs.GetInt(ResWidthKey, 0), PlayerPrefs.GetInt(ResHeightKey, 0));
+            set
+            {
+                PlayerPrefs.SetInt(ResWidthKey, value.x);
+                PlayerPrefs.SetInt(ResHeightKey, value.y);
+                ApplyDisplay();
+                Changed?.Invoke();
+            }
+        }
+
+        /// <summary>The screen sizes the player can pick (the monitor's own list, each size once, smallest first).</summary>
+        public static Vector2Int[] AvailableResolutions()
+        {
+            var list = new System.Collections.Generic.List<Vector2Int>();
+            foreach (var r in Screen.resolutions)
+            {
+                var size = new Vector2Int(r.width, r.height);
+                if (size.x >= 640 && !list.Contains(size)) list.Add(size);
+            }
+            if (list.Count == 0) list.Add(new Vector2Int(Screen.width, Screen.height));
+            list.Sort((a, b) => a.x != b.x ? a.x.CompareTo(b.x) : a.y.CompareTo(b.y));
+            return list.ToArray();
+        }
+
+        /// <summary>Applies the saved fullscreen and resolution to the window now.</summary>
+        public static void ApplyDisplay()
+        {
+#if !UNITY_EDITOR
+            var res = Resolution;
+            int w = res.x > 0 ? res.x : Screen.width;
+            int h = res.y > 0 ? res.y : Screen.height;
+            var mode = Fullscreen ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed;
+            Screen.SetResolution(w, h, mode);
+#endif
+            // In the editor the Game view decides the size, so nothing is changed there.
+        }
+
+        // The saved display settings are applied once when the game starts.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        static void ApplyOnStartup()
+        {
+            if (PlayerPrefs.HasKey(FullscreenKey) || PlayerPrefs.HasKey(ResWidthKey)) ApplyDisplay();
+        }
     }
 }
