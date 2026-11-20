@@ -98,6 +98,13 @@ namespace TheLastDrop
             h.bannerUntil = Time.unscaledTime + seconds;
         }
 
+        /// <summary>True if the banner title's font can draw <paramref name="c"/> (used to avoid missing-glyph boxes).</summary>
+        public static bool BannerHasCharacter(char c)
+        {
+            var t = Get().view.bannerTitle;
+            return t != null && t.font != null && t.font.HasCharacter(c, true);
+        }
+
         /// <summary>Black over the whole screen: 0 = clear, 1 = black.</summary>
         public static void SetFade(float alpha)
         {
