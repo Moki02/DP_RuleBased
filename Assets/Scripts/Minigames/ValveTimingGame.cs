@@ -140,6 +140,9 @@ namespace TheLastDrop
         float needleSpeed;   // this game's speed right now: the settings' speed, raised by green hits
         bool speedUpOn = true; // false = no speed-up this game (the guided tutorial's first game)
 
+        /// <summary>True while a round is being played (false during the end delay). GameFeel plays the valve and tick sounds.</summary>
+        public bool IsRoundRunning => playing && !ending;
+
         /// <summary>The settings of the game being played (null before the first game).</summary>
         public ValveTimingSettings CurrentSettings => settings;
 

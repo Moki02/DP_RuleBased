@@ -43,6 +43,7 @@ public class HubPump_Manager : Interactable_Manager
     {
         OutputFactor = null;
         OutputReason = null;
+        Stroked = null;
     }
 
     [Header("Pump Settings (old scenes; GameBalance wins when present)")]
@@ -66,6 +67,12 @@ public class HubPump_Manager : Interactable_Manager
 
     /// <summary>The current output multiplier (1 = full, 0 = dry).</summary>
     public static float CurrentFactor => OutputFactor != null ? Mathf.Clamp01(OutputFactor()) : 1f;
+
+    /// <summary>True while E is held on the pump (GameFeel plays the pumping sound).</summary>
+    public bool IsPumping { get; private set; }
+
+    /// <summary>After every stroke: the pump and the litres that went into the Raw Basin (0 = full or dry). GameFeel hook.</summary>
+    public static event Action<HubPump_Manager, float> Stroked;
 
     float StrokeInterval => Skills.F("pumpStrokeInterval", balance != null ? balance.pumpStrokeInterval : strokeInterval);
     float LitresPerStroke => balance != null ? balance.pumpLitersPerStroke : waterPerStroke;
@@ -130,6 +137,7 @@ public class HubPump_Manager : Interactable_Manager
             return;
 
         player.playerHydration_Manager.isPumping = true;
+        IsPumping = true;
 
         strokeTimer += deltaTime;
 
@@ -145,6 +153,7 @@ public class HubPump_Manager : Interactable_Manager
     public override void StopInteraction()
     {
         strokeTimer = 0f;
+        IsPumping = false;
 
         if (player != null)
             player.playerHydration_Manager.isPumping = false;
@@ -156,15 +165,17 @@ public class HubPump_Manager : Interactable_Manager
         if (resources.rawBasin >= resources.rawBasin_Max)
         {
             ShowFull();
+            Stroked?.Invoke(this, 0f);
             return;
         }
 
         float litres = LitresPerStroke * CurrentFactor;
-        if (litres <= 0f) return; // dry (Stage 4 without the Deep-Set Cylinder)
+        if (litres <= 0f) { Stroked?.Invoke(this, 0f); return; } // dry (Stage 4 without the Deep-Set Cylinder)
 
         float added = resources.AddRawWater(litres);
         RunStats.AddCollected(added);
         if (added < litres) ShowFull();
+        Stroked?.Invoke(this, added);
     }
 
     private void ShowFull()

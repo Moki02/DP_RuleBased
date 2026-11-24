@@ -1,0 +1,179 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2025b7f9a2cd94d4a90bbe4294bf4e97, type: 3}
+  m_Name: GameFeelLibrary
+  m_EditorClassIdentifier: Assembly-CSharp::TheLastDrop.Feel.GameFeelLibrary
+  footstepSandLoop:
+    clip: {fileID: 8300000, guid: 7670bbec27e9b8944b4efe48826523d3, type: 3}
+    volume: 0.45
+  footstepStone:
+    clip: {fileID: 8300000, guid: f4e6979c6b182f748a67894abdfd00e0, type: 3}
+    volume: 0.5
+  sprintBreath:
+    clip: {fileID: 8300000, guid: 88554b15eff39e44794312b7e5e2fc31, type: 3}
+    volume: 0.55
+  drink:
+    clip: {fileID: 8300000, guid: 3423af5a388582c45bc1c1ee0cae7439, type: 3}
+    volume: 0.7
+  canteenFill:
+    clip: {fileID: 8300000, guid: 020f759ba7abcdc41a841d95a7be65bb, type: 3}
+    volume: 0.7
+  collapse:
+    clip: {fileID: 8300000, guid: 7229b4bca788ce640b3b610e9f0ede61, type: 3}
+    volume: 0.9
+  lowHydHeartbeat:
+    clip: {fileID: 8300000, guid: 8b15db28d9fcf754a8a790bfe9612849, type: 3}
+    volume: 0.7
+  lowHydBreath:
+    clip: {fileID: 8300000, guid: 633a2989a2c9dd147894d49868af882a, type: 3}
+    volume: 0.5
+  cough:
+    clip: {fileID: 8300000, guid: 93576d79f795fd54b8868e17d2dd9437, type: 3}
+    volume: 0.7
+  pumpLoop:
+    clip: {fileID: 8300000, guid: 7008a1b97a3d2b445912b4494675788c, type: 3}
+    volume: 0.8
+  gush:
+    clip: {fileID: 8300000, guid: 0ced562776923d34494d35e368d76ae4, type: 3}
+    volume: 0.6
+  boilLoop:
+    clip: {fileID: 8300000, guid: a9544cb22e066a549b9ebf3d70774a94, type: 3}
+    volume: 0.6
+  pourLoop:
+    clip: {fileID: 8300000, guid: e26bef410cebeed41801c468433985ae, type: 3}
+    volume: 0.6
+  tapOpen:
+    clip: {fileID: 8300000, guid: 26cb4772e5d25f24d843509e24712059, type: 3}
+    volume: 0.7
+  waterBanked:
+    clip: {fileID: 8300000, guid: b196a9880fd6f7f4ab56ef8980937102, type: 3}
+    volume: 0.8
+  valveTurn:
+    clip: {fileID: 8300000, guid: 94dcb72afabf33e4dbbd3b096551bdc5, type: 3}
+    volume: 0.8
+  needleTick:
+    clip: {fileID: 8300000, guid: 9f64f47e234d99b4a9887c422c1f449c, type: 3}
+    volume: 0.45
+  minigameHit:
+    clip: {fileID: 8300000, guid: 8c9d3e0ab116a6349bb0557c730c470f, type: 3}
+    volume: 0.8
+  minigameMiss:
+    clip: {fileID: 8300000, guid: 6014fc05ae597de42bca93799cc6737a, type: 3}
+    volume: 0.8
+  minigameWin:
+    clip: {fileID: 8300000, guid: ff2e73d030822284baa483ff91dea436, type: 3}
+    volume: 0.85
+  minigameLose:
+    clip: {fileID: 8300000, guid: 6f4f443477864d44cae3c8748b5cf5a4, type: 3}
+    volume: 0.85
+  gateOpen:
+    clip: {fileID: 8300000, guid: d01e3cb85f7d2b644bdd3b356c19e5e9, type: 3}
+    volume: 0.9
+  gateSlam:
+    clip: {fileID: 8300000, guid: 73dfde57aeffb0d44bb806d9556b5edd, type: 3}
+    volume: 0.9
+  doorOpen:
+    clip: {fileID: 8300000, guid: 93dd98bdcd376bb4d9b2b6dc09ec249f, type: 3}
+    volume: 0.85
+  zone2Turn:
+    clip: {fileID: 8300000, guid: 8dd46fb3c23564648b9efc02c295a320, type: 3}
+    volume: 0.9
+  cistern:
+    clip: {fileID: 8300000, guid: c3d51a0e194be5747b8f2191f8130b33, type: 3}
+    volume: 0.7
+  note:
+    clip: {fileID: 8300000, guid: a68e6b662277382419c617ba6f7af19d, type: 3}
+    volume: 0.7
+  mapOpen:
+    clip: {fileID: 8300000, guid: 83ec2f372c2fec64b80ef12d20d7da99, type: 3}
+    volume: 0.7
+  marker:
+    clip: {fileID: 8300000, guid: dfd58795545f9114d9af71a88fe7a6d7, type: 3}
+    volume: 0.7
+  reward:
+    clip: {fileID: 8300000, guid: d97e96a50a501764095c2e97031d508e, type: 3}
+    volume: 0.8
+  duskWarning:
+    clip: {fileID: 8300000, guid: 2abb23731a63d844f98cf0c1750e0757, type: 3}
+    volume: 0.8
+  lockdown:
+    clip: {fileID: 8300000, guid: 040da8612f04e9849be3136b1161e110, type: 3}
+    volume: 0.85
+  thunder:
+    clip: {fileID: 8300000, guid: acabb772ba1302d409eea1cb14d2c789, type: 3}
+    volume: 0.9
+  droughtSting:
+    clip: {fileID: 8300000, guid: 6fc2561ee593e364c8dccce0f35813aa, type: 3}
+    volume: 0.85
+  uiClick:
+    clip: {fileID: 8300000, guid: 8ab28063659c00341b9a427ce1369e4f, type: 3}
+    volume: 0.6
+  uiHover:
+    clip: {fileID: 8300000, guid: ba9594c9d8a90b14bb66f5afe4cbddf2, type: 3}
+    volume: 0.35
+  menuOpen:
+    clip: {fileID: 8300000, guid: e989b1e8c4598e440a0cf737a630810c, type: 3}
+    volume: 0.6
+  buy:
+    clip: {fileID: 8300000, guid: 04c1fa031d294be47bbf4009d9a0828c, type: 3}
+    volume: 0.8
+  unlock:
+    clip: {fileID: 8300000, guid: 1c98095621c67364985348be6e5f6159, type: 3}
+    volume: 0.8
+  notEnough:
+    clip: {fileID: 8300000, guid: 6014fc05ae597de42bca93799cc6737a, type: 3}
+    volume: 0.7
+  winSting:
+    clip: {fileID: 8300000, guid: 38b0c06640b9a93469a4ae9c0613eeea, type: 3}
+    volume: 0.9
+  gameOverSting:
+    clip: {fileID: 8300000, guid: 654ba08ec89a87f4499cd86e39655cf7, type: 3}
+    volume: 0.9
+  ambienceHubDay:
+    clip: {fileID: 8300000, guid: 1a6f6970e82ba554db7f63bfbfb9881b, type: 3}
+    volume: 0.5
+  ambienceMazeDay:
+    clip: {fileID: 8300000, guid: 6bced8374b5de224aa6248111b8f2cd5, type: 3}
+    volume: 0.5
+  ambienceNight:
+    clip: {fileID: 8300000, guid: a006ae9bf9e5e554895f55898de1a538, type: 3}
+    volume: 0.5
+  ambienceTension:
+    clip: {fileID: 8300000, guid: 8409c1b087e07a247b13477d3cab1046, type: 3}
+    volume: 0.4
+  ambienceHeatwave:
+    clip: {fileID: 8300000, guid: ccdaf80efc12fe14bbf8bf0388732651, type: 3}
+    volume: 0.45
+  ambienceStorm:
+    clip: {fileID: 8300000, guid: 70f1c43f4bfd79346a5ad028fc24ab51, type: 3}
+    volume: 0.6
+  ambienceRain:
+    clip: {fileID: 8300000, guid: b235537c43c98f9449b9c4fc2387b273, type: 3}
+    volume: 0.5
+  ambienceDawn:
+    clip: {fileID: 8300000, guid: 67551ea081256f249ae2b9ee702500f4, type: 3}
+    volume: 0.5
+  ambienceMenu:
+    clip: {fileID: 8300000, guid: ef1e3ad50cf7e1a41bc5c78c4ff99f07, type: 3}
+    volume: 0.6
+  vfxFootstepDust: {fileID: 3811726979365093157, guid: d47dbf78418e66f43a6d941bd37db4d0, type: 3}
+  vfxWaterSplash: {fileID: 3745635057120432680, guid: 3a4ef2b9e3787e644b5e66a34d3796a1, type: 3}
+  vfxSteam: {fileID: 6608097798509848568, guid: 6f823215f6710b343a3758b311fe5b80, type: 3}
+  vfxPourStream: {fileID: 1086870912363901908, guid: 3c9f4cfa2472fc8428fce6563a1e10a7, type: 3}
+  vfxWaterSparkle: {fileID: 9022504443666541421, guid: 4c9d9455aae39b743ba5d269c339621e, type: 3}
+  vfxDustPuff: {fileID: 8898925380588725235, guid: ab23d0383d536804d93602277ad6b9e6, type: 3}
+  vfxZone2Dust: {fileID: 6002935973321265458, guid: fc0b07c13cf79c5449c72bf75c160f8b, type: 3}
+  vfxRewardPop: {fileID: 2733830996372746077, guid: aab81b14c5b2fd74da6f0957c31a3bba, type: 3}
+  vfxSickFlies: {fileID: 2276392927067988615, guid: 56d770b17aea52e4ca496460dd7d2519, type: 3}
+  vfxRain: {fileID: 5259302471122579887, guid: 8f9b74cfec766564fa7bca4b8690e5b9, type: 3}
+  vfxDustBlowing: {fileID: 825591841733977087, guid: 871f39b3da22c20459d691a3e1ea07b5, type: 3}
+  vfxSandStreaks: {fileID: 2541124884332044218, guid: bf6714a438631984086ff7fbfb1ca146, type: 3}

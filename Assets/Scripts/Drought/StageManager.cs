@@ -47,6 +47,12 @@ namespace TheLastDrop
         /// <summary>The stage index last announced (-1 = none yet).</summary>
         public int CurrentStage { get; private set; } = -1;
 
+        /// <summary>When the drought moves to a new stage during play (index 0-based; not on load). GameFeel hook (stage sting).</summary>
+        public static event System.Action<int> StageChanged;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStageHook() => StageChanged = null;
+
         GameBalance balance;
         GameClock_Manager clock;
         Color sunBaseColor;          // the sun's own colour before any stage tint
@@ -142,6 +148,7 @@ namespace TheLastDrop
             ApplySun(index);
 
             if (!announce) return;
+            StageChanged?.Invoke(index);
             // R10.1: a radio message announces the new stage.
             SimpleHud.Banner(s.displayName.ToUpperInvariant(), Pick(balance.stageBannerLines, index, ""), balance.stageBannerSeconds);
             Radio(RadioLine(index));

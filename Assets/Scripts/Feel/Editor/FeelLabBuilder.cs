@@ -6,8 +6,9 @@
 //       scene (Assets/Scenes/FeelLab.unity): a sound board on the left, a row of effects
 //       with Play buttons in the middle, and a panel on the right to try every feel
 //       component. Nothing in the game scene is touched.
-//   Salok > Feel > Refresh Sound Board
+//   Salok > Feel > Refresh Sound Board (missing sounds only / everything)
 //       With FeelLab open: makes one button per sound in Assets/Audio (grouped by folder).
+//       "Missing sounds only" shows just the options in Assets/Audio/_Candidates (not picked yet).
 //       Run it after new sounds are added.
 // Files made (in Assets/VFX):
 //   Resources/FeelSettings.asset             all the feel tuning numbers
@@ -68,8 +69,13 @@ namespace TheLastDrop.Feel.EditorTools
             Debug.Log("[FeelLab] Build finished:\n" + string.Join("\n", log));
         }
 
-        [MenuItem("Salok/Feel/Refresh Sound Board")]
-        public static void RefreshFromMenu()
+        [MenuItem("Salok/Feel/Refresh Sound Board (missing sounds only)")]
+        public static void RefreshCandidatesFromMenu() => Refresh(true);
+
+        [MenuItem("Salok/Feel/Refresh Sound Board (everything)")]
+        public static void RefreshFromMenu() => Refresh(false);
+
+        static void Refresh(bool candidatesOnly)
         {
             var board = Object.FindFirstObjectByType<SoundBoard>();
             if (board == null)
@@ -77,7 +83,7 @@ namespace TheLastDrop.Feel.EditorTools
                 EditorUtility.DisplayDialog("Refresh Sound Board", "Open Assets/Scenes/FeelLab.unity first (or run Salok > Feel > Build FeelLab).", "OK");
                 return;
             }
-            int n = FillSoundBoard(board);
+            int n = FillSoundBoard(board, candidatesOnly);
             EditorSceneManager.MarkSceneDirty(board.gameObject.scene);
             EditorSceneManager.SaveScene(board.gameObject.scene);
             Debug.Log("[FeelLab] Sound board refreshed: " + n + " sounds.");
@@ -373,8 +379,12 @@ namespace TheLastDrop.Feel.EditorTools
             board.content = content;
         }
 
-        /// <summary>Clears the board and makes one button per AudioClip in Assets/Audio. Returns the count.</summary>
-        public static int FillSoundBoard(SoundBoard board)
+        /// <summary>
+        /// Clears the board and makes one button per AudioClip in Assets/Audio. With
+        /// <paramref name="candidatesOnly"/>, only the options still waiting for a pick
+        /// (Assets/Audio/_Candidates) are shown. Returns the count.
+        /// </summary>
+        public static int FillSoundBoard(SoundBoard board, bool candidatesOnly = false)
         {
             if (board.content == null) return 0;
             for (int i = board.content.childCount - 1; i >= 0; i--)
@@ -387,8 +397,12 @@ namespace TheLastDrop.Feel.EditorTools
                 {
                     string path = AssetDatabase.GUIDToAssetPath(guid);
                     if (path.Contains("/_Inbox/")) continue;
+                    bool isCandidate = path.Contains("/_Candidates/");
+                    if (candidatesOnly && !isCandidate) continue;
                     string folder = Path.GetDirectoryName(path).Replace('\\', '/').Substring(AudioRoot.Length).TrimStart('/');
+                    if (folder.StartsWith("_Candidates/")) folder = folder.Substring("_Candidates/".Length);
                     if (folder.StartsWith("SFX/")) folder = folder.Substring(4);
+                    if (isCandidate && !candidatesOnly) folder += " (options)";
                     var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(path);
                     if (clip == null) continue;
                     if (!groups.TryGetValue(folder, out var l)) groups[folder] = l = new List<AudioClip>();

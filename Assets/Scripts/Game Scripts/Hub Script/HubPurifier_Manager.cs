@@ -62,6 +62,9 @@ public class HubPurifier_Manager : MonoBehaviour
     private string labelTitle = "Boiling Pot";
     private bool boilingThisFrame;
 
+    /// <summary>True on frames when water is really being boiled (GameFeel plays the bubbles and steam).</summary>
+    public bool IsBoiling => boilingThisFrame;
+
     /// <summary>The rate in L/s right now.</summary>
     public float CurrentRate
     {

@@ -102,6 +102,15 @@ public class LockBasin_Manager : Interactable_Manager, INightLockable
     /// <summary>Called when the gate opens for good (minigame won, or old-style full basin).</summary>
     public event Action<LockBasin_Manager> Opened;
 
+    /// <summary>Time.time when water last went into the basin. GameFeel plays the pour sound while it's recent.</summary>
+    public float LastPourTime { get; private set; } = -10f;
+
+    /// <summary>When the player pours from their own HYD: the basin and the HYD lost. GameFeel hook ("-2 HYD").</summary>
+    public static event Action<LockBasin_Manager, float> PouredFromHyd;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetFeelHook() => PouredFromHyd = null;
+
     private GameResources_Manager resources;
     private bool isUnlocked = false;   // old mode only
     private bool nightLocked;
@@ -215,6 +224,7 @@ public class LockBasin_Manager : Interactable_Manager, INightLockable
         if (taken < wanted && CanUseHyd)
             taken += TakeFromHyd(wanted - taken);
         Lock.Pour(taken);
+        if (taken > 0f) LastPourTime = Time.time;
         basin_Water = Lock.Litres;
         UpdateBasinUI();
 
@@ -268,6 +278,7 @@ public class LockBasin_Manager : Interactable_Manager, INightLockable
         if (amount <= 0f) return 0f;
         var hyd = Player_Manager.instance.playerHydration_Manager;
         hyd.LoseHydration(amount * hyd.HydPerLiter);
+        PouredFromHyd?.Invoke(this, amount * hyd.HydPerLiter);
         return amount;
     }
 

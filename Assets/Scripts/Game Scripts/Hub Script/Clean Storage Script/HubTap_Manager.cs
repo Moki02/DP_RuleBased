@@ -31,6 +31,12 @@ public class HubTap_Manager : MonoBehaviour
     private GameResources_Manager resources;
     private string labelTitle = "Clean Storage";
 
+    /// <summary>Time.time when the tap last ran (drink or refill). GameFeel plays the tap sound while it's recent.</summary>
+    public float LastUsedTime { get; private set; } = -10f;
+
+    /// <summary>True if the last use was a canteen refill (false = drinking).</summary>
+    public bool LastUseWasRefill { get; private set; }
+
     private void Start()
     {
         player = Player_Manager.instance;
@@ -99,6 +105,8 @@ public class HubTap_Manager : MonoBehaviour
         if (!CanDrink())
             return;
 
+        LastUsedTime = Time.time;
+        LastUseWasRefill = false;
         player.playerHydration_Manager.DrinkFromCleanStorage(deltaTime);
     }
 
@@ -108,6 +116,8 @@ public class HubTap_Manager : MonoBehaviour
         if (!CanRefill())
             return;
 
+        LastUsedTime = Time.time;
+        LastUseWasRefill = true;
         player.playerHydration_Manager.RefillFromHub(deltaTime);
     }
 }

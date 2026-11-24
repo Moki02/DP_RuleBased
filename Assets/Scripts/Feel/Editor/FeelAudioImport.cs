@@ -5,7 +5,7 @@
 //   SFX (Assets/Audio/SFX/...) and Stingers: Decompress On Load (instant to play), Vorbis.
 //       Long ones (over about 8 s) use Compressed In Memory instead, to save memory.
 //       Player, Hub, Gates and Maze sounds are made mono (they will play in 3D).
-//   Ambience (Assets/Audio/Ambience): Compressed In Memory, Vorbis, loads in the
+//   Ambience and music (Assets/Audio/Ambience, Assets/Audio/BGM): Compressed In Memory, Vorbis, loads in the
 //       background; very long tracks Stream instead.
 // Only applied the FIRST time a file is imported. If an artist changes a sound's settings
 // afterwards, those changes are kept. Files in Assets/Audio/_Inbox are left alone.
@@ -41,7 +41,8 @@ namespace TheLastDrop.Feel.EditorTools
             if (!assetImporter.importSettingsMissing) return; // only on first import: keep later hand edits
 
             var importer = (AudioImporter)assetImporter;
-            string local = assetPath.Substring(Root.Length);
+            // Options waiting for a pick (_Candidates/...) get the same rules as their final folder.
+            string local = assetPath.Substring(Root.Length).Replace("_Candidates/", "");
             long bytes = 0;
             try { bytes = new FileInfo(assetPath).Length; } catch (IOException) { }
 
@@ -49,7 +50,7 @@ namespace TheLastDrop.Feel.EditorTools
             s.compressionFormat = AudioCompressionFormat.Vorbis;
             s.sampleRateSetting = AudioSampleRateSetting.PreserveSampleRate;
 
-            if (local.StartsWith("Ambience/"))
+            if (local.StartsWith("Ambience/") || local.StartsWith("BGM/"))
             {
                 s.loadType = bytes > StreamBytes ? AudioClipLoadType.Streaming : AudioClipLoadType.CompressedInMemory;
                 s.quality = AmbienceQuality;

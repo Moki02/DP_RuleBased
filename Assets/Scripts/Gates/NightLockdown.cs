@@ -55,6 +55,12 @@ namespace TheLastDrop
         /// <summary>True during the night lockdown.</summary>
         public bool IsLocked { get; private set; }
 
+        /// <summary>At each lockdown warning (R8.20), with the seconds left. GameFeel hook (dusk bell / siren).</summary>
+        public static event System.Action<float> LockdownWarning;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetWarningHook() => LockdownWarning = null;
+
         /// <summary>True if the player was outside the hub and every room at the last check.</summary>
         public bool PlayerOutside { get; private set; }
 
@@ -155,6 +161,7 @@ namespace TheLastDrop
                     {
                         string urgency = w <= 10f ? "!!! " : w <= 20f ? "!! " : "";
                         SimpleHud.Toast($"{urgency}Lockdown in {w:0} s: get to the hub or a room", 3f);
+                        LockdownWarning?.Invoke(w);
                     }
                 }
             }

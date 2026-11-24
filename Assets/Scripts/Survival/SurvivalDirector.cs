@@ -188,6 +188,13 @@ namespace TheLastDrop
             res.AddUnbankedWater(litres);
             RunStats.AddCollected(litres);
             SimpleHud.Toast($"+{litres:0.0} L unbanked ({why})", 3f);
+            Rewarded?.Invoke(litres, why);
         }
+
+        /// <summary>After a one-time water reward (map section, milestone): litres and why. GameFeel hook.</summary>
+        public static event System.Action<float, string> Rewarded;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetRewardHook() => Rewarded = null;
     }
 }

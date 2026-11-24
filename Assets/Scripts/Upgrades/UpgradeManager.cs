@@ -147,8 +147,15 @@ namespace TheLastDrop
             if (Logic == null) return BuyResult.UnknownId;
             var result = Logic.Buy(id, PlayerAtHub, balance.allowBuyingAnywhere);
             Debug.Log($"[Upgrades] Buy {id}: {result}. Clean Storage {Logic.Stored:0.#} / {Logic.Cap:0.#} L.", this);
+            Purchased?.Invoke(id, result);
             return result;
         }
+
+        /// <summary>After every buy attempt: the upgrade id and what happened. GameFeel hook (buy / unlock / not enough).</summary>
+        public static event System.Action<string, BuyResult> Purchased;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetPurchaseHook() => Purchased = null;
 
         /// <summary>Debug key 7: adds water to Clean Storage, never past its size.</summary>
         public void AddCleanStorage(float litres)

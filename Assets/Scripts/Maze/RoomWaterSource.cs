@@ -65,8 +65,15 @@ namespace TheLastDrop
         /// <summary>Called every frame while E is held.</summary>
         public override void Interact(float deltaTime)
         {
-            if (owner != null && deltaTime > 0f) owner.FillCanteenFrom(roomIndex, deltaTime);
+            if (owner != null && deltaTime > 0f)
+            {
+                owner.FillCanteenFrom(roomIndex, deltaTime);
+                LastUsedTime = Time.time;
+            }
         }
+
+        /// <summary>Time.time when E was last held here. GameFeel plays the cistern sound while it's recent.</summary>
+        public float LastUsedTime { get; private set; } = -10f;
 
         // ------------------------------------------------------------------ Reach (same trick as LockBasin_Manager)
 
