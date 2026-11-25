@@ -107,11 +107,12 @@ public class GameClock_Manager : MonoBehaviour, ISaveable
         int minutes = Mathf.FloorToInt(shown / 60f);
         int seconds = Mathf.FloorToInt(shown % 60f);
 
-        clockText.text = "Day " + Clock.Day +
-                         (Clock.IsNight ? " - NIGHT " : " - ") +
+        // Two short lines so it fits inside the round clock on the HUD: "Day 1" / "02:30".
+        // At night the first line says "Night" (the time then counts down to dawn).
+        clockText.text = (Clock.IsNight ? "Night " : "Day ") + Clock.Day + "\n" +
                          minutes.ToString("00") + ":" +
                          seconds.ToString("00") +
-                         (Clock.SpeedMultiplier > 1f ? "  (x" + Clock.SpeedMultiplier.ToString("0.#") + ")" : "");
+                         (Clock.SpeedMultiplier > 1f ? "<size=60%> x" + Clock.SpeedMultiplier.ToString("0.#") + "</size>" : "");
     }
 
     /// <summary>Debug key 6: switches between normal speed and GameBalance's "Debug Clock Speed".</summary>

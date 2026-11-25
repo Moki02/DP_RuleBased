@@ -1493064,6 +1493064,14 @@ PrefabInstance:
       value: 0.9607843
       objectReference: {fileID: 0}
     - target: {fileID: 2304000122725013493, guid: cc524227d5ea9264b8946b86c663af2a, type: 3}
+      propertyPath: m_fontSizeMax
+      value: 32
+      objectReference: {fileID: 0}
+    - target: {fileID: 2304000122725013493, guid: cc524227d5ea9264b8946b86c663af2a, type: 3}
+      propertyPath: m_lineSpacing
+      value: -10
+      objectReference: {fileID: 0}
+    - target: {fileID: 2304000122725013493, guid: cc524227d5ea9264b8946b86c663af2a, type: 3}
       propertyPath: m_fontSizeBase
       value: 32
       objectReference: {fileID: 0}
@@ -1493074,6 +1493082,10 @@ PrefabInstance:
     - target: {fileID: 2304000122725013493, guid: cc524227d5ea9264b8946b86c663af2a, type: 3}
       propertyPath: m_TextWrappingMode
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2304000122725013493, guid: cc524227d5ea9264b8946b86c663af2a, type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2304000122725013493, guid: cc524227d5ea9264b8946b86c663af2a, type: 3}
       propertyPath: m_fontColor32.rgba
