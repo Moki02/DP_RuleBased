@@ -111,6 +111,9 @@ public class PlayerHydration_Manager : MonoBehaviour, ISaveable
     private bool collapseTriggered = false;
     GameBalance balance;
 
+    private int drinkingLayer = -1;
+
+
     // ------------------------------------------------------------------ Values (GameBalance, then skills)
 
     float DrainIdle => balance != null ? balance.drainIdle : drain_Idle;
@@ -343,26 +346,53 @@ public class PlayerHydration_Manager : MonoBehaviour, ISaveable
     // ------------------------------------------------------------------ Drinking (R2.3)
 
     // Q held: drink 0.5 L/s from the canteen until HYD is full or the canteen is empty.
+    // Q held: drink 0.5 L/s from the canteen until HYD is full or the canteen is empty.
     private void HandleHoldToDrink()
     {
         IsDrinking = false;
-        var kb = Keyboard.current;
-        if (kb == null || !kb.qKey.isPressed) return;
-        if (Game_Manager.instance != null && !Game_Manager.instance.CanControlPlayer()) return;
+        if (drinkingLayer < 0) return;
+        if (!player.playerInput_Manager.drinkInput ||
+            (Game_Manager.instance != null && !Game_Manager.instance.CanControlPlayer()))
+        {
+            player.animator.SetBool("IsDrinking", false);
+            return;
+        }
         // Already drinking at the hub tap (E held at "Drink") this frame or the last one: the tap
         // wins, so holding E and Q together doesn't drink at double speed (and saves the canteen).
-        if (Time.frameCount - lastTapDrinkFrame <= 1) return;
+        if (Time.frameCount - lastTapDrinkFrame <= 1)
+        {
+            player.animator.SetBool("IsDrinking", false);
+            return;
+        }
 
         var stats = player.playerStats_Manager;
         float roomInHyd = stats.player_MaxHydration - stats.player_Hydration;
-        if (roomInHyd <= 0.001f || resources.canteen <= 0f) return;
+        if (roomInHyd <= 0.001f || resources.canteen <= 0f || stats.player_Hydration <= 0f)
+        {
+            player.animator.SetBool("IsDrinking", false);
+            return;
+        }
+
+        // Only consume water while the drinking loop is active.
+        if (!player.animator.GetBool("IsDrinking") ||
+            !player.animator.GetCurrentAnimatorStateInfo(drinkingLayer).IsName("Drink_Loop") ||
+            player.animator.IsInTransition(drinkingLayer))
+            return;
 
         float hydPerL = HydPerLiter;
         float litres = Mathf.Min(DrinkRate * Time.deltaTime, resources.canteen, roomInHyd / hydPerL);
         float taken = resources.TakeCanteenWater(litres);
-        if (taken <= 0f) return;
+        if (taken <= 0f)
+        {
+            player.animator.SetBool("IsDrinking", false);
+            return;
+        }
         stats.ChangeHydration(taken * hydPerL);
         IsDrinking = true;
+
+        if (resources.canteen <= 0f ||
+            stats.player_MaxHydration - stats.player_Hydration <= 0.001f)
+            player.animator.SetBool("IsDrinking", false);
     }
 
     /// <summary>Q pressed (PlayerInput_Manager): plays the drink animation once. The water itself is handled by HandleHoldToDrink.</summary>
@@ -388,9 +418,23 @@ public class PlayerHydration_Manager : MonoBehaviour, ISaveable
         if (player.playerAnimator_Manager.isPerformingAction)
             return;
 
+        if (Time.frameCount - lastTapDrinkFrame <= 1) return;
+
+        // Do not restart an unfinished drinking sequence.
+        drinkingLayer = player.playerAnimator_Manager.GetDrinkingLayer();
+        if (drinkingLayer < 0) return;
+
+        var state = player.animator.GetCurrentAnimatorStateInfo(drinkingLayer);
+        var nextState = player.animator.GetNextAnimatorStateInfo(drinkingLayer);
+        if (player.animator.GetBool("IsDrinking") ||
+            state.IsName("Drink_Start") || state.IsName("Drink_Loop") || state.IsName("Drink_End") ||
+            nextState.IsName("Drink_Start") || nextState.IsName("Drink_Loop") || nextState.IsName("Drink_End"))
+            return;
+
         // Not an "action": the player can keep moving and turning while drinking.
+        player.animator.SetBool("IsDrinking", true);
         player.playerAnimator_Manager.PlayTargetActionAnimation(
-            "Drink",
+            "Drink_Start",
             false,
             false,
             true,
@@ -487,6 +531,19 @@ public class PlayerHydration_Manager : MonoBehaviour, ISaveable
         collapseTriggered = true;
 
         Debug.Log("Player Collapsed!");
+
+        // Stop the drinking layer and return the bottle before the collapse animation.
+        IsDrinking = false;
+        if (drinkingLayer >= 0 && player.animator != null)
+        {
+            player.animator.SetBool("IsDrinking", false);
+            var state = player.animator.GetCurrentAnimatorStateInfo(drinkingLayer);
+            var nextState = player.animator.GetNextAnimatorStateInfo(drinkingLayer);
+            if (state.IsName("Drink_Start") || state.IsName("Drink_Loop") || state.IsName("Drink_End") ||
+                nextState.IsName("Drink_Start") || nextState.IsName("Drink_Loop") || nextState.IsName("Drink_End"))
+                player.animator.Play("Empty", drinkingLayer, 0f);
+        }
+        player.playerAnimator_Manager.AttachBottleToHip();
         OnCollapsed?.Invoke();
     }
 

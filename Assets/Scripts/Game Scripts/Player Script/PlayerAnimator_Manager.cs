@@ -30,6 +30,11 @@ public class PlayerAnimator_Manager : MonoBehaviour
     [Tooltip("Can the player move during the current action? Set by code.")]
     public bool canMove = true;
 
+    [Header("Bottle")]
+    public GameObject bottle;
+    public Transform hipSocket;
+    public Transform handSocket;
+
     private void Awake()
     {
         player = GetComponent<Player_Manager>();
@@ -41,6 +46,15 @@ public class PlayerAnimator_Manager : MonoBehaviour
             synty = gameObject.AddComponent<PlayerSyntyAnimator>();
     }
 
+    private void Start()
+    {
+        AttachBottleToHip();
+    }
+
+    public int GetDrinkingLayer()
+    {
+        return synty != null ? synty.FindActionLayer("Drink_Start") : -1;
+    }
 
     /// <summary>Hands this frame's movement to PlayerSyntyAnimator (it used to set the old "Speed" value).</summary>
     public void UpdateAnimatorMovementParameters(float moveAmount, bool isSprinting)
@@ -103,5 +117,28 @@ public class PlayerAnimator_Manager : MonoBehaviour
     {
         if (synty != null)
             synty.ReturnToLocomotion();
+    }
+
+
+    // Called by an animation event in Drink_Start.
+    public void AttachBottleToHand()
+    {
+        if (bottle == null || handSocket == null)
+            return;
+
+        bottle.transform.SetParent(handSocket, false);
+        bottle.transform.localPosition = Vector3.zero;
+        bottle.transform.localRotation = Quaternion.identity;
+    }
+
+    // Called by an animation event in Drink_End.
+    public void AttachBottleToHip()
+    {
+        if (bottle == null || hipSocket == null)
+            return;
+
+        bottle.transform.SetParent(hipSocket, false);
+        bottle.transform.localPosition = Vector3.zero;
+        bottle.transform.localRotation = Quaternion.identity;
     }
 }
