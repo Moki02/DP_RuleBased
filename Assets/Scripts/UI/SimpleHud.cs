@@ -2,7 +2,7 @@
 // SimpleHud.cs
 // Screen text that any system can use:
 //
-//   SimpleHud.SetLine("sick", "SICK 12 s");          // a status line, bottom right (null removes it)
+//   SimpleHud.SetLine("sick", "SICK 12 s");          // a status line, top right under the clock (null removes it)
 //   SimpleHud.Toast("+3.0 L banked");                    // a short message at the top for a few seconds (max 5 at once)
 //   SimpleHud.Banner("THUNDERSTORM", "Rain for 60 s");   // a big message in the middle for a few seconds
 //   SimpleHud.ShowPanel("THE DROUGHT WINS", "Day 14", ("Restart", Restart));  // full-screen panel with buttons
@@ -24,7 +24,7 @@
 // HOW TO USE: call the static methods above from any script.
 // HOW TO EDIT: everything you see is in the prefab. To move things on screen in a game scene,
 // run Salok > UI > Put HUD text in scene: the prefab is placed in the hierarchy (still linked)
-// and the game uses that copy, so its "StatusText" (bottom right), toasts and banner can be
+// and the game uses that copy, so its "Status" lines (top right, in the "Status Box"), toasts and banner can be
 // moved there with the Rect Tool. Apply the overrides to the prefab to move them everywhere.
 // ============================================================================
 
@@ -56,7 +56,7 @@ namespace TheLastDrop
 
         // ------------------------------------------------------------------ Static API
 
-        /// <summary>Sets a status line (bottom right). Null or empty removes it. Lines keep the order they were first added.</summary>
+        /// <summary>Sets a status line (top right, in a dark box). Null or empty removes it. Lines keep the order they were first added.</summary>
         public static void SetLine(string key, string text)
         {
             // Removing a line never needs a canvas. Without this, a script clearing its line in
@@ -195,8 +195,20 @@ namespace TheLastDrop
             if (v.panel != null) v.panel.SetActive(false);
             if (v.panelButtonTemplate != null) v.panelButtonTemplate.gameObject.SetActive(false);
             if (v.statusText != null) v.statusText.text = "";
+            ShowStatusBox(v, false);
             if (v.toastsText != null) v.toastsText.text = "";
             return instance;
+        }
+
+        /// <summary>Name of the optional dark box around the status lines (the Status text's parent in the prefab).</summary>
+        public const string StatusBoxName = "Status Box";
+
+        // The status lines sit in a dark box (top right, under the clock). It hides when there are no lines.
+        static void ShowStatusBox(SimpleHudView v, bool show)
+        {
+            if (v == null || v.statusText == null) return;
+            var box = v.statusText.transform.parent;
+            if (box != null && box.name == StatusBoxName && box.gameObject.activeSelf != show) box.gameObject.SetActive(show);
         }
 
         void OnDestroy()
@@ -213,7 +225,12 @@ namespace TheLastDrop
                 statusDirty = false;
                 var sb = new System.Text.StringBuilder();
                 foreach (var kv in lines) sb.AppendLine(kv.Value);
-                if (view.statusText != null) view.statusText.text = sb.ToString();
+                if (view.statusText != null)
+                {
+                    var text = sb.ToString().TrimEnd('\n', '\r');
+                    view.statusText.text = text;
+                    ShowStatusBox(view, text.Length > 0);
+                }
             }
 
             // Toasts can have different lengths, so check them all (not only the oldest).

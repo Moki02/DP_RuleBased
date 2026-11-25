@@ -1262350,65 +1262350,9 @@ PrefabInstance:
       propertyPath: m_TextStyleHashCode
       value: -1183493901
       objectReference: {fileID: 0}
-    - target: {fileID: 5039953732242844293, guid: a9af5c91deb9aea429cd14487730eabe, type: 3}
-      propertyPath: m_text
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 5039953732242844293, guid: a9af5c91deb9aea429cd14487730eabe, type: 3}
-      propertyPath: m_fontSize
-      value: 20
-      objectReference: {fileID: 0}
-    - target: {fileID: 5039953732242844293, guid: a9af5c91deb9aea429cd14487730eabe, type: 3}
-      propertyPath: m_fontAsset
-      value: 
-      objectReference: {fileID: 11400000, guid: 75bcac031ac0c724c8e3a140f2cd2f6c, type: 2}
-    - target: {fileID: 5039953732242844293, guid: a9af5c91deb9aea429cd14487730eabe, type: 3}
-      propertyPath: m_fontSizeBase
-      value: 20
-      objectReference: {fileID: 0}
-    - target: {fileID: 5039953732242844293, guid: a9af5c91deb9aea429cd14487730eabe, type: 3}
-      propertyPath: m_sharedMaterial
-      value: 
-      objectReference: {fileID: -2316103465094640489, guid: 75bcac031ac0c724c8e3a140f2cd2f6c, type: 2}
-    - target: {fileID: 5039953732242844293, guid: a9af5c91deb9aea429cd14487730eabe, type: 3}
-      propertyPath: m_fontColor32.rgba
-      value: 4294963947
-      objectReference: {fileID: 0}
-    - target: {fileID: 5039953732242844293, guid: a9af5c91deb9aea429cd14487730eabe, type: 3}
-      propertyPath: m_TextStyleHashCode
-      value: -1183493901
-      objectReference: {fileID: 0}
-    - target: {fileID: 5039953732242844293, guid: a9af5c91deb9aea429cd14487730eabe, type: 3}
-      propertyPath: m_VerticalAlignment
-      value: 256
-      objectReference: {fileID: 0}
-    - target: {fileID: 5039953732242844293, guid: a9af5c91deb9aea429cd14487730eabe, type: 3}
-      propertyPath: m_hasFontAssetChanged
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 6030402884353649040, guid: a9af5c91deb9aea429cd14487730eabe, type: 3}
       propertyPath: m_AdditionalShaderChannelsFlag
       value: 25
-      objectReference: {fileID: 0}
-    - target: {fileID: 6582581581276860114, guid: a9af5c91deb9aea429cd14487730eabe, type: 3}
-      propertyPath: m_Pivot.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6582581581276860114, guid: a9af5c91deb9aea429cd14487730eabe, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6582581581276860114, guid: a9af5c91deb9aea429cd14487730eabe, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6582581581276860114, guid: a9af5c91deb9aea429cd14487730eabe, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: -30
-      objectReference: {fileID: 0}
-    - target: {fileID: 6582581581276860114, guid: a9af5c91deb9aea429cd14487730eabe, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -185
       objectReference: {fileID: 0}
     - target: {fileID: 6980199533154139689, guid: a9af5c91deb9aea429cd14487730eabe, type: 3}
       propertyPath: m_Name
