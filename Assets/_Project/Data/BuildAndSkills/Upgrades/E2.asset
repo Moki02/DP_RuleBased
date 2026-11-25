@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Steady Breath
   tab: 1
   group: Endurance
-  costLiters: 20
+  costLiters: 25
   prerequisiteIds:
   - E1
   priority: 0

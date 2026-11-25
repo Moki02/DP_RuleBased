@@ -1,0 +1,82 @@
+== baseline
+   passed 7/15 closeness 9.169 {'normal_escape': 1.0, 'normal_game_over': 0.0, 'normal_median_day': 20.0, 'normal_median_day_escapers': 20.0, 'normal_iqr': 2.0, 'normal_collapses': 1.675, 'normal_close_calls': 2.74, 'normal_dead_time': 0.6330849999999999, 'normal_gap_longest': 34.335, 'normal_real_min': 115.385, 'normal_post_collapse': 1.0, 'beginner_escape': 0.175, 'beginner_game_over': 0.685, 'beginner_median_day': 36.0, 'skilled_median_day': 11.0, 'skilled_min_day': 6, 'skilled_escape': 0.995, 'normal_score': 19.66, 'beginner_score': 54.035, 'skilled_score': 12.26}
+== phase A: sensitivity
+   day_length_s               effect  21.83  normal score  14.5  escape 0.01  gameover 0.00  (46s)
+   night_lockdown_s           effect   3.79  normal score   2.8  escape 0.00  gameover 0.00  (69s)
+   pump_l_per_stroke          effect   6.01  normal score   2.5  escape 0.00  gameover 0.00  (95s)
+   lock_hub_l                 effect   2.23  normal score   1.6  escape 0.01  gameover 0.00  (124s)
+   lock_zone1_exit_l          effect   1.65  normal score   0.6  escape 0.01  gameover 0.00  (150s)
+   lock_zone2_exit_l          effect   6.77  normal score   3.9  escape 0.00  gameover 0.00  (174s)
+   drain_walk                 effect   4.35  normal score   1.2  escape 0.01  gameover 0.00  (200s)
+   drain_idle                 effect   0.77  normal score   0.4  escape 0.00  gameover 0.00  (225s)
+   drain_crouch_idle          effect   0.12  normal score   0.0  escape 0.00  gameover 0.00  (249s)
+   lockdown_drain             effect   0.22  normal score   0.0  escape 0.00  gameover 0.00  (275s)
+   upgrade_cost_mult          effect   9.30  normal score   4.4  escape 0.00  gameover 0.00  (299s)
+   collapse_unbanked_loss     effect   0.54  normal score   0.1  escape 0.00  gameover 0.00  (324s)
+   collapse_clock_penalty_s   effect   2.93  normal score   0.4  escape 0.00  gameover 0.00  (348s)
+   room_water_mult            effect   0.69  normal score   0.0  escape 0.00  gameover 0.00  (373s)
+   exit_valve_hits            effect   1.37  normal score   0.4  escape 0.00  gameover 0.00  (398s)
+   valve_band_shrink          effect   2.81  normal score   0.6  escape 0.00  gameover 0.00  (424s)
+   start_canteen_l            effect   1.51  normal score   1.1  escape 0.00  gameover 0.00  (451s)
+   stage4_start_day           effect   3.98  normal score   1.8  escape 0.00  gameover 0.00  (476s)
+   tile_reward_l              effect   1.45  normal score   0.6  escape 0.00  gameover 0.00  (501s)
+   stage4_water_table_m       effect   8.34  normal score   1.0  escape 0.00  gameover 0.00  (528s)
+   deep_set_cost_l            effect   6.24  normal score   0.4  escape 0.00  gameover 0.00  (553s)
+== phase B: coarse search over ['day_length_s', 'upgrade_cost_mult', 'stage4_water_table_m', 'lock_zone2_exit_l', 'deep_set_cost_l', 'pump_l_per_stroke', 'drain_walk', 'stage4_start_day', 'night_lockdown_s', 'collapse_clock_penalty_s']
+   B00 passed 11/15 close   9.99  {'day_length_s': 360, 'upgrade_cost_mult': 1.15, 'stage4_water_table_m': 7.5, 'lock_zone2_exit_l': 8, 'pump_l_per_stroke': 0.5, 'drain_walk': 0.6, 'stage4_start_day': 18, 'night_lockdown_s': 60, 'collapse_clock_penalty_s': 30}
+   B01 passed 10/15 close   4.92  {'upgrade_cost_mult': 1.25, 'stage4_water_table_m': 6.5, 'lock_zone2_exit_l': 16, 'deep_set_cost_l': 10, 'drain_walk': 0.55}
+   B02 passed 8/15 close   5.42  {'upgrade_cost_mult': 1.15, 'stage4_water_table_m': 6.5, 'deep_set_cost_l': 15, 'pump_l_per_stroke': 0.35, 'stage4_start_day': 15, 'night_lockdown_s': 90, 'collapse_clock_penalty_s': 90}
+   B03 passed 8/15 close   8.09  {'day_length_s': 300, 'upgrade_cost_mult': 0.6, 'deep_set_cost_l': 15, 'pump_l_per_stroke': 0.35, 'night_lockdown_s': 60, 'collapse_clock_penalty_s': 60}
+   B04 passed 4/15 close  16.99  {'day_length_s': 240, 'upgrade_cost_mult': 1.25, 'lock_zone2_exit_l': 20, 'deep_set_cost_l': 15, 'pump_l_per_stroke': 0.4, 'night_lockdown_s': 45, 'collapse_clock_penalty_s': 60}
+   B05 passed 8/15 close   8.78  {'day_length_s': 300, 'upgrade_cost_mult': 0.6, 'stage4_water_table_m': 6.5, 'lock_zone2_exit_l': 16, 'deep_set_cost_l': 15, 'drain_walk': 0.45, 'stage4_start_day': 10, 'collapse_clock_penalty_s': 60}
+   B06 passed 8/15 close   5.64  {'stage4_water_table_m': 7.0, 'deep_set_cost_l': 10, 'pump_l_per_stroke': 0.5, 'drain_walk': 0.6, 'night_lockdown_s': 75, 'collapse_clock_penalty_s': 60}
+   B07 passed 9/15 close   8.22  {'day_length_s': 360, 'upgrade_cost_mult': 1.0, 'lock_zone2_exit_l': 14, 'deep_set_cost_l': 15, 'pump_l_per_stroke': 0.35, 'drain_walk': 0.6, 'night_lockdown_s': 75}
+   B08 passed 7/15 close   6.96  {'day_length_s': 240, 'stage4_water_table_m': 7.0, 'lock_zone2_exit_l': 14, 'deep_set_cost_l': 20, 'pump_l_per_stroke': 0.3, 'drain_walk': 0.45, 'night_lockdown_s': 90, 'collapse_clock_penalty_s': 0}
+   B09 passed 8/15 close   8.01  {'upgrade_cost_mult': 0.75, 'stage4_water_table_m': 6.5, 'lock_zone2_exit_l': 12, 'deep_set_cost_l': 15, 'pump_l_per_stroke': 0.25, 'drain_walk': 0.45, 'night_lockdown_s': 60, 'collapse_clock_penalty_s': 30}
+   B10 passed 11/15 close  10.03  {'day_length_s': 420, 'upgrade_cost_mult': 1.15, 'stage4_water_table_m': 6.5, 'deep_set_cost_l': 15, 'pump_l_per_stroke': 0.5, 'drain_walk': 0.45, 'stage4_start_day': 10, 'collapse_clock_penalty_s': 30}
+   B11 passed 9/15 close  11.00  {'day_length_s': 360, 'stage4_water_table_m': 7.0, 'lock_zone2_exit_l': 12, 'deep_set_cost_l': 30, 'pump_l_per_stroke': 0.4, 'drain_walk': 0.35, 'stage4_start_day': 18, 'night_lockdown_s': 60, 'collapse_clock_penalty_s': 90}
+   B12 passed 5/15 close  10.68  {'upgrade_cost_mult': 1.15, 'lock_zone2_exit_l': 10, 'stage4_start_day': 12, 'night_lockdown_s': 60}
+   B13 passed 8/15 close   8.23  {'upgrade_cost_mult': 0.6, 'stage4_water_table_m': 6.5, 'lock_zone2_exit_l': 12, 'deep_set_cost_l': 10, 'pump_l_per_stroke': 0.4, 'drain_walk': 0.55, 'stage4_start_day': 12, 'night_lockdown_s': 90}
+   B14 passed 7/15 close   9.25  {'day_length_s': 270, 'upgrade_cost_mult': 1.15, 'lock_zone2_exit_l': 10, 'night_lockdown_s': 90, 'collapse_clock_penalty_s': 60}
+   B15 passed 8/15 close  10.31  {'day_length_s': 360, 'upgrade_cost_mult': 1.0, 'stage4_water_table_m': 7.0, 'deep_set_cost_l': 10, 'drain_walk': 0.35, 'stage4_start_day': 10, 'collapse_clock_penalty_s': 90}
+   B16 passed 7/15 close   6.63  {'day_length_s': 300, 'upgrade_cost_mult': 1.0, 'stage4_water_table_m': 7.5, 'lock_zone2_exit_l': 12, 'deep_set_cost_l': 20, 'pump_l_per_stroke': 0.3, 'drain_walk': 0.6, 'collapse_clock_penalty_s': 0}
+   B17 passed 10/15 close   7.33  {'day_length_s': 360, 'upgrade_cost_mult': 1.15, 'stage4_water_table_m': 6.5, 'lock_zone2_exit_l': 14, 'deep_set_cost_l': 30, 'drain_walk': 0.6, 'stage4_start_day': 10, 'night_lockdown_s': 75, 'collapse_clock_penalty_s': 0}
+   B18 passed 7/15 close   8.82  {'upgrade_cost_mult': 0.75, 'deep_set_cost_l': 20, 'pump_l_per_stroke': 0.25, 'collapse_clock_penalty_s': 90}
+   B19 passed 9/15 close  11.32  {'day_length_s': 420, 'upgrade_cost_mult': 1.15, 'stage4_water_table_m': 7.5, 'deep_set_cost_l': 15, 'drain_walk': 0.35, 'stage4_start_day': 18, 'night_lockdown_s': 45, 'collapse_clock_penalty_s': 0}
+   B20 passed 5/15 close  14.66  {'day_length_s': 240, 'upgrade_cost_mult': 1.25, 'lock_zone2_exit_l': 20, 'deep_set_cost_l': 15, 'pump_l_per_stroke': 0.25, 'stage4_start_day': 15, 'collapse_clock_penalty_s': 0}
+   B21 passed 6/15 close   8.04  {'day_length_s': 270, 'upgrade_cost_mult': 1.0, 'stage4_water_table_m': 7.0, 'lock_zone2_exit_l': 16, 'deep_set_cost_l': 20, 'pump_l_per_stroke': 0.25, 'drain_walk': 0.4, 'night_lockdown_s': 60, 'collapse_clock_penalty_s': 90}
+   B22 passed 9/15 close  10.62  {'day_length_s': 330, 'stage4_water_table_m': 6.5, 'lock_zone2_exit_l': 14, 'pump_l_per_stroke': 0.4, 'drain_walk': 0.4, 'stage4_start_day': 12, 'night_lockdown_s': 75}
+   B23 passed 7/15 close   6.85  {'upgrade_cost_mult': 0.85, 'stage4_water_table_m': 7.0, 'lock_zone2_exit_l': 16, 'deep_set_cost_l': 20, 'drain_walk': 0.45, 'stage4_start_day': 18, 'night_lockdown_s': 75, 'collapse_clock_penalty_s': 90}
+   B24 passed 6/15 close  10.32  {'upgrade_cost_mult': 1.25, 'stage4_water_table_m': 7.5, 'lock_zone2_exit_l': 16, 'drain_walk': 0.5, 'night_lockdown_s': 90}
+   B25 passed 6/15 close   8.42  {'upgrade_cost_mult': 0.75, 'lock_zone2_exit_l': 20, 'deep_set_cost_l': 15, 'drain_walk': 0.4, 'night_lockdown_s': 45}
+   B26 passed 8/15 close   6.87  {'day_length_s': 240, 'upgrade_cost_mult': 1.0, 'stage4_water_table_m': 6.5, 'lock_zone2_exit_l': 12, 'pump_l_per_stroke': 0.35, 'drain_walk': 0.6, 'stage4_start_day': 10, 'night_lockdown_s': 75, 'collapse_clock_penalty_s': 90}
+   B27 passed 9/15 close  12.08  {'day_length_s': 420, 'upgrade_cost_mult': 1.0, 'stage4_water_table_m': 7.5, 'lock_zone2_exit_l': 12, 'deep_set_cost_l': 30, 'pump_l_per_stroke': 0.5, 'stage4_start_day': 15, 'night_lockdown_s': 75}
+   B28 passed 9/15 close   9.88  {'day_length_s': 420, 'upgrade_cost_mult': 0.85, 'stage4_water_table_m': 7.0, 'lock_zone2_exit_l': 16, 'deep_set_cost_l': 30, 'pump_l_per_stroke': 0.25, 'stage4_start_day': 12, 'night_lockdown_s': 60, 'collapse_clock_penalty_s': 90}
+   B29 passed 8/15 close   8.73  {'day_length_s': 360, 'upgrade_cost_mult': 0.85, 'stage4_water_table_m': 7.5, 'lock_zone2_exit_l': 16, 'deep_set_cost_l': 15, 'pump_l_per_stroke': 0.35, 'night_lockdown_s': 60}
+   B30 passed 9/15 close  14.06  {'day_length_s': 420, 'upgrade_cost_mult': 0.6, 'stage4_water_table_m': 7.0, 'lock_zone2_exit_l': 10, 'deep_set_cost_l': 20, 'pump_l_per_stroke': 0.5, 'drain_walk': 0.45, 'night_lockdown_s': 45, 'collapse_clock_penalty_s': 0}
+   B31 passed 7/15 close   8.81  {'day_length_s': 360, 'upgrade_cost_mult': 0.6, 'stage4_water_table_m': 7.5, 'lock_zone2_exit_l': 18, 'deep_set_cost_l': 30, 'pump_l_per_stroke': 0.4, 'night_lockdown_s': 60}
+   B32 passed 8/15 close   7.40  {'upgrade_cost_mult': 0.75, 'stage4_water_table_m': 6.5, 'deep_set_cost_l': 20, 'pump_l_per_stroke': 0.4, 'night_lockdown_s': 75, 'collapse_clock_penalty_s': 60}
+   B33 passed 7/15 close  13.10  {'upgrade_cost_mult': 0.6, 'stage4_water_table_m': 7.5, 'lock_zone2_exit_l': 8, 'pump_l_per_stroke': 0.4, 'drain_walk': 0.6, 'stage4_start_day': 12, 'collapse_clock_penalty_s': 90}
+   B34 passed 6/15 close   9.45  {'day_length_s': 300, 'lock_zone2_exit_l': 20, 'deep_set_cost_l': 10, 'pump_l_per_stroke': 0.5, 'drain_walk': 0.35, 'stage4_start_day': 10, 'collapse_clock_penalty_s': 60}
+   B35 passed 7/15 close  10.62  {'day_length_s': 270, 'upgrade_cost_mult': 1.15, 'lock_zone2_exit_l': 8, 'pump_l_per_stroke': 0.3, 'night_lockdown_s': 60, 'collapse_clock_penalty_s': 0}
+== phase C: refine
+   C00 passed 10/15 close   9.72  {'day_length_s': 360, 'upgrade_cost_mult': 1.25, 'stage4_water_table_m': 7.5, 'lock_zone2_exit_l': 8, 'pump_l_per_stroke': 0.5, 'drain_walk': 0.6, 'stage4_start_day': 18, 'night_lockdown_s': 60, 'collapse_clock_penalty_s': 30}
+   C01 passed 11/15 close  10.73  {'day_length_s': 420, 'upgrade_cost_mult': 1.15, 'stage4_water_table_m': 7.5, 'lock_zone2_exit_l': 10, 'pump_l_per_stroke': 0.5, 'drain_walk': 0.6, 'stage4_start_day': 18, 'night_lockdown_s': 60, 'collapse_clock_penalty_s': 30}
+   C02 passed 10/15 close   7.27  {'day_length_s': 360, 'upgrade_cost_mult': 1.15, 'stage4_water_table_m': 6.5, 'lock_zone2_exit_l': 14, 'deep_set_cost_l': 30, 'drain_walk': 0.6, 'stage4_start_day': 15, 'night_lockdown_s': 75, 'collapse_clock_penalty_s': 0}
+   C03 passed 10/15 close   6.21  {'upgrade_cost_mult': 1.25, 'stage4_water_table_m': 6.5, 'lock_zone2_exit_l': 16, 'deep_set_cost_l': 10, 'drain_walk': 0.55, 'stage4_start_day': 15, 'collapse_clock_penalty_s': 90}
+   C04 passed 9/15 close  11.55  {'day_length_s': 420, 'upgrade_cost_mult': 1.15, 'stage4_water_table_m': 6.5, 'deep_set_cost_l': 15, 'pump_l_per_stroke': 0.5, 'drain_walk': 0.45, 'stage4_start_day': 10, 'collapse_clock_penalty_s': 30, 'lock_zone2_exit_l': 12}
+   C05 passed 10/15 close   5.17  {'upgrade_cost_mult': 1.25, 'stage4_water_table_m': 6.5, 'lock_zone2_exit_l': 16, 'deep_set_cost_l': 10, 'drain_walk': 0.55, 'stage4_start_day': 12}
+   C06 passed 10/15 close  10.06  {'day_length_s': 420, 'upgrade_cost_mult': 1.15, 'stage4_water_table_m': 6.5, 'deep_set_cost_l': 15, 'pump_l_per_stroke': 0.5, 'drain_walk': 0.45, 'stage4_start_day': 10, 'collapse_clock_penalty_s': 30}
+   C07 passed 10/15 close  10.06  {'day_length_s': 420, 'upgrade_cost_mult': 1.15, 'stage4_water_table_m': 6.5, 'deep_set_cost_l': 15, 'pump_l_per_stroke': 0.5, 'drain_walk': 0.45, 'stage4_start_day': 10, 'collapse_clock_penalty_s': 30}
+   C08 passed 10/15 close   7.28  {'day_length_s': 360, 'upgrade_cost_mult': 1.15, 'stage4_water_table_m': 6.5, 'lock_zone2_exit_l': 14, 'deep_set_cost_l': 30, 'drain_walk': 0.6, 'stage4_start_day': 10, 'night_lockdown_s': 75, 'collapse_clock_penalty_s': 0}
+   C09 passed 10/15 close   9.74  {'day_length_s': 360, 'upgrade_cost_mult': 1.15, 'stage4_water_table_m': 7.5, 'lock_zone2_exit_l': 10, 'pump_l_per_stroke': 0.5, 'drain_walk': 0.6, 'stage4_start_day': 18, 'night_lockdown_s': 60, 'collapse_clock_penalty_s': 30}
+   C10 passed 10/15 close   6.16  {'day_length_s': 360, 'upgrade_cost_mult': 1.15, 'stage4_water_table_m': 6.5, 'lock_zone2_exit_l': 16, 'deep_set_cost_l': 30, 'drain_walk': 0.6, 'stage4_start_day': 10, 'night_lockdown_s': 75, 'collapse_clock_penalty_s': 0}
+   C11 passed 10/15 close   7.28  {'day_length_s': 360, 'upgrade_cost_mult': 1.15, 'stage4_water_table_m': 6.5, 'lock_zone2_exit_l': 14, 'deep_set_cost_l': 30, 'drain_walk': 0.6, 'stage4_start_day': 10, 'night_lockdown_s': 75, 'collapse_clock_penalty_s': 0}
+   C12 passed 10/15 close   5.28  {'upgrade_cost_mult': 1.25, 'stage4_water_table_m': 6.5, 'lock_zone2_exit_l': 16, 'deep_set_cost_l': 10, 'drain_walk': 0.55, 'collapse_clock_penalty_s': 0}
+   C13 passed 11/15 close   5.03  {'upgrade_cost_mult': 1.25, 'stage4_water_table_m': 6.5, 'lock_zone2_exit_l': 16, 'deep_set_cost_l': 10, 'drain_walk': 0.55, 'stage4_start_day': 18}
+   C14 passed 9/15 close  10.97  {'day_length_s': 360, 'upgrade_cost_mult': 1.15, 'stage4_water_table_m': 7.5, 'lock_zone2_exit_l': 8, 'pump_l_per_stroke': 0.4, 'drain_walk': 0.55, 'stage4_start_day': 18, 'night_lockdown_s': 60, 'collapse_clock_penalty_s': 30}
+   C15 passed 10/15 close   9.38  {'day_length_s': 330, 'upgrade_cost_mult': 1.15, 'stage4_water_table_m': 7.5, 'lock_zone2_exit_l': 8, 'pump_l_per_stroke': 0.5, 'drain_walk': 0.6, 'stage4_start_day': 18, 'night_lockdown_s': 60, 'collapse_clock_penalty_s': 30}
+== build variety
+   baseline 3 best 1
+== final runs for the best setup
+done in 1513s. best: passed 11/16 {'upgrade_cost_mult': 1.25, 'stage4_water_table_m': 6.5, 'lock_zone2_exit_l': 16, 'deep_set_cost_l': 10, 'drain_walk': 0.55, 'stage4_start_day': 18}

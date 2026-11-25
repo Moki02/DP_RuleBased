@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Trail Sense
   tab: 1
   group: Scout
-  costLiters: 15
+  costLiters: 19
   prerequisiteIds: []
   priority: 0
   tooltip: The map looks 4 tiles ahead instead of 2.

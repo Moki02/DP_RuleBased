@@ -16,9 +16,8 @@
 //       well rate × stage deep-well factor  ->  Raw Basin. Pauses when the basin is full.
 //
 // Every litre that goes in is counted in "total liters collected" (RunStats).
-// When a source is owned, a simple model appears on a hub tile with a floating label that
-// shows its live output and why it is slow or stopped (R4.6). While the player is in the
-// hub a "Sources" line on the HUD sums them up.
+// Every source's model is already placed in the scene (HubSceneObjects); it is turned on
+// when the source is owned, with a floating name label (no rates: kept off the hub on purpose).
 //
 // Rain comes from the Thunderstorm event (EventManager sets WorldState.IsRaining).
 // Debug key 4 also turns rain on and off by hand, to test the Rain Catcher without waiting
@@ -59,13 +58,9 @@ namespace TheLastDrop
 
         GameBalance balance;
         GameResources_Manager resources;
-        MazeBuilder maze;
         UpgradeManager upgrades;
 
-        Transform root;                 // parent of all source models
-        string builtKey = null;         // what the models were last built for (rebuilt when it changes)
-        bool dirty = true;
-        FacingLabel rainLabel, stillLabel, wellLabel;
+        bool dirty = true;              // owned sources may have changed: update the models
         float nextFullToast;
 
         // ------------------------------------------------------------------ Lifecycle
@@ -74,7 +69,6 @@ namespace TheLastDrop
         {
             balance = BalanceProvider.Current;
             resources = GameResources_Manager.instance;
-            maze = FindAnyObjectByType<MazeBuilder>();
             upgrades = UpgradeManager.Instance;
             if (upgrades != null) upgrades.Changed += OnUpgradesChanged;
 
@@ -104,7 +98,7 @@ namespace TheLastDrop
             if (resources == null) resources = GameResources_Manager.instance;
             if (balance == null || resources == null) return;
 
-            if (dirty) RebuildModelsIfNeeded();
+            if (dirty) UpdateModels();
 
             RainRate = StillRate = WellRate = 0f;
             // Sources run on game time: nothing is made while the game is frozen (pause, title or
@@ -116,15 +110,10 @@ namespace TheLastDrop
             bool running = Time.timeScale > 0f && !clockPaused;
             float dt = running ? Time.deltaTime : 0f;
 
-            string rainText = RunRainCatcher(dt);
-            string stillText = RunSolarStill(dt);
-            string wellText = RunDeepWell(dt);
-
-            if (rainLabel != null) rainLabel.Text = rainText ?? "";
-            if (stillLabel != null) stillLabel.Text = stillText ?? "";
-            if (wellLabel != null) wellLabel.Text = wellText ?? "";
-
-            UpdateHudLine();
+            // Their status texts (rates) aren't shown any more: the hub labels show names only.
+            RunRainCatcher(dt);
+            RunSolarStill(dt);
+            RunDeepWell(dt);
         }
 
         // ------------------------------------------------------------------ The three sources
@@ -216,96 +205,37 @@ namespace TheLastDrop
         /// <summary>0.72 for bigger rates, 0.028 for small ones, so slow sources don't read 0.0.</summary>
         static string Rate(float r) => r >= 0.1f ? r.ToString("0.00") : r.ToString("0.000");
 
-        // ------------------------------------------------------------------ HUD
+        // ------------------------------------------------------------------ Hub models (placed in the scene)
 
-        void UpdateHudLine()
+        // Shows the owned sources' models (HubSceneObjects) with a name label. No rates on the
+        // labels or the HUD: the player only needs to see which sources they own.
+        void UpdateModels()
         {
-            bool any = Skills.Owns(RainCatcherId) || Skills.Owns(SolarStillId) || Skills.Owns(DeepWellId);
-            bool atHub = upgrades != null && upgrades.PlayerAtHub;
-            if (!any || !atHub) { SimpleHud.SetLine("sources", null); return; }
-
-            string text = "Sources:";
-            if (Skills.Owns(RainCatcherId)) text += $" rain {Rate(RainRate)}";
-            if (Skills.Owns(SolarStillId)) text += $" | still {Rate(StillRate)}";
-            if (Skills.Owns(DeepWellId)) text += $" | well {Rate(WellRate)}";
-            SimpleHud.SetLine("sources", text.Replace(": |", ":") + " L/s");
-        }
-
-        // ------------------------------------------------------------------ Hub models
-
-        void RebuildModelsIfNeeded()
-        {
-            if (maze == null) maze = FindAnyObjectByType<MazeBuilder>();
-            if (maze == null || maze.Grid == null) return; // try again next frame
+            var hub = HubSceneObjects.Instance;
+            if (hub == null) return; // still dirty: HubPlaceholders makes one at Play if the scene has none
             dirty = false;
 
             bool rain = Skills.Owns(RainCatcherId), still = Skills.Owns(SolarStillId), well = Skills.Owns(DeepWellId);
             int stills = Mathf.Max(1, Mathf.RoundToInt(Skills.F("solarStillCount", 1f)));
-            string key = $"{rain}|{CatchArea}|{still}|{stills}|{well}";
-            if (key == builtKey) return;
-            builtKey = key;
 
-            if (root != null) Destroy(root.gameObject);
-            root = new GameObject("WaterSources_Hub").transform;
-            rainLabel = stillLabel = wellLabel = null;
+            // The model for this catch area (4 m² Normal, 8 m² Wider, 16 m² Bigger).
+            string rainTier = !rain ? null : CatchArea >= 16f ? "Bigger" : CatchArea >= 8f ? "Wider" : "Normal";
+            HubSceneObjects.ShowTier(hub.rainCatcherTiers, rainTier);
+            SetLabel(hub.rainCatcherLabel, rain, "Rain Catcher");
 
-            if (rain) rainLabel = BuildRainCatcher();
-            if (still) stillLabel = BuildSolarStill(stills);
-            if (well) wellLabel = BuildDeepWell();
+            if (hub.solarStills != null)
+                for (int i = 0; i < hub.solarStills.Length; i++)
+                    if (hub.solarStills[i] != null) hub.solarStills[i].SetActive(still && i < stills);
+            SetLabel(hub.solarStillLabel, still, stills > 1 ? $"Solar Still ×{stills}" : "Solar Still");
+
+            if (hub.deepWell != null) hub.deepWell.SetActive(well);
+            SetLabel(hub.deepWellLabel, well, "Deep Well");
         }
 
-        // A parent object standing on a hub tile (offset from the centre in tiles).
-        Transform Station(string name, Vector2Int offset)
+        static void SetLabel(FacingLabel label, bool on, string text)
         {
-            var c = maze.Grid.Centre;
-            int x = c.x + offset.x, y = c.y + offset.y;
-            if (!maze.Grid.IsWalkable(x, y))
-                Debug.LogWarning($"[WaterSources] {name}: tile ({x},{y}) is a wall. Change its tile in GameBalance > Water sources (hub).", this);
-            var t = new GameObject(name).transform;
-            t.SetParent(root, false);
-            t.position = maze.GridToWorld(x, y);
-            return t;
-        }
-
-        FacingLabel BuildRainCatcher()
-        {
-            var s = Station("RainCatcher", balance.rainCatcherTile);
-            // Roof grows with the catch area (W3 / W8): a square of that many m².
-            float side = Mathf.Sqrt(Mathf.Max(1f, CatchArea));
-            // The artists' model for this catch area (4 m² Normal, 8 m² Wider, 16 m² Bigger), if there is one.
-            string model = CatchArea >= 16f ? "RainCatcher_Bigger" : CatchArea >= 8f ? "RainCatcher_Wider" : "RainCatcher_Normal";
-            if (HubPlaceholders.ArtistModel(s, model) != null)
-                return SourceVisuals.Label(s, balance.sourceLabelHeight, balance.sourceLabelFontSize);
-            SourceVisuals.Part(s, "Roof", PrimitiveType.Cube, new Vector3(0f, 2.2f, 0f), new Vector3(side, 0.1f, side), new Color(0.55f, 0.6f, 0.65f));
-            SourceVisuals.Part(s, "Pipe", PrimitiveType.Cylinder, new Vector3(0f, 1.4f, 0f), new Vector3(0.12f, 0.8f, 0.12f), new Color(0.3f, 0.3f, 0.3f));
-            SourceVisuals.Part(s, "Barrel", PrimitiveType.Cylinder, new Vector3(0f, 0.5f, 0f), new Vector3(0.9f, 0.5f, 0.9f), new Color(0.2f, 0.45f, 0.75f));
-            return SourceVisuals.Label(s, balance.sourceLabelHeight, balance.sourceLabelFontSize);
-        }
-
-        FacingLabel BuildSolarStill(int count)
-        {
-            var s = Station("SolarStill", balance.solarStillTile);
-            for (int i = 0; i < count; i++)
-            {
-                float x = count > 1 ? (i == 0 ? -0.8f : 0.8f) : 0f;
-                var art = HubPlaceholders.ArtistModel(s, "SolarStill");
-                if (art != null) { art.transform.localPosition = new Vector3(x, 0f, 0f); continue; }
-                SourceVisuals.Part(s, $"Basin{i + 1}", PrimitiveType.Cube, new Vector3(x, 0.15f, 0f), new Vector3(1.2f, 0.3f, 0.9f), new Color(0.15f, 0.15f, 0.15f));
-                var glass = SourceVisuals.Part(s, $"Glass{i + 1}", PrimitiveType.Cube, new Vector3(x, 0.45f, 0f), new Vector3(1.2f, 0.05f, 0.95f), new Color(0.6f, 0.85f, 1f));
-                glass.transform.localRotation = Quaternion.Euler(15f, 0f, 0f);
-            }
-            return SourceVisuals.Label(s, balance.sourceLabelHeight, balance.sourceLabelFontSize);
-        }
-
-        FacingLabel BuildDeepWell()
-        {
-            var s = Station("DeepWell", balance.deepWellTile);
-            if (HubPlaceholders.ArtistModel(s, "DeepWell") != null)
-                return SourceVisuals.Label(s, balance.sourceLabelHeight, balance.sourceLabelFontSize);
-            SourceVisuals.Part(s, "Wall", PrimitiveType.Cylinder, new Vector3(0f, 0.4f, 0f), new Vector3(1.4f, 0.4f, 1.4f), new Color(0.55f, 0.5f, 0.45f));
-            SourceVisuals.Part(s, "Water", PrimitiveType.Cylinder, new Vector3(0f, 0.81f, 0f), new Vector3(1.1f, 0.01f, 1.1f), new Color(0.1f, 0.25f, 0.45f));
-            SourceVisuals.Part(s, "Post", PrimitiveType.Cube, new Vector3(0f, 1.4f, 0f), new Vector3(1.6f, 0.1f, 0.1f), new Color(0.4f, 0.28f, 0.15f));
-            return SourceVisuals.Label(s, balance.sourceLabelHeight, balance.sourceLabelFontSize);
+            HubSceneObjects.ShowLabel(label, on);
+            if (label != null && on) label.Text = text;
         }
     }
 }

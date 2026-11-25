@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: SODIS Bottles
   tab: 0
   group: Purification
-  costLiters: 25
+  costLiters: 32
   prerequisiteIds: []
   priority: 1
   tooltip: 'Extra purifier on the hub roof: 8 L every 90 s of sun.'

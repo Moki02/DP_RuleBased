@@ -566,8 +566,7 @@ namespace TheLastDrop
                 case "storage":
                 case "tap":
                     var tap = FindAnyObjectByType<HubTap_Manager>();
-                    if (tap != null) targets.Add(tap.gameObject);
-                    AddPlaceholder("CleanTank");
+                    if (tap != null) targets.Add(tap.gameObject); // the storage tiers sit on the tap object
                     break;
                 case "hud":
                     foreach (var bar in FindObjectsByType<UI_StatBar>(FindObjectsSortMode.None))
@@ -596,8 +595,8 @@ namespace TheLastDrop
 
         void AddPlaceholder(string child)
         {
-            var root = GameObject.Find("HubPlaceholders");
-            var t = root != null ? root.transform.Find(child) : null;
+            var hub = HubSceneObjects.Instance;
+            var t = hub != null ? hub.transform.Find(child) : null;
             if (t != null) targets.Add(t.gameObject);
         }
 

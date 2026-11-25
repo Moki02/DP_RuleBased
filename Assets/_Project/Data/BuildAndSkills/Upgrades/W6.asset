@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Second Still
   tab: 0
   group: Water
-  costLiters: 50
+  costLiters: 63
   prerequisiteIds:
   - W5
   priority: 1

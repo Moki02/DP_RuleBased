@@ -7,7 +7,7 @@ Coordinates
 
 Codes
 "(blank) floor · W wall · G gate (every G is a lock basin) · R room floor (safe at lockdown) · S base / spawn · V valve icon from the drawing (minigame gate, NEW code: the loader must learn it or treat it as floor + a gate prefab)"
-"Lock values: hub gates 4 L, zone 1 exits 10 L, zone 2 exits 18 L (zone 2 exits are the game exits)."
+"Lock values: hub gates 4 L, zone 1 exits 10 L, zone 2 exits 16 L (zone 2 exits are the game exits)."
 
 Which tiles turn
 "Only zone 2 turns: tiles where MAX(|x − 47|, |y − 47|) is 28 to 44. That is x or y in 3–19 or 75–91, outside zone 1. The hub, zone 1 and the 3-tile outer wall (with the 8 exit gates) never move."

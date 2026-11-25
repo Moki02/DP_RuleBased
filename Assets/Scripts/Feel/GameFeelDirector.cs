@@ -54,7 +54,7 @@ namespace TheLastDrop.Feel
         readonly List<float> boilSeen = new List<float>();
         readonly List<HubTap_Manager> taps = new List<HubTap_Manager>();
         readonly List<FeelLoop> tapLoops = new List<FeelLoop>();
-        readonly List<GameObject> tapStreams = new List<GameObject>();
+        readonly List<Stream> tapStreams = new List<Stream>();
         readonly List<bool> tapWasRunning = new List<bool>();
         readonly List<float> tapFillTimer = new List<float>();
         float fullShownUntil;
@@ -62,7 +62,13 @@ namespace TheLastDrop.Feel
         // Lock basins
         readonly List<LockBasin_Manager> basins = new List<LockBasin_Manager>();
         readonly List<FeelLoop> basinLoops = new List<FeelLoop>();
-        readonly List<GameObject> basinStreams = new List<GameObject>();
+        readonly List<Stream> basinStreams = new List<Stream>();
+
+        // A running water stream: the effect, where it lands, and when to splash there next.
+        class Stream { public GameObject fx; public Vector3 landing; public float nextSplash; }
+        static readonly Quaternion Down = Quaternion.Euler(90f, 0f, 0f); // stream prefabs emit along +Z
+        readonly Dictionary<Component, Bounds> modelBounds = new Dictionary<Component, Bounds>();
+        System.Func<Component, Vector3> tapSpoutFn, basinPointFn; // made once (no garbage per frame)
 
         // Minigame
         ValveTimingGame valveGame;
@@ -169,7 +175,7 @@ namespace TheLastDrop.Feel
             {
                 taps.Add(t);
                 tapLoops.Add(new FeelLoop(t.gameObject, library.pourLoop, spatial: true) { fadeIn = 0.2f, fadeOut = 0.5f });
-                tapStreams.Add(null);
+                tapStreams.Add(new Stream());
                 tapWasRunning.Add(false);
                 tapFillTimer.Add(0f);
             }
@@ -181,7 +187,7 @@ namespace TheLastDrop.Feel
             {
                 basins.Add(b);
                 basinLoops.Add(new FeelLoop(b.gameObject, library.pourLoop, spatial: true) { fadeIn = 0.15f, fadeOut = 0.4f });
-                basinStreams.Add(null);
+                basinStreams.Add(new Stream());
                 b.Opened += OnBasinOpened;
             }
         }
@@ -255,7 +261,8 @@ namespace TheLastDrop.Feel
                 bool boiling = !paused && Time.time - boilSeen[i] < 0.5f;
                 anyBoiling |= boiling;
                 boilLoops[i].Update(boiling, dt);
-                steam[i] = Toggle(steam[i], boiling, library.vfxSteam, p.transform.position + Vector3.up * 1.2f);
+                var pot = ModelBounds(p);
+                steam[i] = Toggle(steam[i], boiling, library.vfxSteam, new Vector3(pot.center.x, pot.max.y, pot.center.z));
             }
 
             // Hub tap: valve twist on start, running water while used (quieter pour while the pot
@@ -268,7 +275,7 @@ namespace TheLastDrop.Feel
                 if (running && !tapWasRunning[i]) FeelAudio.PlayAt(library.tapOpen, t.transform.position);
                 tapWasRunning[i] = running;
                 tapLoops[i].Update(running || anyBoiling, dt, running ? 1f : 0.45f);
-                tapStreams[i] = Toggle(tapStreams[i], running, library.vfxPourStream, t.transform.position + Vector3.up * 1.2f);
+                UpdateStream(tapStreams[i], running, t, tapSpoutFn ??= TapSpout);
 
                 if (running && t.LastUseWasRefill)
                 {
@@ -289,7 +296,7 @@ namespace TheLastDrop.Feel
                 if (b == null) continue;
                 bool pouring = !paused && Time.time - b.LastPourTime < 0.15f;
                 basinLoops[i].Update(pouring, dt);
-                basinStreams[i] = Toggle(basinStreams[i], pouring, library.vfxPourStream, b.transform.position + Vector3.up * 1.4f);
+                UpdateStream(basinStreams[i], pouring, b, basinPointFn ??= BasinPourPoint);
             }
 
             // Valve minigame
@@ -312,6 +319,145 @@ namespace TheLastDrop.Feel
             if (on && current == null && prefab != null) return FeelPool.Spawn(prefab, at, Quaternion.identity);
             if (!on && current != null) { FeelPool.Release(current); return null; }
             return current;
+        }
+
+        // ================================================================ water placement
+
+        // Starts / stops a pour stream. It starts at 'source' (asked only when it starts),
+        // points straight down, ends on the first surface below, and splashes there.
+        void UpdateStream(Stream s, bool on, Component owner, System.Func<Component, Vector3> source)
+        {
+            if (on && s.fx == null && library.vfxPourStream != null)
+            {
+                Vector3 from = source(owner);
+                float drop = FindLanding(from, out s.landing);
+                s.fx = FeelPool.Spawn(library.vfxPourStream, from, Down);
+                FitFall(s.fx, drop);
+                s.nextSplash = Time.time + FallTime(1.2f, drop);
+            }
+            else if (!on && s.fx != null)
+            {
+                FeelPool.Release(s.fx);
+                s.fx = null;
+            }
+            if (s.fx != null && library.vfxDropletSplash != null && Time.time >= s.nextSplash)
+            {
+                s.nextSplash = Time.time + 0.2f;
+                FeelPool.Spawn(library.vfxDropletSplash, s.landing, Quaternion.identity);
+            }
+        }
+
+        // Distance (m) from 'from' straight down to the first surface, and the hit point.
+        static float FindLanding(Vector3 from, out Vector3 landing)
+        {
+            const float maxDrop = 4f;
+            if (Physics.Raycast(from + Vector3.down * 0.02f, Vector3.down, out var hit, maxDrop,
+                                Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+            {
+                landing = hit.point;
+                return hit.distance + 0.02f;
+            }
+            landing = from + Vector3.down * 1.2f;
+            return 1.2f;
+        }
+
+        // Seconds for a drop thrown down at 'speed' to fall 'drop' metres.
+        static float FallTime(float speed, float drop, float gravityModifier = 1f)
+        {
+            float g = Physics.gravity.magnitude * gravityModifier;
+            if (g <= 0.01f) return drop / Mathf.Max(speed, 0.01f);
+            return (-speed + Mathf.Sqrt(speed * speed + 2f * g * drop)) / g;
+        }
+
+        // Shortens the particles' life so the water stops where it lands (not in mid-air or under the floor).
+        static void FitFall(GameObject fx, float drop)
+        {
+            if (fx == null) return;
+            foreach (var ps in fx.GetComponentsInChildren<ParticleSystem>())
+            {
+                var main = ps.main;
+                float t = FallTime(main.startSpeed.constantMax, drop, main.gravityModifier.constantMax);
+                main.startLifetime = Mathf.Max(0.05f, t);
+            }
+        }
+
+        Vector3 PlayerHand(Vector3 fallback)
+        {
+            return player != null ? player.transform.position + Vector3.up * 1f : fallback;
+        }
+
+        // The Clean Storage tap: its FeelAnchor, or a guess on the tank's side facing the player,
+        // a little above their hands.
+        Vector3 TapSpout(Component tap)
+        {
+            var anchor = FeelAnchor.Find(tap);
+            if (anchor != null) return anchor.transform.position;
+            var b = ModelBounds(tap);
+            Vector3 p = SideFacing(b, PlayerHand(b.center), 0.06f);
+            p.y = Mathf.Clamp(PlayerHand(b.center).y + 0.25f, b.min.y + 0.3f, b.max.y - 0.1f);
+            return p;
+        }
+
+        // The pump spout: its FeelAnchor, or a guess on the pump's side facing the player.
+        Vector3 PumpSpout(HubPump_Manager pump)
+        {
+            var anchor = FeelAnchor.Find(pump);
+            if (anchor != null) return anchor.transform.position;
+            var b = ModelBounds(pump);
+            Vector3 p = SideFacing(b, PlayerHand(b.center), 0.06f);
+            p.y = b.min.y + b.size.y * 0.65f;
+            return p;
+        }
+
+        // Above a lock basin: its FeelAnchor, or just over the rim on the player's side, so the
+        // water falls into the bowl from the player's canteen.
+        Vector3 BasinPourPoint(Component basin)
+        {
+            var anchor = FeelAnchor.Find(basin);
+            if (anchor != null) return anchor.transform.position;
+            var b = ModelBounds(basin);
+            Vector3 hand = PlayerHand(b.center);
+            Vector3 rim = b.ClosestPoint(new Vector3(hand.x, b.max.y, hand.z));
+            Vector3 centre = new Vector3(b.center.x, rim.y, b.center.z);
+            rim = Vector3.MoveTowards(rim, centre, Mathf.Min(0.2f, Vector3.Distance(rim, centre) * 0.5f));
+            rim.y = b.max.y + 0.3f;
+            return rim;
+        }
+
+        // The point on the box's side nearest 'target', pushed 'outset' metres outwards.
+        static Vector3 SideFacing(Bounds b, Vector3 target, float outset)
+        {
+            Vector3 p = b.ClosestPoint(target);
+            Vector3 dir = p - b.center;
+            dir.y = 0f;
+            if (dir.sqrMagnitude < 0.0001f) dir = Vector3.forward;
+            return p + dir.normalized * outset;
+        }
+
+        // World box around the visible model of an object (labels and effects left out). Measured
+        // once; the hub objects don't move.
+        Bounds ModelBounds(Component c)
+        {
+            if (modelBounds.TryGetValue(c, out var b)) return b;
+            b = Measure(c.transform);
+            if (b.size == Vector3.zero && c.transform.parent != null) b = Measure(c.transform.parent);
+            if (b.size == Vector3.zero) b = new Bounds(c.transform.position + Vector3.up * 0.5f, Vector3.one);
+            modelBounds[c] = b;
+            return b;
+        }
+
+        static Bounds Measure(Transform root)
+        {
+            bool any = false;
+            var b = new Bounds(root.position, Vector3.zero);
+            foreach (var r in root.GetComponentsInChildren<Renderer>())
+            {
+                if (!r.enabled || r is ParticleSystemRenderer || r is LineRenderer || r is TrailRenderer) continue;
+                if (r.GetComponent<TMPro.TMP_Text>() != null) continue; // floating name labels
+                if (!any) { b = r.bounds; any = true; }
+                else b.Encapsulate(r.bounds);
+            }
+            return b;
         }
 
         void UpdateCisterns(float dt, bool paused)
@@ -382,17 +528,30 @@ namespace TheLastDrop.Feel
 
         void OnPumpStroke(HubPump_Manager pump, float litres)
         {
-            Vector3 spout = pump.transform.position + Vector3.up * 0.8f;
+            Vector3 spout = PumpSpout(pump);
             if (litres > 0f)
             {
                 FeelAudio.PlayAt(library.gush, spout, Random.Range(0.95f, 1.05f), 0.7f);
-                if (library.vfxWaterSplash != null) FeelPool.Spawn(library.vfxWaterSplash, spout, Quaternion.identity);
+                float drop = FindLanding(spout, out var landing);
+                if (library.vfxPumpGush != null) FitFall(FeelPool.Spawn(library.vfxPumpGush, spout, Down), drop);
+                if (library.vfxDropletSplash != null)
+                    StartCoroutine(SplashLater(landing, FallTime(1.4f, drop)));
             }
             else if (Time.time >= fullShownUntil)
             {
                 fullShownUntil = Time.time + 2f;
                 FloatingText.Show("FULL", pump.transform.position + Vector3.up * 2f, FloatingText.Mood.Neutral);
             }
+        }
+
+        // Droplets where the pump's gush lands, timed with the first drops arriving
+        // (and a second, smaller one as the gush ends).
+        System.Collections.IEnumerator SplashLater(Vector3 at, float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            FeelPool.Spawn(library.vfxDropletSplash, at, Quaternion.identity);
+            yield return new WaitForSeconds(0.2f);
+            FeelPool.Spawn(library.vfxDropletSplash, at, Quaternion.identity);
         }
 
         void OnBasinOpened(LockBasin_Manager basin)

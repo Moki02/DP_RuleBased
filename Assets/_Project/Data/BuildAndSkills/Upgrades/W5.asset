@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Solar Still
   tab: 0
   group: Water
-  costLiters: 30
+  costLiters: 38
   prerequisiteIds:
   - W2
   priority: 0

@@ -11237,7 +11237,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 04f915a47e9909e408c0037f6770d917, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TheLastDrop.Feel.VfxStation
-  effect: {fileID: 3745635057120432680, guid: 3a4ef2b9e3787e644b5e66a34d3796a1, type: 3}
+  effect: {fileID: 3948294591151173753, guid: 78d4b0769c62cff4a93b16d6d6e29578, type: 3}
   spawnPoint: {fileID: 115666418}
   shake: 0
 --- !u!1 &1203316371

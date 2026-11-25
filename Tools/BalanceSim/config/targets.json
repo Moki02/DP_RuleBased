@@ -1,0 +1,28 @@
+{
+  "_about": "Pass/fail targets (Step 5). Edit freely; the report and sweep read this file.",
+  "normal": {
+    "median_escape_day": [20, 24],
+    "game_over_rate_max": 0.15,
+    "collapses_mean": [1, 3],
+    "close_calls_mean": [3, 8],
+    "post_collapse_win_ratio_min": 0.70,
+    "reward_gap_median_max_min": 5,
+    "reward_gap_longest_max_min": 12,
+    "dead_time_max": 0.30,
+    "demo_gate_and_room_10min_min": 0.80,
+    "escape_day_iqr_max": 6
+  },
+  "beginner": {
+    "escape_rate_min": 0.50,
+    "game_over_rate_max": 0.40,
+    "median_escape_day_max": 32
+  },
+  "skilled": {
+    "median_escape_day": [12, 16],
+    "min_escape_day": 10
+  },
+  "build_variety": {
+    "orders_within_pct": 0.15,
+    "orders_needed": 3
+  }
+}

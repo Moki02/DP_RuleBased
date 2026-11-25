@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Marathoner
   tab: 1
   group: Pathfinder
-  costLiters: 50
+  costLiters: 63
   prerequisiteIds:
   - M2
   - M3

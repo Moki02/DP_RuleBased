@@ -1,0 +1,19 @@
+normal    200 runs in   5.6s  escape 100%  game over 0%  still going 0%  median day 20.0  mean 19.7
+beginner  200 runs in   4.2s  escape 18%  game over 68%  still going 14%  median day 36.0  mean 33.9
+skilled   200 runs in   4.6s  escape 100%  game over 0%  still going 0%  median day 11.0  mean 12.1
+targets passed: 7/15
+  PASS  normal   median escape day (non-escapes count as never)     target 20-24      value 20.0
+  PASS  normal   game over rate                                     target <= 15%     value 0.0
+  PASS  normal   collapses per run (mean)                           target 1-3        value 1.675
+  fail  normal   close calls per run (mean)                         target 3-8        value 2.74
+  PASS  normal   win rate after 1st collapse / overall              target >= 70%     value 1.0
+  PASS  normal   reward gap, median (real min)                      target <= 5       value 2.45
+  fail  normal   reward gap, longest (real min, median run)         target <= 12      value 34.335
+  fail  normal   dead time (pumping + re-walking)                   target <= 30%     value 0.6330849999999999
+  PASS  normal   demo: first gate AND first room within 10 min      target >= 80%     value 0.975
+  PASS  normal   escape day IQR (days)                              target <= 6       value 2.0
+  fail  beginner escape rate                                        target >= 50%     value 0.175
+  fail  beginner game over rate                                     target <= 40%     value 0.685
+  fail  beginner median escape day (escapers)                       target <= 32      value 36.0
+  fail  skilled  median escape day                                  target 12-16      value 11.0
+  fail  skilled  fastest escape day                                 target >= 10      value 6

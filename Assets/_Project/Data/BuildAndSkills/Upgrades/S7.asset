@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Jerry Can
   tab: 0
   group: Carry
-  costLiters: 70
+  costLiters: 88
   prerequisiteIds:
   - S4
   priority: 1

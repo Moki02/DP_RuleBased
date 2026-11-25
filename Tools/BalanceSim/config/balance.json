@@ -1,0 +1,139 @@
+{
+  "_about": "Every tunable number the sim uses. Mirrors Assets/Scripts/Data/GameBalance*.cs + GameBalance.asset + BuildAndSkills CSVs (see RULES.md for file/line). Edit here, never in code.",
+
+  "maze": {
+    "csv": "../../Assets/_Project/Data/Maze/Maze2Layer_0deg.csv",
+    "hub_max_ring": 9, "zone1_max_ring": 27, "zone2_max_ring": 44,
+    "zone2_days_between_turns": 2,
+    "zone1_sections": 6, "zone2_sections": 8,
+    "cell_size_m": 4.0
+  },
+
+  "clock": {
+    "day_length_s": 300, "night_lockdown_s": 60,
+    "collapse_clock_penalty_s": 30, "collapse_fade_s": 2.0,
+    "max_day": 40
+  },
+
+  "player": {
+    "walk_speed": 4.0, "dehydrated_speed_mult": 0.75,
+    "heavy_carry_threshold_l": 6.0, "heavy_carry_speed_mult": 0.9
+  },
+
+  "hydration": {
+    "hyd_max": 100, "drain_idle": 0.25, "drain_walk": 0.5, "drain_pump": 0.6,
+    "drain_minigame": 0.25, "drain_crouch_idle": 0.2, "jump_hyd_cost": 3.0,
+    "hub_shade_mult": 0.5, "thirsty_at": 59, "dehydrated_at": 29,
+    "hyd_per_liter": 25, "drink_rate": 0.5, "refill_rate": 1.0,
+    "sick_seconds": 30, "sick_mult": 1.5,
+    "lockdown_drain": 4.0
+  },
+
+  "start": { "clean": 10, "canteen": 2, "raw": 0 },
+
+  "sources": {
+    "pump_liters_per_stroke": 0.3, "pump_stroke_interval": 0.5, "suction_limit": 7.0,
+    "pump_by_depth": [[4, 1.0], [5.5, 0.8], [6.5, 0.5], [7.0, 0.4]],
+    "deep_pump_by_depth": [[4, 1.0], [5.5, 1.0], [6.5, 0.8], [7.5, 0.6], [8.5, 0.4], [10, 0.0]],
+    "rain_l_per_m2s": 0.1, "runoff": 0.9, "catch_area": 4,
+    "still_rate": 0.02, "well_rate": 0.08,
+    "boil_rate": 0.167, "filter_rate": 0.4, "filter_ripening_by_day": [0.5, 0.75, 1.0],
+    "spare_jug_pour_rate": 1.0
+  },
+
+  "storage": {
+    "canteen_tiers": [2, 4, 6, 10],
+    "clean_tiers": [[25, 1.0], [50, 0.5], [150, 0.5], [300, 0.1]],
+    "raw_tiers": [15, 40, 100],
+    "raw_evap_factor": 1.0, "jug_evap_factor": 1.0
+  },
+
+  "stages": [
+    {"name": "El Nino Advisory",  "start_day": 1,  "heat": 1.0,  "evap": 0.02, "depth": 4.0, "sun": 1.0, "well": 1.0,  "storm": 50, "heatwave": 10, "cistern_refill": 1.0},
+    {"name": "Dry Spell",         "start_day": 3,  "heat": 1.1,  "evap": 0.03, "depth": 5.5, "sun": 1.2, "well": 0.95, "storm": 35, "heatwave": 20, "cistern_refill": 0.85},
+    {"name": "Drought",           "start_day": 5,  "heat": 1.25, "evap": 0.05, "depth": 6.5, "sun": 1.4, "well": 0.85, "storm": 15, "heatwave": 25, "cistern_refill": 0.7},
+    {"name": "State of Calamity", "start_day": 12, "heat": 1.4,  "evap": 0.08, "depth": 7.5, "sun": 1.6, "well": 0.75, "storm": 5,  "heatwave": 30, "cistern_refill": 0.5}
+  ],
+  "_stages_note": "Event weights out of 100; the rest is Calm (unbuilt events are added to Calm, EventManager R10.5).",
+
+  "events": {
+    "window_min": 40, "window_max": 260,
+    "storm_warn": 20, "storm_seconds": 60, "storm_drain_mult": 0.5, "storm_canteen_refill": 0.05,
+    "heatwave_mult": 1.3, "heatwave_mult_stage4": 1.6, "heatwave_still_mult": 2.0, "heatwave_evap_mult": 2.0
+  },
+
+  "rewards": {
+    "tile_reward": 0.03,
+    "section_reward": [2, 3], "section_mapped_pct": 0.75,
+    "milestone_percents": [0.25, 0.5, 0.75, 1.0], "milestone_rewards": [10, 15, 20, 30],
+    "valve_reward": [2, 2],
+    "safe_return_bonus": 0.1
+  },
+
+  "locks": {
+    "lock_liters": {"hub": 4, "z1exit": 10, "z2exit": 18},
+    "pour_rate": 1.0, "pour_from_hyd": true, "pour_hyd_floor": 10
+  },
+
+  "minigame": {
+    "fail_hyd": 5, "lockout_s": 10,
+    "ring_start": 9, "ring_span": 35,
+    "band_at_hub": 30, "band_shrink": 15, "speed_at_hub": 120, "speed_gain": 80,
+    "hits_to_win": 3, "misses_to_lose": 3,
+    "speed_up_mult": 1.25, "speed_ups": 2,
+    "exit_valve": {"band": 12, "speed": 220, "hits": 4, "misses": 3},
+    "press_interval_s": 1.2, "end_delay_s": 0.6, "reference_band": 30, "reference_speed": 120
+  },
+
+  "rooms": {
+    "seed": 8, "empty_chance": 0.2, "cistern_near": 0.16, "cistern_far": 0.64,
+    "cistern_base": 2, "cistern_per_d": 6, "cache_base": 3, "cache_per_d": 7,
+    "fill_rate": 1.0, "note_read_s": 5,
+    "note_payloads": ["clue", "reveal:0", "marker", "marker", "clue", "reveal:1", "clue"],
+    "overrides": {}
+  },
+
+  "collapse": { "unbanked_loss": 0.5, "wake_liters": 2, "game_over_below": 2 },
+
+  "upgrade_cost_mult": 1.0,
+  "upgrades": {
+    "W1": {"name": "Greased Handle",      "cost": 8,   "needs": [],          "fx": {"pump_stroke_interval": 0.35}},
+    "W2": {"name": "Rain Catcher",        "cost": 15,  "needs": [],          "fx": {"rain_catcher": 1, "catch_area": 4}},
+    "W3": {"name": "Bigger Roof",         "cost": 20,  "needs": ["W2"],      "fx": {"catch_area": 8}},
+    "W8": {"name": "Wide Roof",           "cost": 60,  "needs": ["W3"],      "fx": {"catch_area": 16}},
+    "W4": {"name": "Deep-Set Cylinder",   "cost": 20,  "needs": ["W1"],      "fx": {"deep_pump": 1}},
+    "W5": {"name": "Solar Still",         "cost": 30,  "needs": ["W2"],      "fx": {"stills": 1}},
+    "W6": {"name": "Second Still",        "cost": 50,  "needs": ["W5"],      "fx": {"stills": 2}},
+    "W7": {"name": "Deep Well",           "cost": 120, "needs": ["W4|S3"],   "fx": {"well": 1}},
+    "S1": {"name": "Water Jug",           "cost": 10,  "needs": [],          "fx": {"canteen_cap": 4}},
+    "S4": {"name": "Hydration Pack",      "cost": 30,  "needs": ["S1"],      "fx": {"canteen_cap": 6}},
+    "S7": {"name": "Jerry Can",           "cost": 70,  "needs": ["S4"],      "fx": {"canteen_cap": 10, "heavy": 1}},
+    "S2": {"name": "Plastic Drum",        "cost": 15,  "needs": [],          "fx": {"clean_cap": 50, "clean_cover": 0.5}},
+    "S3": {"name": "Ferrocement Tank",    "cost": 35,  "needs": ["S2"],      "fx": {"clean_cap": 150, "clean_cover": 0.5}},
+    "S6": {"name": "Underground Cistern", "cost": 150, "needs": ["S3"],      "fx": {"clean_cap": 300, "clean_cover": 0.1}},
+    "S5": {"name": "Bigger Basin",        "cost": 10,  "needs": [],          "fx": {"raw_cap": 40}},
+    "S8": {"name": "Concrete Basin",      "cost": 45,  "needs": ["S5"],      "fx": {"raw_cap": 100}},
+    "P1": {"name": "Biosand Filter",      "cost": 20,  "needs": [],          "fx": {"filter": 1}},
+    "P2": {"name": "SODIS Bottles",       "cost": 25,  "needs": [],          "fx": {}},
+    "P3": {"name": "Chlorine Tablets",    "cost": 35,  "needs": ["P1"],      "fx": {}},
+    "E1": {"name": "Salakot",             "cost": 12,  "needs": [],          "fx": {"drain_mult_all": 0.9}},
+    "E2": {"name": "Steady Breath",       "cost": 20,  "needs": ["E1"],      "fx": {"drain_mult_move": 0.85}},
+    "E3": {"name": "Water Discipline",    "cost": 25,  "needs": ["E2"],      "fx": {"hyd_per_liter": 30, "wake_hyd": 60}},
+    "E4": {"name": "Iron Stomach",        "cost": 30,  "needs": ["E1"],      "fx": {"sick_seconds": 15}},
+    "E5": {"name": "Second Wind",         "cost": 50,  "needs": ["E3"],      "fx": {"keep_canteen": 1}},
+    "M1": {"name": "Light Sandals",       "cost": 15,  "needs": [],          "fx": {"walk_speed": 4.4}},
+    "M2": {"name": "Long Stride",         "cost": 35,  "needs": ["M1"],      "fx": {}},
+    "M3": {"name": "Pacing",              "cost": 30,  "needs": ["M1"],      "fx": {}},
+    "M4": {"name": "Quick Hands",         "cost": 20,  "needs": ["M1"],      "fx": {"hand_rate_mult": 1.5}},
+    "M5": {"name": "Marathoner",          "cost": 50,  "needs": ["M2|M3"],   "fx": {"no_dehydrated_slow": 1}},
+    "V1": {"name": "Trail Sense",         "cost": 15,  "needs": [],          "fx": {"look_ahead": 4}},
+    "V2": {"name": "Landmarks",           "cost": 15,  "needs": ["V1"],      "fx": {"wrong_turn_mult": 0.85}},
+    "V3": {"name": "Keen Eyes",           "cost": 30,  "needs": ["V1"],      "fx": {"diag_reveal": 1}},
+    "V4": {"name": "Surveyor",            "cost": 25,  "needs": ["V1"],      "fx": {"section_mult": 1.5}},
+    "V5": {"name": "Cartographer",        "cost": 40,  "needs": ["V3|V4"],   "fx": {"section_pct": 0.6}},
+    "V6": {"name": "Sun Reading",         "cost": 20,  "needs": [],          "fx": {"wrong_turn_mult": 0.75}}
+  },
+  "_upgrades_note": "M2/M3 have no sim effect because bots walk (no sprint). P2/P3 have no effect in the game code. V2/V6 cut wrong turns (designer OK 2026-11-25).",
+
+  "map": { "look_ahead": 2, "hub_known_at_start": true }
+}

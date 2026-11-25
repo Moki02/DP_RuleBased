@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Water Jug
   tab: 0
   group: Carry
-  costLiters: 10
+  costLiters: 13
   prerequisiteIds: []
   priority: 0
   tooltip: Canteen holds 4 L.

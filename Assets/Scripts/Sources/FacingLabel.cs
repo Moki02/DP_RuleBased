@@ -20,7 +20,15 @@ namespace TheLastDrop
         [Tooltip("The TextMeshPro (3D, not UI) text this label shows.")]
         public TextMeshPro text;
 
+        [Tooltip("Dark outline around the letters, set at Play (setting it in the editor would copy the font material into the scene).")]
+        [Range(0f, 1f)] public float outlineWidth = 0.2f;
+
         Camera cam;
+
+        void Awake()
+        {
+            if (text != null && outlineWidth > 0f) text.outlineWidth = outlineWidth;
+        }
 
         /// <summary>The label's text. Only redraws when it changes.</summary>
         public string Text

@@ -1,0 +1,1115 @@
+{
+ "aggregates": {
+  "normal": {
+   "n": 200,
+   "mean_score": 19.66,
+   "escape_rate": 1.0,
+   "game_over_rate": 0.0,
+   "timeout_rate": 0.0,
+   "median_escape_day_all": 20.0,
+   "median_escape_day": 20.0,
+   "mean_escape_day": 19.66,
+   "min_escape_day": 14,
+   "escape_day_iqr": 2.0,
+   "escape_day_p25": 19.0,
+   "escape_day_p75": 21.0,
+   "real_min_median": 115.385,
+   "collapses_mean": 1.675,
+   "close_calls_mean": 2.74,
+   "win_rate_after_collapse": 1.0,
+   "post_collapse_win_ratio": 1.0,
+   "reward_gap_median_min": 2.45,
+   "reward_gap_longest_min": 34.335,
+   "reward_gap_longest_p90": 56.17,
+   "dead_time": 0.6330849999999999,
+   "pump_frac": 0.19000499999999998,
+   "rewalk_frac": 0.443095,
+   "idle_hub_frac": 0.168145,
+   "demo_gate_5": 1.0,
+   "demo_gate_10": 1.0,
+   "demo_room_5": 0.875,
+   "demo_room_10": 0.975,
+   "demo_return_5": 0.995,
+   "demo_return_10": 1.0,
+   "demo_gate_and_room_10": 0.975,
+   "zone2_day_median": 4.0,
+   "zone1_exit_min_median": 19.740000000000002,
+   "map_pct_mean": 0.29624,
+   "area_minutes": {
+    "hub": 46.55875,
+    "zone1": 39.800850000000004,
+    "zone2": 23.136999999999997,
+    "room0": 0.5861500000000001,
+    "room1": 1.76755,
+    "room2": 1.1794499999999999,
+    "room3": 0.0,
+    "room4": 0.31035,
+    "room5": 0.07265,
+    "room6": 0.0
+   },
+   "sources_l": {
+    "pump": 704.16685,
+    "rain": 17.14915,
+    "still": 42.89045,
+    "well": 162.8291,
+    "tile": 30.14625,
+    "section": 0.7,
+    "milestone": 9.0,
+    "valve": 0.0,
+    "room": 5.134100000000001,
+    "storm": 3.2651,
+    "safe_return": 3.8398000000000003
+   },
+   "items_bought_share": {
+    "S1": 1.0,
+    "E1": 1.0,
+    "S2": 1.0,
+    "S5": 1.0,
+    "W1": 1.0,
+    "P1": 1.0,
+    "M1": 1.0,
+    "S4": 1.0,
+    "E2": 1.0,
+    "S3": 1.0,
+    "W4": 1.0,
+    "M4": 1.0,
+    "V1": 1.0,
+    "V6": 1.0,
+    "E3": 1.0,
+    "W2": 1.0,
+    "W5": 1.0,
+    "S8": 1.0,
+    "E5": 1.0,
+    "W7": 1.0
+   },
+   "collapse_causes": {
+    "day_zone1": 234,
+    "night_lockdown": 8,
+    "day_hub": 91,
+    "day_zone2": 2
+   },
+   "game_over_causes": {},
+   "minigames": {
+    "hub": {
+     "tries_per_run": 1.375,
+     "win_rate": 0.7272727272727273
+    },
+    "z1exit": {
+     "tries_per_run": 3.99,
+     "win_rate": 0.2506265664160401
+    },
+    "z2exit": {
+     "tries_per_run": 2.83,
+     "win_rate": 0.35335689045936397
+    },
+    "valve": {
+     "tries_per_run": 0.0,
+     "win_rate": null
+    },
+    "door": {
+     "tries_per_run": 38.2,
+     "win_rate": 0.19973821989528795
+    }
+   },
+   "water_curve": {
+    "2": {
+     "banked": 35.230000000000004,
+     "hyd": 98.8,
+     "clean": 22.244999999999997,
+     "n": 200
+    },
+    "3": {
+     "banked": 38.785000000000004,
+     "hyd": 99.1,
+     "clean": 20.165,
+     "n": 200
+    },
+    "4": {
+     "banked": 48.995000000000005,
+     "hyd": 99.4,
+     "clean": 27.035,
+     "n": 200
+    },
+    "5": {
+     "banked": 58.260000000000005,
+     "hyd": 99.3,
+     "clean": 36.71,
+     "n": 200
+    },
+    "6": {
+     "banked": 48.04,
+     "hyd": 98.8,
+     "clean": 46.935,
+     "n": 200
+    },
+    "7": {
+     "banked": 43.515,
+     "hyd": 99.2,
+     "clean": 42.769999999999996,
+     "n": 200
+    },
+    "8": {
+     "banked": 131.705,
+     "hyd": 99.2,
+     "clean": 131.655,
+     "n": 200
+    },
+    "9": {
+     "banked": 73.095,
+     "hyd": 99.4,
+     "clean": 63.925,
+     "n": 200
+    },
+    "10": {
+     "banked": 62.61,
+     "hyd": 99.2,
+     "clean": 55.595,
+     "n": 200
+    },
+    "11": {
+     "banked": 76.835,
+     "hyd": 99.4,
+     "clean": 70.305,
+     "n": 200
+    },
+    "12": {
+     "banked": 79.45,
+     "hyd": 99.2,
+     "clean": 67.68,
+     "n": 200
+    },
+    "13": {
+     "banked": 109.18,
+     "hyd": 99.1,
+     "clean": 105.01,
+     "n": 200
+    },
+    "14": {
+     "banked": 154.1,
+     "hyd": 97.2,
+     "clean": 144.0,
+     "n": 200
+    },
+    "15": {
+     "banked": 162.29,
+     "hyd": 97.2,
+     "clean": 144.0,
+     "n": 183
+    },
+    "16": {
+     "banked": 173.56,
+     "hyd": 97.2,
+     "clean": 144.0,
+     "n": 180
+    },
+    "17": {
+     "banked": 183.14,
+     "hyd": 97.2,
+     "clean": 144.0,
+     "n": 177
+    },
+    "18": {
+     "banked": 195.77499999999998,
+     "hyd": 97.2,
+     "clean": 144.0,
+     "n": 176
+    },
+    "19": {
+     "banked": 201.74,
+     "hyd": 97.2,
+     "clean": 144.0,
+     "n": 167
+    },
+    "20": {
+     "banked": 206.22000000000003,
+     "hyd": 97.2,
+     "clean": 144.0,
+     "n": 120
+    },
+    "21": {
+     "banked": 204.585,
+     "hyd": 97.2,
+     "clean": 144.0,
+     "n": 76
+    },
+    "22": {
+     "banked": 205.47,
+     "hyd": 97.2,
+     "clean": 144.0,
+     "n": 30
+    },
+    "23": {
+     "banked": 196.97,
+     "hyd": 97.2,
+     "clean": 138.0,
+     "n": 7
+    },
+    "24": {
+     "banked": 211.2,
+     "hyd": 97.2,
+     "clean": 144.0,
+     "n": 4
+    },
+    "25": {
+     "banked": 210.695,
+     "hyd": 96.35,
+     "clean": 141.0,
+     "n": 4
+    },
+    "26": {
+     "banked": 217.205,
+     "hyd": 97.2,
+     "clean": 144.0,
+     "n": 4
+    },
+    "27": {
+     "banked": 207.195,
+     "hyd": 96.35,
+     "clean": 141.0,
+     "n": 2
+    },
+    "28": {
+     "banked": 209.82999999999998,
+     "hyd": 97.2,
+     "clean": 144.0,
+     "n": 1
+    },
+    "29": {
+     "banked": 208.51999999999998,
+     "hyd": 97.2,
+     "clean": 144.0,
+     "n": 1
+    }
+   }
+  },
+  "beginner": {
+   "n": 200,
+   "mean_score": 54.035,
+   "escape_rate": 0.175,
+   "game_over_rate": 0.685,
+   "timeout_rate": 0.14,
+   "median_escape_day_all": 99.0,
+   "median_escape_day": 36.0,
+   "mean_escape_day": 33.91428571428571,
+   "min_escape_day": 27,
+   "escape_day_iqr": 7.0,
+   "escape_day_p25": 30.0,
+   "escape_day_p75": 37.0,
+   "real_min_median": 202.95,
+   "collapses_mean": 10.75,
+   "close_calls_mean": 4.14,
+   "win_rate_after_collapse": 0.175,
+   "post_collapse_win_ratio": 1.0,
+   "reward_gap_median_min": 4.87,
+   "reward_gap_longest_min": 23.5,
+   "reward_gap_longest_p90": 35.192,
+   "dead_time": 0.41009,
+   "pump_frac": 0.10375999999999999,
+   "rewalk_frac": 0.3063,
+   "idle_hub_frac": 0.16243499999999997,
+   "demo_gate_5": 0.575,
+   "demo_gate_10": 0.8,
+   "demo_room_5": 0.19,
+   "demo_room_10": 0.415,
+   "demo_return_5": 0.45,
+   "demo_return_10": 0.61,
+   "demo_gate_and_room_10": 0.415,
+   "zone2_day_median": 12.0,
+   "zone1_exit_min_median": 61.08,
+   "map_pct_mean": 0.19551499999999997,
+   "area_minutes": {
+    "hub": 66.90305000000001,
+    "zone1": 33.70425,
+    "zone2": 11.548250000000001,
+    "room0": 0.19415,
+    "room1": 0.6345000000000001,
+    "room2": 3.9572000000000003,
+    "room3": 0.0455,
+    "room4": 4.81635,
+    "room5": 0.12140000000000001,
+    "room6": 0.0
+   },
+   "sources_l": {
+    "pump": 411.29044999999996,
+    "rain": 24.7419,
+    "still": 24.749000000000002,
+    "well": 15.047500000000003,
+    "tile": 18.08445,
+    "section": 2.0525,
+    "milestone": 2.7,
+    "valve": 0.0,
+    "room": 5.03085,
+    "storm": 1.9156,
+    "safe_return": 0.6450999999999999
+   },
+   "items_bought_share": {
+    "W1": 0.935,
+    "S5": 0.875,
+    "S1": 0.855,
+    "E1": 0.825,
+    "M1": 0.77,
+    "V1": 0.76,
+    "W2": 0.73,
+    "S2": 0.73,
+    "P1": 0.59,
+    "V6": 0.57,
+    "V2": 0.465,
+    "E2": 0.44,
+    "W3": 0.37,
+    "M4": 0.355,
+    "E4": 0.315,
+    "W4": 0.31,
+    "P2": 0.3,
+    "S4": 0.295,
+    "S3": 0.265,
+    "M3": 0.26,
+    "P3": 0.255,
+    "E3": 0.255,
+    "V4": 0.25,
+    "V3": 0.25,
+    "S8": 0.235,
+    "W5": 0.22,
+    "M2": 0.2,
+    "V5": 0.175,
+    "M5": 0.135,
+    "W8": 0.12,
+    "E5": 0.115,
+    "S7": 0.105,
+    "W6": 0.105,
+    "W7": 0.085
+   },
+   "collapse_causes": {
+    "day_hub": 512,
+    "night_lockdown": 627,
+    "day_zone1": 981,
+    "day_zone2": 30
+   },
+   "game_over_causes": {
+    "day_hub": 113,
+    "night_lockdown": 6,
+    "day_zone1": 18
+   },
+   "minigames": {
+    "hub": {
+     "tries_per_run": 2.9,
+     "win_rate": 0.3448275862068966
+    },
+    "z1exit": {
+     "tries_per_run": 7.11,
+     "win_rate": 0.09563994374120956
+    },
+    "z2exit": {
+     "tries_per_run": 1.475,
+     "win_rate": 0.11864406779661017
+    },
+    "valve": {
+     "tries_per_run": 0.0,
+     "win_rate": null
+    },
+    "door": {
+     "tries_per_run": 30.875,
+     "win_rate": 0.15838056680161944
+    }
+   },
+   "water_curve": {
+    "2": {
+     "banked": 30.634999999999998,
+     "hyd": 98.0,
+     "clean": 23.97,
+     "n": 200
+    },
+    "3": {
+     "banked": 28.96,
+     "hyd": 98.7,
+     "clean": 24.0,
+     "n": 200
+    },
+    "4": {
+     "banked": 28.520000000000003,
+     "hyd": 99.0,
+     "clean": 22.4,
+     "n": 200
+    },
+    "5": {
+     "banked": 28.125,
+     "hyd": 98.9,
+     "clean": 23.305,
+     "n": 200
+    },
+    "6": {
+     "banked": 25.58,
+     "hyd": 98.9,
+     "clean": 22.5,
+     "n": 200
+    },
+    "7": {
+     "banked": 25.325,
+     "hyd": 98.8,
+     "clean": 22.5,
+     "n": 200
+    },
+    "8": {
+     "banked": 25.71,
+     "hyd": 98.8,
+     "clean": 22.85,
+     "n": 200
+    },
+    "9": {
+     "banked": 27.14,
+     "hyd": 98.8,
+     "clean": 22.93,
+     "n": 200
+    },
+    "10": {
+     "banked": 25.299999999999997,
+     "hyd": 98.8,
+     "clean": 22.5,
+     "n": 200
+    },
+    "11": {
+     "banked": 27.005,
+     "hyd": 98.8,
+     "clean": 23.125,
+     "n": 200
+    },
+    "12": {
+     "banked": 27.625,
+     "hyd": 98.9,
+     "clean": 22.88,
+     "n": 200
+    },
+    "13": {
+     "banked": 10.32,
+     "hyd": 97.45,
+     "clean": 9.114999999999998,
+     "n": 198
+    },
+    "14": {
+     "banked": 5.2,
+     "hyd": 95.6,
+     "clean": 4.359999999999999,
+     "n": 176
+    },
+    "15": {
+     "banked": 12.83,
+     "hyd": 96.5,
+     "clean": 10.03,
+     "n": 127
+    },
+    "16": {
+     "banked": 20.32,
+     "hyd": 98.0,
+     "clean": 18.15,
+     "n": 93
+    },
+    "17": {
+     "banked": 23.060000000000002,
+     "hyd": 98.7,
+     "clean": 20.27,
+     "n": 77
+    },
+    "18": {
+     "banked": 22.51,
+     "hyd": 98.5,
+     "clean": 22.18,
+     "n": 71
+    },
+    "19": {
+     "banked": 22.02,
+     "hyd": 98.75,
+     "clean": 20.185000000000002,
+     "n": 66
+    },
+    "20": {
+     "banked": 35.769999999999996,
+     "hyd": 98.7,
+     "clean": 27.64,
+     "n": 63
+    },
+    "21": {
+     "banked": 35.69,
+     "hyd": 99.0,
+     "clean": 27.29,
+     "n": 63
+    },
+    "22": {
+     "banked": 39.23,
+     "hyd": 98.7,
+     "clean": 25.9,
+     "n": 63
+    },
+    "23": {
+     "banked": 46.0,
+     "hyd": 98.7,
+     "clean": 38.98,
+     "n": 63
+    },
+    "24": {
+     "banked": 45.28,
+     "hyd": 98.6,
+     "clean": 43.34,
+     "n": 63
+    },
+    "25": {
+     "banked": 41.12,
+     "hyd": 98.7,
+     "clean": 37.84,
+     "n": 63
+    },
+    "26": {
+     "banked": 44.77,
+     "hyd": 99.1,
+     "clean": 43.02,
+     "n": 63
+    },
+    "27": {
+     "banked": 47.07,
+     "hyd": 98.7,
+     "clean": 46.0,
+     "n": 63
+    },
+    "28": {
+     "banked": 44.745000000000005,
+     "hyd": 98.75,
+     "clean": 41.915,
+     "n": 62
+    },
+    "29": {
+     "banked": 46.79,
+     "hyd": 98.5,
+     "clean": 46.0,
+     "n": 61
+    },
+    "30": {
+     "banked": 47.2,
+     "hyd": 98.5,
+     "clean": 46.0,
+     "n": 57
+    },
+    "31": {
+     "banked": 48.0,
+     "hyd": 98.05,
+     "clean": 47.785,
+     "n": 50
+    },
+    "32": {
+     "banked": 46.0,
+     "hyd": 98.65,
+     "clean": 46.0,
+     "n": 50
+    },
+    "33": {
+     "banked": 48.0,
+     "hyd": 97.5,
+     "clean": 48.0,
+     "n": 50
+    },
+    "34": {
+     "banked": 48.0,
+     "hyd": 98.4,
+     "clean": 48.0,
+     "n": 49
+    },
+    "35": {
+     "banked": 66.75,
+     "hyd": 97.0,
+     "clean": 48.0,
+     "n": 49
+    },
+    "36": {
+     "banked": 55.290000000000006,
+     "hyd": 98.3,
+     "clean": 49.25,
+     "n": 48
+    },
+    "37": {
+     "banked": 48.0,
+     "hyd": 98.5,
+     "clean": 48.0,
+     "n": 39
+    },
+    "38": {
+     "banked": 69.15,
+     "hyd": 97.2,
+     "clean": 63.56,
+     "n": 35
+    },
+    "39": {
+     "banked": 59.535,
+     "hyd": 98.0,
+     "clean": 59.315,
+     "n": 28
+    },
+    "40": {
+     "banked": 127.22,
+     "hyd": 96.95,
+     "clean": 113.13,
+     "n": 28
+    },
+    "41": {
+     "banked": 143.22,
+     "hyd": 97.35,
+     "clean": 135.125,
+     "n": 28
+    }
+   }
+  },
+  "skilled": {
+   "n": 200,
+   "mean_score": 12.26,
+   "escape_rate": 0.995,
+   "game_over_rate": 0.0,
+   "timeout_rate": 0.005,
+   "median_escape_day_all": 11.0,
+   "median_escape_day": 11.0,
+   "mean_escape_day": 12.07035175879397,
+   "min_escape_day": 6,
+   "escape_day_iqr": 4.0,
+   "escape_day_p25": 10.0,
+   "escape_day_p75": 14.0,
+   "real_min_median": 60.72,
+   "collapses_mean": 2.305,
+   "close_calls_mean": 4.805,
+   "win_rate_after_collapse": 0.9943502824858758,
+   "post_collapse_win_ratio": 0.9993470175737444,
+   "reward_gap_median_min": 1.4,
+   "reward_gap_longest_min": 11.58,
+   "reward_gap_longest_p90": 24.965999999999998,
+   "dead_time": 0.52964,
+   "pump_frac": 0.15654999999999997,
+   "rewalk_frac": 0.37305999999999995,
+   "idle_hub_frac": 0.11099,
+   "demo_gate_5": 1.0,
+   "demo_gate_10": 1.0,
+   "demo_room_5": 0.995,
+   "demo_room_10": 1.0,
+   "demo_return_5": 0.97,
+   "demo_return_10": 1.0,
+   "demo_gate_and_room_10": 1.0,
+   "zone2_day_median": 4.0,
+   "zone1_exit_min_median": 19.1,
+   "map_pct_mean": 0.254855,
+   "area_minutes": {
+    "hub": 20.50575,
+    "zone1": 18.5796,
+    "zone2": 16.120900000000002,
+    "room0": 3.71125,
+    "room1": 3.1855999999999995,
+    "room2": 5.1699,
+    "room3": 0.3851,
+    "room4": 0.3337,
+    "room5": 0.15305000000000002,
+    "room6": 0.23485
+   },
+   "sources_l": {
+    "pump": 383.71695000000005,
+    "rain": 0.8593000000000001,
+    "still": 3.1059499999999995,
+    "well": 24.986000000000004,
+    "tile": 25.104899999999997,
+    "section": 0.93,
+    "milestone": 4.425,
+    "valve": 0.0,
+    "room": 15.809149999999999,
+    "storm": 3.1567499999999997,
+    "safe_return": 1.80595
+   },
+   "items_bought_share": {
+    "S1": 1.0,
+    "S2": 1.0,
+    "S5": 1.0,
+    "E1": 1.0,
+    "W1": 1.0,
+    "M1": 1.0,
+    "S4": 1.0,
+    "W4": 1.0,
+    "S3": 1.0,
+    "W7": 0.4,
+    "M4": 0.355,
+    "W2": 0.27,
+    "W5": 0.17,
+    "S8": 0.135,
+    "P1": 0.105
+   },
+   "collapse_causes": {
+    "day_hub": 72,
+    "day_zone1": 243,
+    "night_lockdown": 48,
+    "day_zone2": 98
+   },
+   "game_over_causes": {},
+   "minigames": {
+    "hub": {
+     "tries_per_run": 1.025,
+     "win_rate": 0.975609756097561
+    },
+    "z1exit": {
+     "tries_per_run": 1.67,
+     "win_rate": 0.5988023952095808
+    },
+    "z2exit": {
+     "tries_per_run": 1.4,
+     "win_rate": 0.7107142857142857
+    },
+    "valve": {
+     "tries_per_run": 0.0,
+     "win_rate": null
+    },
+    "door": {
+     "tries_per_run": 30.805,
+     "win_rate": 0.40431748092842074
+    }
+   },
+   "water_curve": {
+    "2": {
+     "banked": 28.2,
+     "hyd": 69.1,
+     "clean": 24.0,
+     "n": 200
+    },
+    "3": {
+     "banked": 37.8,
+     "hyd": 99.0,
+     "clean": 21.18,
+     "n": 200
+    },
+    "4": {
+     "banked": 60.614999999999995,
+     "hyd": 99.0,
+     "clean": 25.72,
+     "n": 200
+    },
+    "5": {
+     "banked": 61.75,
+     "hyd": 97.7,
+     "clean": 38.415,
+     "n": 200
+    },
+    "6": {
+     "banked": 57.129999999999995,
+     "hyd": 98.9,
+     "clean": 36.335,
+     "n": 200
+    },
+    "7": {
+     "banked": 64.52000000000001,
+     "hyd": 98.3,
+     "clean": 47.5,
+     "n": 199
+    },
+    "8": {
+     "banked": 64.11,
+     "hyd": 67.4,
+     "clean": 48.75,
+     "n": 199
+    },
+    "9": {
+     "banked": 87.935,
+     "hyd": 97.5,
+     "clean": 62.035,
+     "n": 188
+    },
+    "10": {
+     "banked": 96.82,
+     "hyd": 68.3,
+     "clean": 94.21,
+     "n": 167
+    },
+    "11": {
+     "banked": 108.65,
+     "hyd": 97.9,
+     "clean": 95.46,
+     "n": 110
+    },
+    "12": {
+     "banked": 79.50999999999999,
+     "hyd": 97.7,
+     "clean": 56.55,
+     "n": 83
+    },
+    "13": {
+     "banked": 66.95500000000001,
+     "hyd": 98.7,
+     "clean": 48.0,
+     "n": 66
+    },
+    "14": {
+     "banked": 72.02,
+     "hyd": 98.7,
+     "clean": 44.92,
+     "n": 55
+    },
+    "15": {
+     "banked": 78.74000000000001,
+     "hyd": 98.7,
+     "clean": 42.28,
+     "n": 39
+    },
+    "16": {
+     "banked": 81.89,
+     "hyd": 98.8,
+     "clean": 49.67,
+     "n": 27
+    },
+    "17": {
+     "banked": 89.285,
+     "hyd": 98.6,
+     "clean": 65.96,
+     "n": 18
+    },
+    "18": {
+     "banked": 81.76,
+     "hyd": 98.25,
+     "clean": 50.345,
+     "n": 16
+    },
+    "19": {
+     "banked": 99.22,
+     "hyd": 73.6,
+     "clean": 97.53,
+     "n": 11
+    },
+    "20": {
+     "banked": 144.835,
+     "hyd": 98.6,
+     "clean": 135.85500000000002,
+     "n": 8
+    },
+    "21": {
+     "banked": 159.24,
+     "hyd": 98.0,
+     "clean": 144.0,
+     "n": 7
+    },
+    "22": {
+     "banked": 137.41,
+     "hyd": 70.1,
+     "clean": 117.52,
+     "n": 5
+    },
+    "23": {
+     "banked": 187.91,
+     "hyd": 97.8,
+     "clean": 144.0,
+     "n": 5
+    },
+    "24": {
+     "banked": 191.35,
+     "hyd": 74.2,
+     "clean": 144.0,
+     "n": 5
+    },
+    "25": {
+     "banked": 193.29500000000002,
+     "hyd": 68.75,
+     "clean": 138.0,
+     "n": 4
+    },
+    "26": {
+     "banked": 196.105,
+     "hyd": 66.55,
+     "clean": 141.0,
+     "n": 4
+    },
+    "27": {
+     "banked": 193.26,
+     "hyd": 65.8,
+     "clean": 144.0,
+     "n": 3
+    },
+    "28": {
+     "banked": 196.35,
+     "hyd": 75.1,
+     "clean": 144.0,
+     "n": 3
+    },
+    "29": {
+     "banked": 186.23,
+     "hyd": 95.7,
+     "clean": 138.0,
+     "n": 3
+    },
+    "30": {
+     "banked": 206.29500000000002,
+     "hyd": 65.1,
+     "clean": 144.0,
+     "n": 2
+    },
+    "31": {
+     "banked": 221.065,
+     "hyd": 63.7,
+     "clean": 144.0,
+     "n": 2
+    },
+    "32": {
+     "banked": 218.95499999999998,
+     "hyd": 52.9,
+     "clean": 141.0,
+     "n": 2
+    },
+    "33": {
+     "banked": 216.615,
+     "hyd": 80.1,
+     "clean": 141.0,
+     "n": 2
+    },
+    "34": {
+     "banked": 225.73000000000002,
+     "hyd": 65.25,
+     "clean": 144.0,
+     "n": 2
+    },
+    "35": {
+     "banked": 223.865,
+     "hyd": 78.6,
+     "clean": 144.0,
+     "n": 2
+    },
+    "36": {
+     "banked": 235.01999999999998,
+     "hyd": 99.8,
+     "clean": 144.0,
+     "n": 1
+    },
+    "37": {
+     "banked": 234.97,
+     "hyd": 99.3,
+     "clean": 144.0,
+     "n": 1
+    },
+    "38": {
+     "banked": 221.38,
+     "hyd": 96.3,
+     "clean": 138.0,
+     "n": 1
+    },
+    "39": {
+     "banked": 216.73000000000002,
+     "hyd": 67.0,
+     "clean": 138.0,
+     "n": 1
+    },
+    "40": {
+     "banked": 223.35,
+     "hyd": 99.8,
+     "clean": 144.0,
+     "n": 1
+    },
+    "41": {
+     "banked": 211.68,
+     "hyd": 95.7,
+     "clean": 138.0,
+     "n": 1
+    }
+   }
+  }
+ },
+ "targets": [
+  [
+   "normal",
+   "median escape day (non-escapes count as never)",
+   "20-24",
+   20.0,
+   true
+  ],
+  [
+   "normal",
+   "game over rate",
+   "<= 15%",
+   0.0,
+   true
+  ],
+  [
+   "normal",
+   "collapses per run (mean)",
+   "1-3",
+   1.675,
+   true
+  ],
+  [
+   "normal",
+   "close calls per run (mean)",
+   "3-8",
+   2.74,
+   false
+  ],
+  [
+   "normal",
+   "win rate after 1st collapse / overall",
+   ">= 70%",
+   1.0,
+   true
+  ],
+  [
+   "normal",
+   "reward gap, median (real min)",
+   "<= 5",
+   2.45,
+   true
+  ],
+  [
+   "normal",
+   "reward gap, longest (real min, median run)",
+   "<= 12",
+   34.335,
+   false
+  ],
+  [
+   "normal",
+   "dead time (pumping + re-walking)",
+   "<= 30%",
+   0.6330849999999999,
+   false
+  ],
+  [
+   "normal",
+   "demo: first gate AND first room within 10 min",
+   ">= 80%",
+   0.975,
+   true
+  ],
+  [
+   "normal",
+   "escape day IQR (days)",
+   "<= 6",
+   2.0,
+   true
+  ],
+  [
+   "beginner",
+   "escape rate",
+   ">= 50%",
+   0.175,
+   false
+  ],
+  [
+   "beginner",
+   "game over rate",
+   "<= 40%",
+   0.685,
+   false
+  ],
+  [
+   "beginner",
+   "median escape day (escapers)",
+   "<= 32",
+   36.0,
+   false
+  ],
+  [
+   "skilled",
+   "median escape day",
+   "12-16",
+   11.0,
+   false
+  ],
+  [
+   "skilled",
+   "fastest escape day",
+   ">= 10",
+   6,
+   false
+  ]
+ ],
+ "overrides": null
+}

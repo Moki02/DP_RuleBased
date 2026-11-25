@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Quick Hands
   tab: 1
   group: Pathfinder
-  costLiters: 20
+  costLiters: 25
   prerequisiteIds:
   - M1
   priority: 1

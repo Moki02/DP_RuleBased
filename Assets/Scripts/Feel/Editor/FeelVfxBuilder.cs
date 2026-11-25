@@ -63,7 +63,6 @@ namespace TheLastDrop.Feel.EditorTools
             new Spec { name = "VFX_DustPuff", label = "Gate / door dust puff", source = "Dungeon_Polygon/FX/FX_Dust_Large_01_Soft", maxParticles = 40, burst = 25, duration = 1f, tint = new Color(0.85f, 0.75f, 0.6f), shake = 0.25f },
             new Spec { name = "VFX_Zone2Dust", label = "Zone 2 turning dust", source = "Wasteland_Polygon/FX/FX_Dust_Storm_01", maxParticles = 150, duration = 3f, tint = new Color(0.9f, 0.8f, 0.65f), shake = 0.7f },
             new Spec { name = "VFX_FootstepDust", label = "Footstep dust", source = "Wasteland_Polygon/FX/FX_Wheel_Dust_02", maxParticles = 12, burst = 5, duration = 0.3f, scale = 0.5f, tint = new Color(0.9f, 0.8f, 0.65f) },
-            new Spec { name = "VFX_WaterSplash", label = "Water splash", source = "Generic_Polygon/FX/FX_Waterfall_Foam_01", maxParticles = 40, burst = 20, duration = 0.5f, tint = new Color(0.8f, 0.92f, 1f) },
             new Spec { name = "VFX_Steam", label = "Boiling steam", source = "Wasteland_Polygon/FX/FX_Smoke_Small_01", maxParticles = 40, loop = true, tint = new Color(1f, 1f, 1f, 0.6f) },
             new Spec { name = "VFX_WaterSparkle", label = "Water banked sparkle", source = "Dungeon_Polygon/FX/FX_Sparkles_01", maxParticles = 30, burst = 20, duration = 0.8f, tint = Water },
             new Spec { name = "VFX_RewardRing", label = "Reward pop (ring)", source = "Dungeon_Polygon/FX/FX_Ring_01", maxParticles = 4, burst = 1, duration = 0.8f, tint = Water },
@@ -73,6 +72,8 @@ namespace TheLastDrop.Feel.EditorTools
         /// <summary>Names of the effects built from scratch (not Synty copies).</summary>
         public const string PourStreamName = "VFX_PourStream";
         public const string RewardPopName = "VFX_RewardPop";
+        public const string PumpGushName = "VFX_PumpGush";
+        public const string DropletSplashName = "VFX_DropletSplash";
 
         /// <summary>Builds everything that is missing. Returns a line per thing made or skipped.</summary>
         public static List<string> BuildAll()
@@ -103,6 +104,8 @@ namespace TheLastDrop.Feel.EditorTools
             foreach (var spec in Specs) CopySynty(spec, log);
             MakePourStream(log);
             MakeRewardPop(log);
+            MakePumpGush(log);
+            MakeDropletSplash(log);
             return log;
         }
 
@@ -324,6 +327,104 @@ namespace TheLastDrop.Feel.EditorTools
             PrefabUtility.SaveAsPrefabAsset(go, dst);
             Object.DestroyImmediate(go);
             log.Add("made   " + dst);
+        }
+
+        // One pump stroke: a short gush of water falling from the spout. GameFeelDirector spawns
+        // it pointing down and shortens the fall so it ends on the trough / ground.
+        static void MakePumpGush(List<string> log)
+        {
+            string dst = EffectPath(PumpGushName);
+            if (File.Exists(dst)) { log.Add("kept   " + dst); return; }
+            var mat = UnlitMaterial("M_VFX_PourStream", AssetDatabase.LoadAssetAtPath<Texture2D>(DotPath),
+                                    new Color(0.7f, 0.88f, 1f, 0.8f), false);
+
+            var go = new GameObject(PumpGushName);
+            var ps = Droplets(go, mat, 2.5f);
+            var main = ps.main;
+            main.loop = false;
+            main.duration = 0.35f;
+            main.playOnAwake = false;
+            main.maxParticles = 45;
+            main.startLifetime = 1f;      // the longest fall; the director shortens it per spout
+            main.startSpeed = 1.4f;
+            main.startSize = new ParticleSystem.MinMaxCurve(0.06f, 0.1f);
+
+            var emission = ps.emission;
+            emission.rateOverTime = 110f;
+
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Cone;
+            shape.angle = 4f;
+            shape.radius = 0.03f;
+
+            go.AddComponent<PooledEffect>();
+            PrefabUtility.SaveAsPrefabAsset(go, dst);
+            Object.DestroyImmediate(go);
+            log.Add("made   " + dst);
+        }
+
+        // Small droplets jumping up where falling water lands (spawned with no rotation).
+        static void MakeDropletSplash(List<string> log)
+        {
+            string dst = EffectPath(DropletSplashName);
+            if (File.Exists(dst)) { log.Add("kept   " + dst); return; }
+            var mat = UnlitMaterial("M_VFX_PourStream", AssetDatabase.LoadAssetAtPath<Texture2D>(DotPath),
+                                    new Color(0.7f, 0.88f, 1f, 0.8f), false);
+
+            var go = new GameObject(DropletSplashName);
+            var ps = Droplets(go, mat, 1.2f);
+            var main = ps.main;
+            main.loop = false;
+            main.duration = 0.1f;
+            main.playOnAwake = false;
+            main.maxParticles = 16;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.25f, 0.4f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(0.8f, 1.8f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.025f, 0.05f);
+
+            var emission = ps.emission;
+            emission.rateOverTime = 0f;
+            emission.SetBursts(new[] { new ParticleSystem.Burst(0f, (short)10) });
+
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Cone;
+            shape.angle = 35f;
+            shape.radius = 0.06f;
+            shape.rotation = new Vector3(-90f, 0f, 0f); // cone opens upwards
+
+            go.AddComponent<PooledEffect>();
+            PrefabUtility.SaveAsPrefabAsset(go, dst);
+            Object.DestroyImmediate(go);
+            log.Add("made   " + dst);
+        }
+
+        // A particle system of stretched water drops pulled down by gravity (shared settings).
+        static ParticleSystem Droplets(GameObject go, Material mat, float lengthScale)
+        {
+            var ps = go.AddComponent<ParticleSystem>();
+            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            var main = ps.main;
+            main.gravityModifier = 1f;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            main.startColor = Color.white;
+
+            var col = ps.colorOverLifetime;
+            col.enabled = true;
+            var fade = new Gradient();
+            fade.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                         new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(1f, 0.85f), new GradientAlphaKey(0f, 1f) });
+            col.color = fade;
+
+            var r = go.GetComponent<ParticleSystemRenderer>();
+            r.renderMode = ParticleSystemRenderMode.Stretch;
+            r.lengthScale = lengthScale;
+            r.velocityScale = 0.05f;
+            r.sharedMaterial = mat;
+            r.shadowCastingMode = ShadowCastingMode.Off;
+            r.receiveShadows = false;
+            r.lightProbeUsage = LightProbeUsage.Off;
+            r.reflectionProbeUsage = ReflectionProbeUsage.Off;
+            return ps;
         }
 
         // Reward pop: the blue ring plus the water sparkle together.

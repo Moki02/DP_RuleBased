@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Bigger Roof
   tab: 0
   group: Water
-  costLiters: 20
+  costLiters: 25
   prerequisiteIds:
   - W2
   priority: 0

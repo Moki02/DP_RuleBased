@@ -88,6 +88,7 @@ namespace TheLastDrop
             var upgrades = new UpgradeLogic(UpgradeTests.LoadReal(), 10f, 25f);
             upgrades.AddStored(100f);
             upgrades.Buy("S2", true, false);
+            upgrades.AddStored(100f);
             upgrades.Buy("W1", true, false);
 
             // Gates: one half full, one won.

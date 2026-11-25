@@ -166,7 +166,8 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: ef1e3ad50cf7e1a41bc5c78c4ff99f07, type: 3}
     volume: 0.6
   vfxFootstepDust: {fileID: 3811726979365093157, guid: d47dbf78418e66f43a6d941bd37db4d0, type: 3}
-  vfxWaterSplash: {fileID: 3745635057120432680, guid: 3a4ef2b9e3787e644b5e66a34d3796a1, type: 3}
+  vfxPumpGush: {fileID: 2626471877423937308, guid: 90f191902200fef4e96d97d9c0d359fd, type: 3}
+  vfxDropletSplash: {fileID: 3948294591151173753, guid: 78d4b0769c62cff4a93b16d6d6e29578, type: 3}
   vfxSteam: {fileID: 6608097798509848568, guid: 6f823215f6710b343a3758b311fe5b80, type: 3}
   vfxPourStream: {fileID: 1086870912363901908, guid: 3c9f4cfa2472fc8428fce6563a1e10a7, type: 3}
   vfxWaterSparkle: {fileID: 9022504443666541421, guid: 4c9d9455aae39b743ba5d269c339621e, type: 3}

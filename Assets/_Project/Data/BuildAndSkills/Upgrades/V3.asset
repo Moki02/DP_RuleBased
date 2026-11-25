@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Keen Eyes
   tab: 1
   group: Scout
-  costLiters: 30
+  costLiters: 38
   prerequisiteIds:
   - V1
   priority: 1

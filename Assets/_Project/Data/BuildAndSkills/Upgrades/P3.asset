@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Chlorine Tablets
   tab: 0
   group: Purification
-  costLiters: 35
+  costLiters: 44
   prerequisiteIds:
   - P1
   priority: 1

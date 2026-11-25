@@ -31,7 +31,7 @@ MonoBehaviour:
   interactRange: 2
   hydMax: 100
   drainIdle: 0.25
-  drainWalk: 0.5
+  drainWalk: 0.55
   drainSprint: 1.2
   drainPump: 0.6
   drainMinigame: 0.25
@@ -177,11 +177,11 @@ MonoBehaviour:
       grassFire: 5
       calm: 10
   - displayName: State of Calamity
-    startDay: 12
+    startDay: 18
     heatMult: 1.4
     rainChance: 0.05
     evaporation: 0.08
-    waterTableDepth: 7.5
+    waterTableDepth: 6.5
     solarSunFactor: 1.6
     deepWellFactor: 0.75
     eventWeights:
@@ -231,7 +231,7 @@ MonoBehaviour:
   lockLiters:
   - 4
   - 10
-  - 18
+  - 16
   pourRate: 1
   minigameFailHyd: 5
   minigameLockout: 10

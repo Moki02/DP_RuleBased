@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Pacing
   tab: 1
   group: Pathfinder
-  costLiters: 30
+  costLiters: 38
   prerequisiteIds:
   - M1
   priority: 1

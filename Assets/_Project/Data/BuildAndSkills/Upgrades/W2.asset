@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Rain Catcher
   tab: 0
   group: Water
-  costLiters: 15
+  costLiters: 19
   prerequisiteIds: []
   priority: 0
   tooltip: "Unlocks the Rain Catcher (4 m\xB2). Fills the Raw Basin while it rains."

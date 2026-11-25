@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Long Stride
   tab: 1
   group: Pathfinder
-  costLiters: 35
+  costLiters: 44
   prerequisiteIds:
   - M1
   priority: 1

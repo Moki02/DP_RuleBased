@@ -84,7 +84,7 @@ namespace TheLastDrop
 
         [Tooltip("HYD lost per second, before stage, event and skill multipliers (R2.1).")]
         [Min(0f)] public float drainIdle = 0.25f;
-        [Min(0f)] public float drainWalk = 0.5f;
+        [Min(0f)] public float drainWalk = 0.55f;
         [Min(0f)] public float drainSprint = 1.2f;
         [Min(0f)] public float drainPump = 0.6f;
         [Min(0f)] public float drainMinigame = 0.25f;
@@ -204,7 +204,7 @@ namespace TheLastDrop
                 new EventWeights(35, 20, 10, 0, 10, 0, 5, 20)),
             new StageSettings("Drought", 5, 1.25f, 0.15f, 0.05f, 6.5f, 1.4f, 0.85f,
                 new EventWeights(15, 25, 15, 15, 10, 5, 5, 10)),
-            new StageSettings("State of Calamity", 12, 1.4f, 0.05f, 0.08f, 7.5f, 1.6f, 0.75f,
+            new StageSettings("State of Calamity", 18, 1.4f, 0.05f, 0.08f, 6.5f, 1.6f, 0.75f,
                 new EventWeights(5, 30, 15, 15, 10, 10, 10, 5)),
         };
 
@@ -274,7 +274,7 @@ namespace TheLastDrop
         // ------------------------------------------------------------------ Lock basins
         [Header("Lock basins")]
         [Tooltip("Litres to fill each lock basin (R8.9): [0] hub gates, [1] zone 1 exits, [2] zone 2 exits. Demo mode uses only [0].")]
-        public float[] lockLiters = { 4f, 10f, 18f };
+        public float[] lockLiters = { 4f, 10f, 16f };
         [Tooltip("Litres per second poured from the canteen into a lock basin while E is held.")]
         [Min(0f)] public float pourRate = 1f;           // L/s
         [Tooltip("When the canteen is empty, keep pouring from the player's own HYD (1 L costs Hyd Per Liter HYD). Off = canteen only.")]

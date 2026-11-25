@@ -15,7 +15,7 @@
 // The rules themselves live in GateLockLogic (plain C#, tested). Water poured stays in the
 // basin between visits.
 //
-// DESIGN RULES: R8.9 (lock basins: 4 / 10 / 18 L), R9.1 to R9.3, R9.6 (difficulty),
+// DESIGN RULES: R8.9 (lock basins: 4 / 10 / 16 L), R9.1 to R9.3, R9.6 (difficulty),
 // R8.21 / R8.23 (night), R11.6 (an exit gate's win is the game's win).
 //
 // HOW TO USE: the Lock Basin prefab has this. In the maze playtest GateManager places one

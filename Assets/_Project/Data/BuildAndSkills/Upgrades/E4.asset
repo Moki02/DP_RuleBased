@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Iron Stomach
   tab: 1
   group: Endurance
-  costLiters: 30
+  costLiters: 38
   prerequisiteIds:
   - E1
   priority: 1

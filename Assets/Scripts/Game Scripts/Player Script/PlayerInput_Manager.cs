@@ -48,6 +48,8 @@ public class PlayerInput_Manager : MonoBehaviour
     [Header("PLAYER ACTION INPUT")]
     [Tooltip("True while Shift is held.")]
     public bool sprintInput = false;
+    [Tooltip("True while Q is held.")]
+    public bool drinkInput = false;
 
     [Header("Interaction Input")]
     [Tooltip("True while E is held (Hold interactions).")]
@@ -97,6 +99,7 @@ public class PlayerInput_Manager : MonoBehaviour
 
     private void OnDisable()
     {
+        drinkInput = false;
         interactInput = false;
         interactPressed = false;
         crouchPressed = false;
@@ -148,7 +151,12 @@ public class PlayerInput_Manager : MonoBehaviour
         playerControls.PlayerAction.PlayerSprint.performed += i => sprintInput = true;
         playerControls.PlayerAction.PlayerSprint.canceled += i => sprintInput = false;
 
-        playerControls.PlayerAction.PlayerDrink.performed += i => HandleDrinkInput();
+        playerControls.PlayerAction.PlayerDrink.performed += i =>
+        {
+            drinkInput = true;
+            HandleDrinkInput();
+        };
+        playerControls.PlayerAction.PlayerDrink.canceled += i => drinkInput = false;
 
         playerControls.PlayerAction.PlayerPause.performed += i => HandlePauseInput();
 

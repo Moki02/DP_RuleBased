@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Bigger Basin
   tab: 0
   group: Hub storage
-  costLiters: 10
+  costLiters: 13
   prerequisiteIds: []
   priority: 0
   tooltip: Raw Basin 40 L.

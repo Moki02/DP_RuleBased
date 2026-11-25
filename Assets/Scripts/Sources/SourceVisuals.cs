@@ -25,7 +25,7 @@ namespace TheLastDrop
         /// (centre) with size <paramref name="scale"/> in metres. Its collider is removed.
         /// </summary>
         public static GameObject Part(Transform parent, string name, PrimitiveType type,
-            Vector3 localPos, Vector3 scale, Color colour)
+            Vector3 localPos, Vector3 scale, Color colour, Material material = null)
         {
             var go = GameObject.CreatePrimitive(type);
             go.name = name;
@@ -35,11 +35,17 @@ namespace TheLastDrop
 
             // No collider: the base must stay walkable (team note: keep them out of the way).
             var col = go.GetComponent<Collider>();
-            if (col != null) Object.Destroy(col);
+            if (col != null)
+            {
+                if (Application.isPlaying) Object.Destroy(col);
+                else Object.DestroyImmediate(col);
+            }
 
-            // Plain colour on the primitive's own material (works in URP and Built-in).
             var r = go.GetComponent<Renderer>();
-            if (r != null)
+            // A material asset if given: the primitive's default material is pink in a URP build.
+            if (r != null && material != null) r.sharedMaterial = material;
+            // Otherwise plain colour on the primitive's own material (only at Play: no leaked copies in the editor).
+            else if (r != null && Application.isPlaying)
             {
                 var m = r.material; // a copy just for this object
                 if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", colour);
@@ -66,10 +72,12 @@ namespace TheLastDrop
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.textWrappingMode = TextWrappingModes.NoWrap;
             tmp.color = new Color(0.92f, 0.97f, 1f);
-            tmp.outlineWidth = 0.2f;
             tmp.rectTransform.sizeDelta = new Vector2(10f, 2f);
             var label = go.AddComponent<FacingLabel>();
             label.text = tmp;
+            // The outline is set by FacingLabel.Awake at Play. In the editor, setting it would
+            // copy the font material into the scene (a leaked material per label).
+            if (Application.isPlaying) tmp.outlineWidth = label.outlineWidth;
             return label;
         }
     }

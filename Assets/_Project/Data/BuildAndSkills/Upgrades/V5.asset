@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Cartographer
   tab: 1
   group: Scout
-  costLiters: 40
+  costLiters: 50
   prerequisiteIds:
   - V3
   - V4

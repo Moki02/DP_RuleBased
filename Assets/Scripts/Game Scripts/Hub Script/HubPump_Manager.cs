@@ -88,12 +88,38 @@ public class HubPump_Manager : Interactable_Manager
 
         if (fullPopup != null)
             fullPopup.gameObject.SetActive(false);
+
+        // The handle / piston animation (AC_HandPump: bool IsPumping, float StrokeSpeed).
+        pumpAnimator = GetComponentInChildren<Animator>();
+        if (pumpAnimator != null && pumpAnimator.runtimeAnimatorController == null) pumpAnimator = null;
+    }
+
+    private Animator pumpAnimator;
+    private static readonly int IsPumpingHash = Animator.StringToHash("IsPumping");
+    private static readonly int StrokeSpeedHash = Animator.StringToHash("StrokeSpeed");
+
+    // Plays the stroke while E is held, one handle cycle per pump stroke. The handle stays
+    // still when the Raw Basin is full (it locks, R4.2) or the well is dry.
+    private void UpdatePumpAnimation()
+    {
+        if (pumpAnimator == null)
+            return;
+
+        bool full = resources != null && resources.rawBasin >= resources.rawBasin_Max - 0.0001f;
+        bool moving = IsPumping && !full && CurrentFactor > 0.001f;
+        pumpAnimator.SetBool(IsPumpingHash, moving);
+
+        // The stroke clip is 1 s long: play it once per stroke interval.
+        float clipSeconds = 1f;
+        pumpAnimator.SetFloat(StrokeSpeedHash, clipSeconds / Mathf.Max(0.05f, StrokeInterval));
     }
 
     private void Update()
     {
         if (fullPopup != null && fullPopup.gameObject.activeSelf && Time.time > fullShownUntil)
             fullPopup.gameObject.SetActive(false);
+
+        UpdatePumpAnimation();
     }
 
     /// <summary>True when the player is close enough and not collapsed.</summary>
@@ -114,20 +140,14 @@ public class HubPump_Manager : Interactable_Manager
         return Vector3.Distance(playerPosition, pumpPosition) <= Reach;
     }
 
-    /// <summary>The prompt, with the pump's output and the reason (R4.6).</summary>
+    /// <summary>The prompt. Kept short: the Raw Basin's own label shows the litres.</summary>
     public override string GetInteractionText()
     {
-        // R4.6: the player should never have to guess why a source slowed down.
-        float f = CurrentFactor;
-        string reason = OutputReason != null ? OutputReason() : null;
-        string state = f <= 0.001f ? "DRY" : Mathf.RoundToInt(f * 100f) + "%";
         if (resources != null && resources.rawBasin >= resources.rawBasin_Max - 0.0001f)
-            return $"Hand Pump: Raw Basin FULL";
-        // Show where the water goes, so each stroke has a visible result (the pot's label shows it too).
-        string basin = resources != null
-            ? $"\nRaw Basin {resources.FormatWater(resources.rawBasin)} / {resources.FormatWater(resources.rawBasin_Max)}"
-            : "";
-        return $"Hold [E] to Pump  (Hand Pump: {state}{(string.IsNullOrEmpty(reason) ? "" : ", " + reason)}){basin}";
+            return "Raw Basin FULL";
+        if (CurrentFactor <= 0.001f)
+            return "Hand Pump: dry";
+        return "Hold [E] to Pump";
     }
 
     /// <summary>Called every frame E is held: makes a stroke every Stroke Interval.</summary>

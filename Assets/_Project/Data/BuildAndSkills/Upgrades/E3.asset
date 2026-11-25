@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Water Discipline
   tab: 1
   group: Endurance
-  costLiters: 25
+  costLiters: 32
   prerequisiteIds:
   - E2
   priority: 1

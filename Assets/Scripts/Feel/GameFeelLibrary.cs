@@ -153,8 +153,10 @@ namespace TheLastDrop.Feel
         [Header("Effects (prefabs from Assets/VFX/Effects)")]
         [Tooltip("Dust under each footstep on sand.")]
         public GameObject vfxFootstepDust;
-        [Tooltip("Splash at the pump spout each stroke.")]
-        public GameObject vfxWaterSplash;
+        [Tooltip("Gush of water falling from the pump spout each stroke.")]
+        public GameObject vfxPumpGush;
+        [Tooltip("Small droplets where falling water lands (pump, tap, basin).")]
+        public GameObject vfxDropletSplash;
         [Tooltip("Steam over the boiling pot (loop).")]
         public GameObject vfxSteam;
         [Tooltip("Water stream at the tap / into a lock basin (loop).")]

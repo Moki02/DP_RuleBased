@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Sun Reading
   tab: 1
   group: Scout
-  costLiters: 20
+  costLiters: 25
   prerequisiteIds: []
   priority: 0
   tooltip: A compass at the top of the screen.

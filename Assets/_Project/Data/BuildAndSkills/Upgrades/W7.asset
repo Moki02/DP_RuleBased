@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Deep Well
   tab: 0
   group: Water
-  costLiters: 120
+  costLiters: 150
   prerequisiteIds:
   - W4
   - S3

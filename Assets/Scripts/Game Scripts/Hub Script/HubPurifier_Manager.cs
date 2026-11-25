@@ -144,19 +144,8 @@ public class HubPurifier_Manager : MonoBehaviour
         if (levelLabel == null)
             return;
 
-        string status;
-        if (!hasWater)
-            status = "Empty: pump water in";
-        else if (resources.cleanStorage >= resources.cleanStorage_Max - 0.0001f)
-            status = "Paused: Clean Storage full";
-        else
-            status = (RateOverride != null && RateOverride() >= 0f ? "Filtering" : "Boiling") +
-                     $" {CurrentRate:0.##} L/s into Clean Storage";
-
-        string text = labelTitle + "\n<size=70%>Raw water " +
-                      resources.FormatWater(resources.rawBasin) + " / " +
-                      resources.FormatWater(resources.rawBasin_Max) +
-                      "\n" + status + "</size>";
+        // Just the name: the Raw Basin and Clean Storage labels already show the litres.
+        string text = RateOverride != null && RateOverride() >= 0f ? "Biosand Filter" : labelTitle;
 
         if (levelLabel.text != text)
             levelLabel.text = text;

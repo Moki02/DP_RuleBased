@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Second Wind
   tab: 1
   group: Endurance
-  costLiters: 50
+  costLiters: 63
   prerequisiteIds:
   - E3
   priority: 1

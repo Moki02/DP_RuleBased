@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Surveyor
   tab: 1
   group: Scout
-  costLiters: 25
+  costLiters: 32
   prerequisiteIds:
   - V1
   priority: 1

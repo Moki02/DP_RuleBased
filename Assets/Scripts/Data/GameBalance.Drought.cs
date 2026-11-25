@@ -8,7 +8,8 @@
 // GameBalance.cs > "Drought stages", and the hand pump's depth tables are "Pump By Depth"
 // and "Deep Set Pump By Depth". Those code defaults already match the GDD water table
 // table (section 4): Stage 1 4 m 100%, Stage 2 5.5 m 80%, Stage 3 6.5 m 50%,
-// Stage 4 7.5 m 0% (past the 7 m suction limit); Deep-Set Cylinder 100/100/80/60%.
+// Deep-Set Cylinder 100/100/80/60%. Balance pass (Tools/BalanceSim): Stage 4 now starts on
+// day 18 at 6.5 m (hand pump 50%, Deep-Set 80%) instead of day 12 at 7.5 m (0% / 60%).
 //
 // DESIGN RULES: R3.4, R5.2 (evaporation), R10.1 (radio, lighting), R10.2 (day 5 line).
 //

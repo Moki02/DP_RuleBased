@@ -64,10 +64,8 @@ namespace TheLastDrop.Feel.EditorTools
         public static List<string> Install()
         {
             var log = new List<string>();
-            if (!AssetDatabase.IsValidFolder(FeelVfxBuilder.EffectsFolder))
-            {
-                log.AddRange(FeelVfxBuilder.BuildAll());
-            }
+            // Makes only the effects that are missing (existing ones are kept).
+            log.AddRange(FeelVfxBuilder.BuildAll());
             var lib = LoadOrCreateLibrary(log);
             FillLibrary(lib, log);
             EditorUtility.SetDirty(lib);
@@ -154,9 +152,10 @@ namespace TheLastDrop.Feel.EditorTools
             S(l.ambienceMenu, "Ambience/sfx_ambience_menu_02", 0.6f, log);
 
             l.vfxFootstepDust = V(l.vfxFootstepDust, "VFX_FootstepDust", log);
-            l.vfxWaterSplash = V(l.vfxWaterSplash, "VFX_WaterSplash", log);
             l.vfxSteam = V(l.vfxSteam, "VFX_Steam", log);
             l.vfxPourStream = V(l.vfxPourStream, "VFX_PourStream", log);
+            l.vfxPumpGush = V(l.vfxPumpGush, FeelVfxBuilder.PumpGushName, log);
+            l.vfxDropletSplash = V(l.vfxDropletSplash, FeelVfxBuilder.DropletSplashName, log);
             l.vfxWaterSparkle = V(l.vfxWaterSparkle, "VFX_WaterSparkle", log);
             l.vfxDustPuff = V(l.vfxDustPuff, "VFX_DustPuff", log);
             l.vfxZone2Dust = V(l.vfxZone2Dust, "VFX_Zone2Dust", log);

@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Salakot
   tab: 1
   group: Endurance
-  costLiters: 12
+  costLiters: 15
   prerequisiteIds: []
   priority: 0
   tooltip: "All hydration drain \xD7 0.9."

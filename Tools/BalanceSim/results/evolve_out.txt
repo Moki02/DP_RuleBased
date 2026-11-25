@@ -1,0 +1,15 @@
+gen  0  best 12.27  {'escape_rate': 1.0, 'median_day': 12.0, 'min_day': 11, 'game_over': 0.0}  mean 33.88
+gen  1  best 11.83  {'escape_rate': 1.0, 'median_day': 12.0, 'min_day': 8, 'game_over': 0.0}  mean 13.55
+gen  2  best 11.87  {'escape_rate': 1.0, 'median_day': 12.0, 'min_day': 11, 'game_over': 0.0}  mean 13.12
+gen  3  best 11.27  {'escape_rate': 1.0, 'median_day': 10.0, 'min_day': 8, 'game_over': 0.0}  mean 13.28
+gen  4  best 11.83  {'escape_rate': 1.0, 'median_day': 12.0, 'min_day': 9, 'game_over': 0.0}  mean 13.55
+gen  5  best 11.70  {'escape_rate': 1.0, 'median_day': 12.0, 'min_day': 7, 'game_over': 0.0}  mean 13.22
+gen  6  best 11.80  {'escape_rate': 1.0, 'median_day': 12.0, 'min_day': 8, 'game_over': 0.0}  mean 12.81
+gen  7  best 11.83  {'escape_rate': 1.0, 'median_day': 12.0, 'min_day': 8, 'game_over': 0.0}  mean 13.06
+gen  8  best 11.43  {'escape_rate': 1.0, 'median_day': 12.0, 'min_day': 7, 'game_over': 0.0}  mean 12.58
+gen  9  best 11.40  {'escape_rate': 1.0, 'median_day': 12.0, 'min_day': 7, 'game_over': 0.0}  mean 13.20
+gen 10  best 11.30  {'escape_rate': 1.0, 'median_day': 12.0, 'min_day': 6, 'game_over': 0.0}  mean 11.94
+gen 11  best 11.30  {'escape_rate': 1.0, 'median_day': 11.0, 'min_day': 8, 'game_over': 0.0}  mean 13.02
+gen 12  best 11.37  {'escape_rate': 1.0, 'median_day': 12.0, 'min_day': 7, 'game_over': 0.0}  mean 12.74
+gen 13  best 11.37  {'escape_rate': 1.0, 'median_day': 10.0, 'min_day': 8, 'game_over': 0.0}  mean 12.58
+FINAL {'fitness': 11.67, 'genome': {'drink_at': 57.422, 'home_hyd_margin': 12.982, 'home_time_margin_s': 3.138, 'home_slack': 1.0, 'min_trip_s': 22.003, 'pump_target_l': 36.35, 'pour_keep_hyd': 5, 'reserve_l': 2.958, 'door_attempts': 15, 'gate_attempts': 8, 'valve_try': 0.674, 'room_detour': 37, 'explore_range': 400, 'room_shelter': True, 'crouch_wait': True, 'react_pump': False, 'buy_order': ['S1', 'S2', 'S5', 'E1', 'W1', 'M1', 'W7', 'S4', 'W4', 'S3', 'M4', 'E5', 'W5', 'W2', 'E3', 'S8', 'P1']}, 'escape_rate': 1.0, 'median_day': 11.0, 'min_day': 7}

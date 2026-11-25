@@ -58,7 +58,7 @@ namespace TheLastDrop
 
             var w7 = all.First(u => u.Id == "W7");
             CollectionAssert.AreEqual(new[] { "W4", "S3" }, w7.Needs);
-            Assert.AreEqual(120f, w7.Cost);
+            Assert.AreEqual(150f, w7.Cost);
             StringAssert.Contains("Always on", w7.Tooltip, "quoted tooltip with a comma survives");
         }
 
@@ -91,15 +91,15 @@ namespace TheLastDrop
         public void RealCards_AtTheStart()
         {
             var logic = Real();
-            Assert.AreEqual(CardState.CanBuy, logic.GetCard("W1").State, "8 L, 10 stored");
+            Assert.AreEqual(CardState.CanBuy, logic.GetCard("W1").State, "10 L, 10 stored");
             var w2 = logic.GetCard("W2");
             Assert.AreEqual(CardState.ShortOfWater, w2.State);
-            Assert.AreEqual(5f, w2.ShortBy, 1e-4f);
+            Assert.AreEqual(9f, w2.ShortBy, 1e-4f, "19 L, 10 stored");
             Assert.AreEqual("W1", logic.GetCard("W4").MissingId);
             Assert.AreEqual("W4", logic.GetCard("W7").MissingId, "first missing need is named");
-            Assert.AreEqual("W2", logic.GetCard("W5").MissingId, "W5 needs W2 (checked before its 30 L size)");
-            Assert.AreEqual(CardState.CanBuy, logic.GetCard("S1").State, "10 L with exactly 10 stored");
-            Assert.AreEqual(CardState.ShortOfWater, logic.GetCard("M1").State, "15 L with 10 stored");
+            Assert.AreEqual("W2", logic.GetCard("W5").MissingId, "W5 needs W2 (checked before its 38 L size)");
+            Assert.AreEqual(CardState.ShortOfWater, logic.GetCard("S1").State, "13 L with 10 stored");
+            Assert.AreEqual(CardState.ShortOfWater, logic.GetCard("M1").State, "19 L with 10 stored");
         }
 
         [Test]
@@ -110,11 +110,11 @@ namespace TheLastDrop
             Assert.AreEqual(Tapayan, logic.Stored);
             Assert.AreEqual(BuyResult.NotAvailable, logic.Buy("W4", true, false), "needs W1");
             Assert.AreEqual(BuyResult.Bought, logic.Buy("W1", true, false));
-            Assert.AreEqual(17f, logic.Stored, 1e-4f, "25 - 8");
-            Assert.AreEqual(CardState.ShortOfWater, logic.GetCard("W4").State, "W1 owned now, but W4 costs 20 and 17 are stored");
+            Assert.AreEqual(15f, logic.Stored, 1e-4f, "25 - 10");
+            Assert.AreEqual(CardState.CanBuy, logic.GetCard("W4").State, "W1 owned now; W4 costs 13 and 15 are stored");
             logic.AddStored(100f);
             Assert.AreEqual(BuyResult.Bought, logic.Buy("W4", true, false));
-            Assert.AreEqual(5f, logic.Stored, 1e-4f, "25 - 20");
+            Assert.AreEqual(12f, logic.Stored, 1e-4f, "25 - 13");
         }
 
         // ------------------------------------------------------------------ Storage cap
@@ -129,14 +129,14 @@ namespace TheLastDrop
 
             Assert.AreEqual(BuyResult.Bought, logic.Buy("S2", true, false));
             Assert.AreEqual(50f, logic.Cap, "Plastic Drum");
-            Assert.AreEqual(10f, logic.Stored, 1e-4f, "25 - 15");
+            Assert.AreEqual(6f, logic.Stored, 1e-4f, "25 - 19");
 
             logic.AddStored(1000f);
-            Assert.AreEqual(CardState.CanBuy, logic.GetCard("S3").State, "35 L fits in 50");
+            Assert.AreEqual(CardState.CanBuy, logic.GetCard("S3").State, "44 L fits in 50");
             logic.Buy("S3", true, false);
             Assert.AreEqual(150f, logic.Cap, "Ferrocement Tank");
 
-            Assert.AreEqual(CardState.ShortOfWater, logic.GetCard("S6").State, "150 L fits now, but only 15 stored");
+            Assert.AreEqual(CardState.ShortOfWater, logic.GetCard("S6").State, "150 L fits now, but only 6 stored");
             logic.AddStored(1000f);
             logic.Buy("S6", true, false);
             Assert.AreEqual(300f, logic.Cap, "Underground Cistern");
@@ -148,8 +148,8 @@ namespace TheLastDrop
         {
             var logic = Real();
             logic.AddStored(1000f);
-            logic.Buy("W2", true, false);                  // 15 L: W5 (30 L) now only needs storage
-            Assert.AreEqual(CardState.NeedsBiggerStorage, logic.GetCard("W5").State, "30 L > 25 L Tapayan (R7.3)");
+            logic.Buy("W2", true, false);                  // 19 L: W5 (38 L) now only needs storage
+            Assert.AreEqual(CardState.NeedsBiggerStorage, logic.GetCard("W5").State, "38 L > 25 L Tapayan (R7.3)");
             logic.AddStored(1000f);
             logic.Buy("S2", true, false);
             Assert.AreNotEqual(CardState.NeedsBiggerStorage, logic.GetCard("W5").State);
@@ -171,9 +171,9 @@ namespace TheLastDrop
         {
             var logic = Real();
             logic.Buy("W1", true, false);
-            Assert.AreEqual(2f, logic.Stored, 1e-4f);
+            Assert.AreEqual(0f, logic.Stored, 1e-4f);
             Assert.AreEqual(BuyResult.NotAvailable, logic.Buy("W1", true, false), "already owned");
-            Assert.AreEqual(2f, logic.Stored, 1e-4f, "nothing taken twice, nothing given back");
+            Assert.AreEqual(0f, logic.Stored, 1e-4f, "nothing taken twice, nothing given back");
             CollectionAssert.AreEqual(new[] { "W1" }, logic.Owned);
         }
 
@@ -184,7 +184,7 @@ namespace TheLastDrop
         {
             var logic = Real();
             logic.AddStored(1000f);
-            logic.Buy("S2", true, false);                  // 50 L storage, so V3 (30 L) can fit
+            logic.Buy("S2", true, false);                  // 50 L storage, so V3 (38 L) can fit
             logic.AddStored(1000f);
             Assert.AreEqual(4f, logic.GetFloat("walkSpeed", 4f), "default before M1");
             Assert.AreEqual(BuyResult.Bought, logic.Buy("M1", true, false));
@@ -205,6 +205,7 @@ namespace TheLastDrop
             logic.AddStored(1000f);
             logic.Buy("S1", true, false);
             Assert.AreEqual(4f, logic.GetFloat("canteenCapacity", 2f));
+            logic.AddStored(1000f);
             logic.Buy("S2", true, false);
             logic.AddStored(1000f);
             logic.Buy("S4", true, false);
@@ -215,8 +216,8 @@ namespace TheLastDrop
         public void DemoMultiplier_RoundsUp()
         {
             var logic = Real(0.5f);
-            Assert.AreEqual(4f, logic.GetCard("W1").Cost, "8 × 0.5");
-            Assert.AreEqual(18f, logic.CostOf(logic.Get("M2")), "35 × 0.5 = 17.5, rounded up");
+            Assert.AreEqual(5f, logic.GetCard("W1").Cost, "10 × 0.5");
+            Assert.AreEqual(10f, logic.CostOf(logic.Get("W2")), "19 × 0.5 = 9.5, rounded up");
         }
 
         [Test]

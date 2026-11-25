@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Plastic Drum
   tab: 0
   group: Hub storage
-  costLiters: 15
+  costLiters: 19
   prerequisiteIds: []
   priority: 0
   tooltip: Clean Storage 50 L, covered (half evaporation).

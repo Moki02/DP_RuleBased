@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Concrete Basin
   tab: 0
   group: Hub storage
-  costLiters: 45
+  costLiters: 57
   prerequisiteIds:
   - S5
   priority: 1

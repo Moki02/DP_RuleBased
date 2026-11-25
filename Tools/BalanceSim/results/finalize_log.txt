@@ -1,0 +1,2 @@
+variety baseline 1 best 7
+final: 12 / 16

@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Ferrocement Tank
   tab: 0
   group: Hub storage
-  costLiters: 35
+  costLiters: 44
   prerequisiteIds:
   - S2
   priority: 0

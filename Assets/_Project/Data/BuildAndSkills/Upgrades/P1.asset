@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Biosand Filter
   tab: 0
   group: Purification
-  costLiters: 20
+  costLiters: 25
   prerequisiteIds: []
   priority: 0
   tooltip: Purifier 0.4 L/s once ripe (2 days).

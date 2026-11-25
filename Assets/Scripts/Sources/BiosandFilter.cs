@@ -8,10 +8,9 @@
 // and returning -1 (= "use the boiling pot") while P1 isn't owned.
 //
 // It remembers the day P1 was bought and saves it, so ripening carries on after a load.
-// It also puts a sand-coloured filter model next to the boiling pot when owned, and a
-// floating label over the pot that always shows the purifier's rate and state, e.g.
-//     "Boiling pot: 0.17 L/s"   or   "Biosand Filter 75%: 0.30 L/s"
-// (R4.6 spirit: the player never has to guess why water is slow).
+// It also shows the filter model next to the boiling pot when owned (the model is placed
+// in the scene, see HubSceneObjects). LabelText() still gives the rate and state, e.g.
+// "Biosand Filter 75%: 0.30 L/s", for debug use; it is no longer shown in the hub.
 //
 // DESIGN RULES: R3.2, R3.3, R6.1, R6.2, R6.3, section 6 table.
 //
@@ -44,8 +43,6 @@ namespace TheLastDrop
         Func<float> hook;
         bool wasOwned;
 
-        FacingLabel label;
-        GameObject filterModel;
 
         /// <summary>True while the Biosand Filter is owned.</summary>
         public bool Owned => Skills.Owns(FilterId);
@@ -106,27 +103,11 @@ namespace TheLastDrop
             if (balance == null) balance = BalanceProvider.Current;
             if (purifier == null) purifier = FindAnyObjectByType<HubPurifier_Manager>();
 
-            string text = LabelText();
-            if (purifier != null)
-            {
-                if (label == null)
-                {
-                    // An unscaled holder at the pot, so the pot prefab's scale can't stretch the text.
-                    var holder = new GameObject("Purifier_Label").transform;
-                    holder.position = purifier.transform.position;
-                    label = SourceVisuals.Label(holder, balance != null ? balance.sourceLabelHeight : 3f,
-                                                balance != null ? balance.sourceLabelFontSize : 4f);
-                }
-                label.Text = text;
-
-                bool owned = Owned;
-                if (owned && filterModel == null) filterModel = BuildModel();
-                if (!owned && filterModel != null) { Destroy(filterModel); filterModel = null; }
-            }
-
-            // Also a HUD line while in the hub.
-            bool atHub = upgrades != null && upgrades.PlayerAtHub;
-            SimpleHud.SetLine("purifier", atHub ? text : null);
+            // The filter model is placed in the scene (HubSceneObjects); show it while owned.
+            // No rate label or HUD line any more: the pot's own name text says which purifier runs.
+            var hub = HubSceneObjects.Instance;
+            if (hub != null && hub.biosandFilter != null && hub.biosandFilter.activeSelf != Owned)
+                hub.biosandFilter.SetActive(Owned);
         }
 
         /// <summary>"Boiling pot: 0.17 L/s" / "Biosand Filter 75%: 0.30 L/s", plus why it's stopped.</summary>
@@ -144,21 +125,6 @@ namespace TheLastDrop
                 else if (res.rawBasin <= 0.0001f) text += " (waiting for raw water)";                          // R3.2
             }
             return text;
-        }
-
-        // A sand-coloured drum beside the boiling pot (no collider).
-        GameObject BuildModel()
-        {
-            var t = purifier.transform;
-            float side = balance != null ? balance.biosandSideOffset : 1.5f;
-            var holder = new GameObject("BiosandFilter_Model");
-            holder.transform.position = t.position + t.right * side;
-            if (HubPlaceholders.ArtistModel(holder.transform, "BiosandFilter") == null)
-            {
-            SourceVisuals.Part(holder.transform, "Drum", PrimitiveType.Cylinder, new Vector3(0f, 0.6f, 0f), new Vector3(0.7f, 0.6f, 0.7f), new Color(0.85f, 0.75f, 0.5f));
-            SourceVisuals.Part(holder.transform, "Lid", PrimitiveType.Cylinder, new Vector3(0f, 1.22f, 0f), new Vector3(0.75f, 0.03f, 0.75f), new Color(0.35f, 0.3f, 0.25f));
-            }
-            return holder;
         }
 
         // ------------------------------------------------------------------ Saving (R11.8)

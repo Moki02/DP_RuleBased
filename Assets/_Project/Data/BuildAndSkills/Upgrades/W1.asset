@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Greased Handle
   tab: 0
   group: Water
-  costLiters: 8
+  costLiters: 10
   prerequisiteIds: []
   priority: 0
   tooltip: Pump strokes every 0.35 s instead of 0.5 s.

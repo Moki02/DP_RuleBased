@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Wide Roof
   tab: 0
   group: Water
-  costLiters: 60
+  costLiters: 75
   prerequisiteIds:
   - W3
   priority: 1

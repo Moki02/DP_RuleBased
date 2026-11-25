@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Light Sandals
   tab: 1
   group: Pathfinder
-  costLiters: 15
+  costLiters: 19
   prerequisiteIds: []
   priority: 0
   tooltip: Walk 4.4 m/s.

@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Landmarks
   tab: 1
   group: Scout
-  costLiters: 15
+  costLiters: 19
   prerequisiteIds:
   - V1
   priority: 1

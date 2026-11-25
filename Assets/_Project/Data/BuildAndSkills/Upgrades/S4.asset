@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Hydration Pack
   tab: 0
   group: Carry
-  costLiters: 30
+  costLiters: 50
   prerequisiteIds:
   - S1
   priority: 0
