@@ -110,12 +110,6 @@ namespace TheLastDrop
         [Tooltip("#8A6A2E: Needs bigger storage border.")] public Color biggerStorageBorder = new Color32(138, 106, 46, 255);
         [Tooltip("The 3 px ring around the selected card.")] public Color selectedRingColor = new Color32(242, 233, 220, 255);
 
-        [Header("Header tabs (wood planks)")]
-        [Tooltip("Tab word while its page is open.")] public Color tabOnTextColor = new Color32(36, 27, 21, 255);
-        [Tooltip("Tab word while another page is open.")] public Color tabOffTextColor = new Color32(58, 46, 38, 255);
-        [Tooltip("Tab plank tint while its page is open.")] public Color tabOnTint = Color.white;
-        [Tooltip("Tab plank tint while another page is open (darker, so the open page stands out).")] public Color tabOffTint = new Color32(178, 168, 160, 255);
-
         [Header("Text: header (fixed words: used when the prefab is first made)")]
         public string title = "BUILD AND SKILLS";
         public string buildTab = "BUILD", skillsTab = "SKILLS", mapTab = "MAP";
@@ -371,9 +365,7 @@ namespace TheLastDrop
             {
                 bool on = kv.Key == Memory.Current;
                 if (kv.Value.underline != null) kv.Value.underline.enabled = on;
-                if (kv.Value.label != null) kv.Value.label.color = on ? tabOnTextColor : tabOffTextColor;
-                if (kv.Value.button != null && kv.Value.button.targetGraphic is Image plank && plank.sprite != null)
-                    plank.color = on ? tabOnTint : tabOffTint;
+                if (kv.Value.label != null) kv.Value.label.color = on ? waterBlue : mutedTextColor;
             }
 
             if (view.storageText != null) view.storageText.text = string.Format(storageFormat, logic.Stored, logic.Cap);
