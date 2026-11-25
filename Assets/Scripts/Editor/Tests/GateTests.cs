@@ -86,11 +86,11 @@ namespace TheLastDrop
         }
 
         [Test]
-        public void LockLitres_4_10_18()
+        public void LockLitres_4_10_16()
         {
             Assert.AreEqual(4f, balance.GetLockLiters(0), "hub gates");
             Assert.AreEqual(10f, balance.GetLockLiters(1), "zone 1 exits");
-            Assert.AreEqual(18f, balance.GetLockLiters(2), "zone 2 exits");
+            Assert.AreEqual(16f, balance.GetLockLiters(2), "zone 2 exits");
         }
 
         // ------------------------------------------------------------------ Lock state machine
