@@ -283,10 +283,15 @@ namespace TheLastDrop
         /// </summary>
         public void HostIn(RectTransform page)
         {
-            if (content.parent == page) return;
+            if (root == content.gameObject) return; // already hosted
             var oldCanvas = root;
-            content.SetParent(page, false);
-            UiBuilder.Fill(content);
+            // The map can already sit in the Map page in the scene (placed there so it can be edited
+            // in place, under GameMenu > Menu > Pages > Map Page): then it keeps its own layout.
+            if (content.parent != page)
+            {
+                content.SetParent(page, false);
+                UiBuilder.Fill(content);
+            }
             root = content.gameObject;        // Show/Hide/IsOpen now switch the map content itself
             root.SetActive(false);
             if (oldCanvas != null && oldCanvas != root) Destroy(oldCanvas);
