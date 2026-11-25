@@ -24,6 +24,8 @@ namespace TheLastDrop
         public const float Width = 140f;
         /// <summary>Card height in pixels used for the layout (design).</summary>
         public const float Height = 156f;
+        /// <summary>How much bigger the selected card is drawn.</summary>
+        public const float SelectedScale = 1.1f;
 
         /// <summary>The upgrade's id.</summary>
         public readonly string Id;
@@ -71,6 +73,10 @@ namespace TheLastDrop
         public void Show(CardInfo card, bool selected, GameMenu style)
         {
             if (ui.selectRing != null) ui.selectRing.enabled = selected;
+            // The selected card is drawn a little bigger and on top of its neighbours (the card is
+            // torn paper, so a rectangular ring around it looked messy).
+            Rect.localScale = Vector3.one * (selected ? SelectedScale : 1f);
+            if (selected) Rect.SetAsLastSibling();
             Color borderColor = style.lineColor, chipColor = style.lineColor, chipTextColor = style.textColor;
             string chipLabel;
             float alpha = 1f;
