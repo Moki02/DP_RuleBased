@@ -199,7 +199,7 @@ namespace TheLastDrop
         /// <summary>The black-and-white colours (also used by Tools > Build UI Prefabs).</summary>
         public void ApplyBlackAndWhite()
         {
-            unrevealedColor = Color.black;
+            unrevealedColor = new Color32(59, 42, 34, 255);      // #3B2A22 dark brown board (the map sits on parchment)
             wallColor = new Color32(46, 46, 46, 255);            // #2E2E2E darkest
             floorColor = new Color32(112, 112, 112, 255);        // #707070
             roomColor = new Color32(160, 160, 160, 255);         // #A0A0A0
