@@ -14,6 +14,8 @@
 // DESIGN RULES: none (pending UI list: loading screen).
 //
 // HOW TO USE: LoadingScreen.Load("SceneName"). SceneFlow does this for every scene change.
+// LoadingScreen.ShowWhileLoading(op, "SceneName") shows it for a scene already loading in the background
+// (the intro preloads the game scene this way).
 // In the prefab: "Fill" is the bar's moving part (its right edge moves from 0 to 100%), and
 // "Percent Text" shows "45%". Both may be left empty.
 // HOW TO EDIT: the minimum time on screen is below.
@@ -45,7 +47,16 @@ namespace TheLastDrop
         public static bool IsLoading => active != null;
 
         /// <summary>Shows the loading screen and loads <paramref name="sceneName"/>.</summary>
-        public static void Load(string sceneName)
+        public static void Load(string sceneName) => Begin(sceneName, null);
+
+        /// <summary>
+        /// Shows the loading screen for a scene that is already loading in the background
+        /// (<paramref name="op"/> started with allowSceneActivation = false, e.g. by the intro),
+        /// and lets it in once it is ready. Never starts a second load of the same scene.
+        /// </summary>
+        public static void ShowWhileLoading(AsyncOperation op, string sceneName) => Begin(sceneName, op);
+
+        static void Begin(string sceneName, AsyncOperation existing)
         {
             if (active != null) return; // already loading something (real time, so a frozen game is fine)
 
@@ -67,7 +78,7 @@ namespace TheLastDrop
             DontDestroyOnLoad(go);
             active = go.GetComponent<LoadingScreen>();
             if (active == null) active = go.AddComponent<LoadingScreen>();
-            active.StartCoroutine(active.LoadRoutine(sceneName));
+            active.StartCoroutine(active.LoadRoutine(sceneName, existing));
         }
 
         // Plain black screen with "LOADING...", a white bar and the percent (prefab missing).
@@ -99,10 +110,10 @@ namespace TheLastDrop
             screen.percentText = percent;
         }
 
-        IEnumerator LoadRoutine(string sceneName)
+        IEnumerator LoadRoutine(string sceneName, AsyncOperation existing)
         {
             float start = Time.unscaledTime;
-            var op = SceneManager.LoadSceneAsync(sceneName);
+            var op = existing ?? SceneManager.LoadSceneAsync(sceneName);
             if (op == null)
             {
                 Debug.LogError($"[LoadingScreen] Can't load \"{sceneName}\". Is it in File > Build Profiles > Scene List? " +

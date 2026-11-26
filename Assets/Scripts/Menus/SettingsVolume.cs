@@ -6,6 +6,7 @@
 //
 // HOW TO USE: add it next to an AudioSource (music, ambience, a sound effect) and pick
 // "Kind". Set the AudioSource's own volume as usual: that is the volume at 100%.
+// To fade a sound from code, set BaseVolume (not AudioSource.volume).
 // HOW TO EDIT: nothing to tune.
 // ============================================================================
 
@@ -26,8 +27,21 @@ namespace TheLastDrop
         AudioSource source;
         float baseVolume;
 
-        void Awake()
+        /// <summary>
+        /// The volume at 100% setting. Set it instead of AudioSource.volume to fade a sound (no garbage;
+        /// the setting is applied on top).
+        /// </summary>
+        public float BaseVolume
         {
+            get { Init(); return baseVolume; }
+            set { Init(); baseVolume = value; Apply(); }
+        }
+
+        void Awake() => Init();
+
+        void Init()
+        {
+            if (source != null) return;
             source = GetComponent<AudioSource>();
             baseVolume = source.volume;
         }

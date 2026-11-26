@@ -1,0 +1,180 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40bb5be51b56c26469a0392765c4d139, type: 3}
+  m_Name: IntroScript
+  m_EditorClassIdentifier: Assembly-CSharp::TheLastDrop.IntroScript
+  charsPerSecond: 35
+  loudspeakerCharsPerSecond: 120
+  charsPerClick: 2
+  clickClip: {fileID: 8300000, guid: 8ab28063659c00341b9a427ce1369e4f, type: 3}
+  clickVolume: 0.25
+  clickPitch: {x: 0.9, y: 1.1}
+  holdAfterBeat: 1.5
+  fadeOutSeconds: 0.6
+  titleFadeIn: 1
+  titleHold: 2
+  carryOverFade: 2.5
+  beats:
+  - label: 1. Drought
+    text: 'The rain stopped coming last year.
+
+      By May, the well was dry.
+
+      By
+      June, the carabao were gone.'
+    speedScale: 1
+    pauseBetweenLines: 0.4
+    blackAfter: 0
+    cues:
+    - action: 1
+      clip: {fileID: 8300000, guid: ccdaf80efc12fe14bbf8bf0388732651, type: 3}
+      beforeLine: 0
+      delay: 0
+      volume: 0.55
+      fadeSeconds: 2.5
+  - label: 2. The water
+    text: 'The tap water was contaminated.
+
+      Nanay boiled the same water three
+      times.
+
+      Then she told us it was clean.
+
+      We knew it wasn''t, but
+      we drank it anyway.'
+    speedScale: 1
+    pauseBetweenLines: 0.4
+    blackAfter: 0
+    cues:
+    - action: 2
+      clip: {fileID: 8300000, guid: ccdaf80efc12fe14bbf8bf0388732651, type: 3}
+      beforeLine: 0
+      delay: 0
+      volume: 0
+      fadeSeconds: 2.5
+  - label: 3. The campus
+    text: 'Every night, Dalisay Data Campus lit up the sky like a city.
+
+      You
+      could hear it from afar. A low, cold hum.
+
+      It drank more in a day than
+      San Rafael did in a month.
+
+      So I took a water jug and wire cutters.
+
+      I
+      only meant to take back what was ours.'
+    speedScale: 1
+    pauseBetweenLines: 0.4
+    blackAfter: 0
+    cues:
+    - action: 1
+      clip: {fileID: 8300000, guid: 8409c1b087e07a247b13477d3cab1046, type: 3}
+      beforeLine: 0
+      delay: 0
+      volume: 0.45
+      fadeSeconds: 3
+  - label: 4. Caught
+    text: 'I got as far as the first pipe.
+
+      Then a hand closed over my mouth.
+
+      [LOUDSPEAKER]
+      SUBJECT {NAME} SECURED. TRANSFER TO RESERVOIR C.'
+    speedScale: 1
+    pauseBetweenLines: 0.4
+    blackAfter: 2
+    cues:
+    - action: 0
+      clip: {fileID: 8300000, guid: 040da8612f04e9849be3136b1161e110, type: 3}
+      beforeLine: 0
+      delay: 0
+      volume: 0.6
+      fadeSeconds: 0
+    - action: 0
+      clip: {fileID: 8300000, guid: 7229b4bca788ce640b3b610e9f0ede61, type: 3}
+      beforeLine: 2
+      delay: 0
+      volume: 0.8
+      fadeSeconds: 0
+    - action: 3
+      clip: {fileID: 0}
+      beforeLine: 2
+      delay: 0
+      volume: 0
+      fadeSeconds: 0.8
+  - label: 5. The cage
+    text: 'I woke to the sound of chains.
+
+      Rust in my mouth. Iron under my
+      back. The floor, rising.
+
+      Whoever built this cage built it to carry people
+      up.
+
+      I wondered how many had ridden it before me.'
+    speedScale: 1
+    pauseBetweenLines: 0.4
+    blackAfter: 0
+    cues:
+    - action: 0
+      clip: {fileID: 8300000, guid: 93dd98bdcd376bb4d9b2b6dc09ec249f, type: 3}
+      beforeLine: 0
+      delay: 0
+      volume: 0.7
+      fadeSeconds: 0
+    - action: 0
+      clip: {fileID: 8300000, guid: d01e3cb85f7d2b644bdd3b356c19e5e9, type: 3}
+      beforeLine: 1
+      delay: 0
+      volume: 0.7
+      fadeSeconds: 0
+  - label: 6. The reservoir
+    text: 'The cage stopped.
+
+      No guards. No voices.
+
+      Just a dry reservoir,
+      walls taller than anything in San Rafael, and a pump standing in the dust.
+
+      But
+      I knew that beyond the rim, the campus kept humming. Cold. Still drinking.
+
+      Nobody
+      told me how to leave.
+
+      So I would find out.'
+    speedScale: 1
+    pauseBetweenLines: 0.4
+    blackAfter: 0
+    cues:
+    - action: 1
+      clip: {fileID: 8300000, guid: ccdaf80efc12fe14bbf8bf0388732651, type: 3}
+      beforeLine: 0
+      delay: 0
+      volume: 0.5
+      fadeSeconds: 2
+    - action: 1
+      clip: {fileID: 8300000, guid: 1a6f6970e82ba554db7f63bfbfb9881b, type: 3}
+      beforeLine: 0
+      delay: 1
+      volume: 0.35
+      fadeSeconds: 4
+  - label: 7. The letter
+    text: 'I hope someone still remembers me,
+
+      - {name}'
+    speedScale: 0.5
+    pauseBetweenLines: 1.5
+    blackAfter: 0
+    cues: []

@@ -8,6 +8,7 @@
 // What this script does:
 //   - the buttons call its public methods (set in each Button's On Click list):
 //       NewGame, Continue, Demo, OpenSettings, CloseSettings, Quit;
+//   - New Game opens the "What is your name?" panel (NameEntryUI); its Begin starts the intro;
 //   - hides the Continue button when there is no save (R11.8);
 //   - the "Skip tutorial" toggle calls SetSkipTutorial (On Value Changed); it shows ticked once the
 //     guided tutorial has been finished or skipped (Salok > Tutorial > Set Up Tutorial adds it);
@@ -39,6 +40,8 @@ namespace TheLastDrop
         public GameObject mainPanel;
         [Tooltip("The Settings panel. Hidden until Settings is pressed.")]
         public GameObject settingsPanel;
+        [Tooltip("The \"What is your name?\" panel shown by New Game. Empty = found in the scene; none = New Game starts at once.")]
+        public NameEntryUI nameEntry;
 
         [Header("Buttons")]
         [Tooltip("Hidden when there is no save to continue.")]
@@ -82,8 +85,17 @@ namespace TheLastDrop
 
         // ------------------------------------------------------------------ Buttons (On Click)
 
-        /// <summary>New Game: deletes the save and starts a full run.</summary>
-        public void NewGame() => SceneFlow.StartGame(SceneFlow.StartMode.NewGame);
+        /// <summary>New Game: asks the player's name (Name Entry panel), then the intro and a full run.</summary>
+        public void NewGame()
+        {
+            if (nameEntry == null) nameEntry = FindAnyObjectByType<NameEntryUI>(FindObjectsInactive.Include);
+            if (nameEntry != null)
+            {
+                ShowSettings(false);
+                nameEntry.Open();
+            }
+            else SceneFlow.StartNewGameWithIntro();
+        }
 
         /// <summary>Continue: starts the game and loads the save (R11.8).</summary>
         public void Continue() => SceneFlow.StartGame(SaveManager.HasSave ? SceneFlow.StartMode.Continue : SceneFlow.StartMode.NewGame);

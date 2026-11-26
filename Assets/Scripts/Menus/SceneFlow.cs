@@ -2,7 +2,9 @@
 // SceneFlow.cs
 // The one place that moves the game between its scenes:
 //
-//   MainMenu      (title, Settings)          -> SceneFlow.StartGame(New / Continue / Demo)
+//   MainMenu      (title, Settings)          -> New Game: Name Entry panel, then StartNewGameWithIntro
+//                                               Continue / Demo: SceneFlow.StartGame(...)
+//   Intro         (text cutscene)            -> preloads the game scene, lets it in at the end
 //   Playtest_Maze (the game)                 -> SceneFlow.ToWin / ToGameOver / ToMainMenu
 //   Win, GameOver (end screens with stats)   -> SceneFlow.StartGame(...) or ToMainMenu
 //
@@ -35,6 +37,8 @@ namespace TheLastDrop
         public const string WinScene = "Win";
         /// <summary>The game over scene.</summary>
         public const string GameOverScene = "GameOver";
+        /// <summary>The intro cutscene scene (played before a New Game from the main menu).</summary>
+        public const string IntroScene = "Intro";
 
         /// <summary>How a run starts.</summary>
         public enum StartMode { NewGame, Continue, Demo }
@@ -58,8 +62,25 @@ namespace TheLastDrop
             continuePending = false;
         }
 
-        /// <summary>Starts a run from the main menu or an end screen.</summary>
+        /// <summary>
+        /// Main menu New Game, after the Name Entry panel: a new run that starts with the intro
+        /// cutscene (Intro scene), which then lets the game scene in. Falls back to the game scene
+        /// straight away if the Intro scene is not in the build.
+        /// </summary>
+        public static void StartNewGameWithIntro()
+        {
+            Prepare(StartMode.NewGame);
+            LoadingScreen.Load(Application.CanStreamedLevelBeLoaded(IntroScene) ? IntroScene : GameScene);
+        }
+
+        /// <summary>Starts a run from the main menu or an end screen (no intro: Continue, Demo, Play Again).</summary>
         public static void StartGame(StartMode mode)
+        {
+            Prepare(mode);
+            LoadingScreen.Load(GameScene);
+        }
+
+        static void Prepare(StartMode mode)
         {
             switch (mode)
             {
@@ -79,7 +100,6 @@ namespace TheLastDrop
                     break;
             }
             MainMenu.SkipMenuOnce = true;
-            LoadingScreen.Load(GameScene);
         }
 
         /// <summary>The game scene asks this once when it starts: true = load the save now (Continue).</summary>

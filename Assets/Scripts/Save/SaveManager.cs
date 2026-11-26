@@ -162,6 +162,7 @@ namespace TheLastDrop
         /// <summary>Saves the player's position and facing.</summary>
         public void Capture(SaveData data)
         {
+            data.playerName = PlayerProfile.Name;
             var p = Player_Manager.instance;
             data.hasPlayer = p != null;
             if (p == null) return;
@@ -172,6 +173,7 @@ namespace TheLastDrop
         /// <summary>Puts the player back where they were saved.</summary>
         public void Restore(SaveData data)
         {
+            if (!string.IsNullOrEmpty(data.playerName)) PlayerProfile.SetCurrent(data.playerName);
             var p = Player_Manager.instance;
             if (p == null || !data.hasPlayer) return;
             var cc = p.characterController;
