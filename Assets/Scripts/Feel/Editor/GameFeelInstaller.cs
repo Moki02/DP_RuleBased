@@ -150,6 +150,9 @@ namespace TheLastDrop.Feel.EditorTools
             S(l.ambienceRain, "Ambience/sfx_ambience_rain_01", 0.5f, log);
             S(l.ambienceDawn, "SFX/World/sfx_world_dawn_06", 0.5f, log);
             S(l.ambienceMenu, "Ambience/sfx_ambience_menu_02", 0.6f, log);
+            S(l.musicMenu, "BGM/Main Menu/desert_sanctuary", 0.35f, log);
+            S(l.musicDay, "BGM/Main Menu/desert_sanctuary", 0.3f, log);
+            S(l.musicNight, "BGM/Main Menu/nightinthedesertmix", 0.3f, log);
 
             l.vfxFootstepDust = V(l.vfxFootstepDust, "VFX_FootstepDust", log);
             l.vfxSteam = V(l.vfxSteam, "VFX_Steam", log);
@@ -171,6 +174,7 @@ namespace TheLastDrop.Feel.EditorTools
             if (slot.clip != null) return;   // someone already chose: keep it
             string path = Audio + file + ".wav";
             var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(path);
+            if (clip == null) clip = AssetDatabase.LoadAssetAtPath<AudioClip>(path = Audio + file + ".ogg");
             if (clip == null) { log.Add("MISSING sound " + path); return; }
             slot.clip = clip;
             slot.volume = volume;

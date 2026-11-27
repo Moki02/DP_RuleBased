@@ -150,6 +150,14 @@ namespace TheLastDrop.Feel
         [Tooltip("The main menu.")]
         public FeelSound ambienceMenu = new FeelSound();
 
+        [Header("Music (Assets/Audio/BGM, plays on top of the ambience)")]
+        [Tooltip("Main menu music, on top of the menu ambience.")]
+        public FeelSound musicMenu = new FeelSound();
+        [Tooltip("In-game music by day. Empty = ambience only.")]
+        public FeelSound musicDay = new FeelSound();
+        [Tooltip("In-game music at night. Empty = ambience only.")]
+        public FeelSound musicNight = new FeelSound();
+
         [Header("Effects (prefabs from Assets/VFX/Effects)")]
         [Tooltip("Dust under each footstep on sand.")]
         public GameObject vfxFootstepDust;

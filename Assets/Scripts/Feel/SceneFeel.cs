@@ -1,6 +1,6 @@
 // ============================================================================
 // SceneFeel.cs
-// One sound for a whole scene: the main menu ambience (loops), or the Win / Game Over
+// One sound for a whole scene: the main menu ambience plus menu music (loop), or the Win / Game Over
 // sting (plays once when the scene opens).
 //
 // DESIGN RULES: none (feel only).
@@ -27,7 +27,7 @@ namespace TheLastDrop.Feel
         [Tooltip("Seconds to wait before the sting (lets the scene appear first).")]
         [Min(0f)] public float delay = 0.2f;
 
-        FeelLoop loop;
+        FeelLoop loop, music;
         float wait;
         bool played;
 
@@ -35,14 +35,17 @@ namespace TheLastDrop.Feel
         {
             if (library == null) { enabled = false; return; }
             if (which == Which.MainMenuAmbience)
+            {
                 loop = new FeelLoop(gameObject, library.ambienceMenu, music: true) { fadeIn = 2f, fadeOut = 1f };
+                music = new FeelLoop(gameObject, library.musicMenu, music: true) { fadeIn = 3f, fadeOut = 1f };
+            }
             wait = delay;
         }
 
         void Update()
         {
             float dt = Time.unscaledDeltaTime;
-            if (loop != null) { loop.Update(true, dt); return; }
+            if (loop != null) { loop.Update(true, dt); music.Update(true, dt); return; }
             if (played) return;
             wait -= dt;
             if (wait > 0f) return;

@@ -4,7 +4,7 @@
 // and closes with M or Esc. The clock keeps running while it's open; the player can't
 // move. Each maze tile is one pixel of a 95 × 95 picture, scaled up with sharp edges.
 //
-// Shows: revealed tiles in colour (unrevealed = black), the player as a white arrow
+// Shows: revealed tiles in colour (unrevealed = the map board's brown), the player as a white arrow
 // pointing the way they face, map markers, a thin outline around zone 2, a legend,
 // "Map %" (revealed walkable tiles out of all walkable tiles), and the zone 2 turn
 // indicator ("Zone 2: 90°" with an arrow). The first time the map opens after zone 2
@@ -199,7 +199,7 @@ namespace TheLastDrop
         /// <summary>The black-and-white colours (also used by Tools > Build UI Prefabs).</summary>
         public void ApplyBlackAndWhite()
         {
-            unrevealedColor = Color.black;
+            unrevealedColor = new Color32(106, 73, 65, 255);     // #6A4941 the map board's brown (salok-ui-6_1)
             wallColor = new Color32(46, 46, 46, 255);            // #2E2E2E darkest
             floorColor = new Color32(112, 112, 112, 255);        // #707070
             roomColor = new Color32(160, 160, 160, 255);         // #A0A0A0

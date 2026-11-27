@@ -4,6 +4,7 @@
 //   base layer: hub by day / maze by day (dry wind) / night,
 //   on top:     tension in the last minute before lockdown, heatwave, thunderstorm rain,
 //               birds for a short while after dawn,
+//   music:      day / night BGM over all of it (GameFeelLibrary > Music), slower crossfade,
 //   plus random thunder (with a screen shake for the close ones) during a storm, and the
 //   rain / blowing-dust effects following the camera during a storm / heatwave.
 // Ambience follows the player's Music volume setting. It only reads the game.
@@ -34,7 +35,10 @@ namespace TheLastDrop.Feel
         [Tooltip("Shortest and longest wait between thunder claps during a storm (seconds).")]
         public Vector2 thunderEvery = new Vector2(7f, 18f);
 
-        FeelLoop hubDay, mazeDay, night, tension, heatwave, storm, rain, dawn;
+        [Tooltip("Seconds to crossfade between the day and night music.")]
+        [Min(0.1f)] public float musicCrossfade = 6f;
+
+        FeelLoop hubDay, mazeDay, night, tension, heatwave, storm, rain, dawn, musicDay, musicNight;
         GameClock_Manager clock;
         float dawnUntil = -1f;
         float thunderTimer;
@@ -52,6 +56,8 @@ namespace TheLastDrop.Feel
             storm = Loop(library.ambienceStorm);
             rain = Loop(library.ambienceRain);
             dawn = Loop(library.ambienceDawn);
+            musicDay = new FeelLoop(gameObject, library.musicDay, music: true) { fadeIn = musicCrossfade, fadeOut = musicCrossfade };
+            musicNight = new FeelLoop(gameObject, library.musicNight, music: true) { fadeIn = musicCrossfade, fadeOut = musicCrossfade };
             clock = GameClock_Manager.Instance;
             if (clock != null) clock.NewDay += OnNewDay;
             thunderTimer = Random.Range(thunderEvery.x, thunderEvery.y);
@@ -90,6 +96,10 @@ namespace TheLastDrop.Feel
             storm.Update(raining, dt);
             rain.Update(raining, dt, 0.7f);
             dawn.Update(!isNight && Time.time < dawnUntil, dt);
+            // Music dips under the storm and the last-minute tension so those still read.
+            float musicLevel = raining ? 0.5f : (!isNight && left <= tensionSeconds ? 0.6f : 1f);
+            musicDay.Update(!isNight, dt, musicLevel);
+            musicNight.Update(isNight, dt, musicLevel);
 
             // Thunder: random claps while the storm builds and while it rains.
             if (stormy && Time.timeScale > 0f)

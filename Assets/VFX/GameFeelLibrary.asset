@@ -165,6 +165,15 @@ MonoBehaviour:
   ambienceMenu:
     clip: {fileID: 8300000, guid: ef1e3ad50cf7e1a41bc5c78c4ff99f07, type: 3}
     volume: 0.6
+  musicMenu:
+    clip: {fileID: 8300000, guid: 787fa2ff38f4f0c4392448dc01715e19, type: 3}
+    volume: 0.35
+  musicDay:
+    clip: {fileID: 8300000, guid: 787fa2ff38f4f0c4392448dc01715e19, type: 3}
+    volume: 0.3
+  musicNight:
+    clip: {fileID: 8300000, guid: c0cc09cc2b4a58e40bcdfbbb8adf7600, type: 3}
+    volume: 0.3
   vfxFootstepDust: {fileID: 3811726979365093157, guid: d47dbf78418e66f43a6d941bd37db4d0, type: 3}
   vfxPumpGush: {fileID: 2626471877423937308, guid: 90f191902200fef4e96d97d9c0d359fd, type: 3}
   vfxDropletSplash: {fileID: 3948294591151173753, guid: 78d4b0769c62cff4a93b16d6d6e29578, type: 3}

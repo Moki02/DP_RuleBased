@@ -116032,9 +116032,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4434555016464819096, guid: 581a3b9041f6127419b30f213ddeaa00, type: 3}
       insertIndex: -1
       addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 567803778218374835, guid: 581a3b9041f6127419b30f213ddeaa00, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
     - targetCorrespondingSourceObject: {fileID: 6093093459259176000, guid: 581a3b9041f6127419b30f213ddeaa00, type: 3}
       insertIndex: -1
       addedObject: {fileID: 0}
@@ -362924,6 +362921,7 @@ MonoBehaviour:
   centerOnTransform: 1
   generateWallColliders: 1
   disableArtWallColliders: 1
+  terrainFloor: 0
   mergeGreyboxWalls: 1
   wallMaterial: {fileID: 0}
   floorMaterial: {fileID: 0}
@@ -434188,7 +434186,63 @@ MonoBehaviour:
   mapScreen: {fileID: 1505596293}
   menuPrefab: {fileID: 0}
   cardPrefab: {fileID: 0}
-  upgradeIcons: []
+  upgradeIcons:
+  - id: S1
+    icon: {fileID: 21300000, guid: c07676fd9d2d7da4f9851438e65bc491, type: 3}
+  - id: S4
+    icon: {fileID: 21300000, guid: 5fb524c39c8c530419bf4cf2a061750e, type: 3}
+  - id: S7
+    icon: {fileID: 21300000, guid: a74d685380a43ca4b9dd1d3f555fb186, type: 3}
+  - id: S2
+    icon: {fileID: 21300000, guid: 2e8c86f257e8d19478f6f61d86b007fa, type: 3}
+  - id: S3
+    icon: {fileID: 21300000, guid: 38822e736a790b343937031f81a3f0a5, type: 3}
+  - id: S6
+    icon: {fileID: 21300000, guid: 209ddc9d160ea8d4098bcd75f33ad8dd, type: 3}
+  - id: S5
+    icon: {fileID: 21300000, guid: 9186c0c682bb81c439a4c4adbcf5f0f8, type: 3}
+  - id: S8
+    icon: {fileID: 21300000, guid: a2806033eefcab3448e4f1a691ba8169, type: 3}
+  - id: P1
+    icon: {fileID: 21300000, guid: 682550bc2d852954aa8db2725419aa0e, type: 3}
+  - id: P2
+    icon: {fileID: 21300000, guid: ace15e4b52622a241aa3161bbd663c56, type: 3}
+  - id: P3
+    icon: {fileID: 21300000, guid: 8488ba820a07cc54ab66950f2b6fca48, type: 3}
+  - id: W7
+    icon: {fileID: 21300000, guid: b678251c3c3d54147ab5995bc648a057, type: 3}
+  - id: E1
+    icon: {fileID: 21300000, guid: 5818ef2682b07c14db75b7f6cec4db15, type: 3}
+  - id: E2
+    icon: {fileID: 21300000, guid: b8fcbbb74d41a724aa84eb3749f8012d, type: 3}
+  - id: E3
+    icon: {fileID: 21300000, guid: 20bb84bbf66b0184583284a1738f0dce, type: 3}
+  - id: E4
+    icon: {fileID: 21300000, guid: 80bb7d03c1795a743ae40e6c3ecb1cd4, type: 3}
+  - id: E5
+    icon: {fileID: 21300000, guid: 9b2eb61eabb558a499c7f1185979c862, type: 3}
+  - id: M1
+    icon: {fileID: 21300000, guid: 6280154bda025144fa11f0edaef45311, type: 3}
+  - id: M2
+    icon: {fileID: 21300000, guid: 465efc1d8a6288c42b4bcea70a909d14, type: 3}
+  - id: M3
+    icon: {fileID: 21300000, guid: 48d26baa10b23ea4b9fab7c74bccaced, type: 3}
+  - id: M4
+    icon: {fileID: 21300000, guid: 091938b6009772d43b09efd72a0adf2e, type: 3}
+  - id: M5
+    icon: {fileID: 21300000, guid: 9be343486ae705f4f963bec3db5f7edc, type: 3}
+  - id: V1
+    icon: {fileID: 21300000, guid: 23360dca2ca826d46b3babbe4b343765, type: 3}
+  - id: V2
+    icon: {fileID: 21300000, guid: adb896eebf70e3740a9efafaa40d7f7b, type: 3}
+  - id: V3
+    icon: {fileID: 21300000, guid: ea44f452797d70e4ca600c4067298ed1, type: 3}
+  - id: V4
+    icon: {fileID: 21300000, guid: ad3a54741c7c93d4e8bd62a54608c803, type: 3}
+  - id: V5
+    icon: {fileID: 21300000, guid: 5ceb0422caf0edf4db27a667b474e71c, type: 3}
+  - id: V6
+    icon: {fileID: 21300000, guid: 2e83aea2782d8084da34c36b54be8490, type: 3}
   blackAndWhite: 1
   screenColor: {r: 0.105882354, g: 0.09019608, b: 0.07450981, a: 1}
   panelColor: {r: 0.14117648, g: 0.12156863, b: 0.101960786, a: 1}
@@ -524037,6 +524091,7 @@ MonoBehaviour:
   reviveHydration: 50
   collapseHUD: {fileID: 0}
   collapseAnimation: Collapse
+  wakeUpAnimation: WakeUp
   isDead: 0
 --- !u!114 &1811445745
 MonoBehaviour:
@@ -524085,6 +524140,9 @@ MonoBehaviour:
   applyRootMotion: 0
   canRotate: 1
   canMove: 1
+  bottle: {fileID: 0}
+  hipSocket: {fileID: 0}
+  handSocket: {fileID: 0}
 --- !u!114 &1811445747
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -524106,8 +524164,11 @@ MonoBehaviour:
   movementHorizontalInput: 0
   moveAmount: 0
   sprintInput: 0
+  drinkInput: 0
   interactInput: 0
   interactPressed: 0
+  crouchPressed: 0
+  jumpPressed: 0
 --- !u!114 &1811445748
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -524127,9 +524188,23 @@ MonoBehaviour:
   player_WalkingSpeed: 0
   player_RunningSpeed: 0
   player_RotationalSpeed: 0
+  speedChangeDamping: 12
   gravity: -20
   groundedPull: -2
   fallResetHeight: -20
+  groundProbeDistance: 0.25
+  groundLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  crouchHeightRatio: 0.65
+  fallbackCrouchSpeed: 2
+  fallbackJumpHeight: 1.2
+  jumpCooldown: 0.25
+  jumpBlockAfterControlRegained: 0.3
+  minAirSpeed: 1.5
+  turnToCameraWhenIdle: 1
+  idleTurnStartAngle: 90
+  idleTurnSpeed: 180
 --- !u!114 &1811445749
 MonoBehaviour:
   m_ObjectHideFlags: 0
