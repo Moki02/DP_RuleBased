@@ -1493207,6 +1493207,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2030800899}
     m_Modifications:
+    - target: {fileID: 226249363211129035, guid: cc524227d5ea9264b8946b86c663af2a, type: 3}
+      propertyPath: m_fontSize
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 226249363211129035, guid: cc524227d5ea9264b8946b86c663af2a, type: 3}
+      propertyPath: m_fontSizeMax
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 226249363211129035, guid: cc524227d5ea9264b8946b86c663af2a, type: 3}
+      propertyPath: m_fontSizeMin
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 226249363211129035, guid: cc524227d5ea9264b8946b86c663af2a, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4293324789
+      objectReference: {fileID: 0}
+    - target: {fileID: 226249363211129035, guid: cc524227d5ea9264b8946b86c663af2a, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
     - target: {fileID: 291734784909822726, guid: cc524227d5ea9264b8946b86c663af2a, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -1493323,6 +1493343,14 @@ PrefabInstance:
       propertyPath: hydrationText
       value: 
       objectReference: {fileID: 634646142}
+    - target: {fileID: 1226415216388807500, guid: cc524227d5ea9264b8946b86c663af2a, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 345.9851
+      objectReference: {fileID: 0}
+    - target: {fileID: 1226415216388807500, guid: cc524227d5ea9264b8946b86c663af2a, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -338.60156
+      objectReference: {fileID: 0}
     - target: {fileID: 1499470240951088906, guid: cc524227d5ea9264b8946b86c663af2a, type: 3}
       propertyPath: m_AnchorMax.x
       value: 1
