@@ -434211,6 +434211,20 @@ MonoBehaviour:
     icon: {fileID: 21300000, guid: 8488ba820a07cc54ab66950f2b6fca48, type: 3}
   - id: W7
     icon: {fileID: 21300000, guid: b678251c3c3d54147ab5995bc648a057, type: 3}
+  - id: W1
+    icon: {fileID: 21300000, guid: f59c599de2a723c40857123648febc2d, type: 3}
+  - id: W2
+    icon: {fileID: 21300000, guid: 7876d295090fe46448acabb38a742227, type: 3}
+  - id: W3
+    icon: {fileID: 21300000, guid: b60cbdc061e737640972207bb5e18dd9, type: 3}
+  - id: W8
+    icon: {fileID: 21300000, guid: ac8ccaf48ac88c6419fa9aacd0d69904, type: 3}
+  - id: W4
+    icon: {fileID: 21300000, guid: 9acacea21167427499f28f508bed5c39, type: 3}
+  - id: W5
+    icon: {fileID: 21300000, guid: 3c8aacea3a3eae14b8d2af6efa6d9b81, type: 3}
+  - id: W6
+    icon: {fileID: 21300000, guid: 93947ece12c262a46b22d47415ccfa8c, type: 3}
   - id: E1
     icon: {fileID: 21300000, guid: 5818ef2682b07c14db75b7f6cec4db15, type: 3}
   - id: E2
