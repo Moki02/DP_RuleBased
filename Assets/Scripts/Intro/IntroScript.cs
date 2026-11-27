@@ -35,14 +35,16 @@ namespace TheLastDrop
         [Min(1f)] public float charsPerSecond = 35f;
         [Tooltip("Loudspeaker lines' typing speed, characters per second (no clicks).")]
         [Min(1f)] public float loudspeakerCharsPerSecond = 120f;
-        [Tooltip("One typing click every this many characters.")]
-        [Min(1)] public int charsPerClick = 2;
+        [Tooltip("One typing click every this many characters (spaces don't count).")]
+        [Min(1)] public int charsPerClick = 3;
+        [Tooltip("Shortest time between two clicks, seconds. Each click also cuts off the one before, so they never pile up.")]
+        [Min(0f)] public float minClickGap = 0.12f;
         [Tooltip("The typing click sound.")]
         public AudioClip clickClip;
         [Tooltip("Typing click volume (0-1), before the SFX setting.")]
-        [Range(0f, 1f)] public float clickVolume = 0.25f;
+        [Range(0f, 1f)] public float clickVolume = 0.18f;
         [Tooltip("Random pitch range for each click.")]
-        public Vector2 clickPitch = new Vector2(0.9f, 1.1f);
+        public Vector2 clickPitch = new Vector2(0.92f, 1.04f);
 
         [Header("Between beats")]
         [Tooltip("Seconds the finished beat stays on screen.")]

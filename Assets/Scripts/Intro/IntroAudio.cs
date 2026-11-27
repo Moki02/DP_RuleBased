@@ -66,12 +66,20 @@ namespace TheLastDrop
             return v;
         }
 
-        /// <summary>One typing click at <paramref name="volume"/> with a random pitch in <paramref name="pitch"/>.</summary>
+        /// <summary>
+        /// One typing click at <paramref name="volume"/> with a random pitch in <paramref name="pitch"/>.
+        /// A new click cuts off the one before (one voice), so fast typing never piles up into a buzz.
+        /// </summary>
         public void Click(AudioClip clip, float volume, Vector2 pitch)
         {
             if (clicks == null || clip == null) return;
+            clicks.Stop();
+            clicks.clip = clip;
+            clicks.loop = false;
             clicks.pitch = Random.Range(pitch.x, pitch.y);
-            clicks.PlayOneShot(clip, volume);
+            if (clicksVolume != null) clicksVolume.BaseVolume = volume;
+            else clicks.volume = volume;
+            clicks.Play();
         }
 
         /// <summary>Plays <paramref name="clip"/> once.</summary>

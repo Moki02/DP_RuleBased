@@ -45,9 +45,11 @@ Select `IntroScript.asset`. Each entry in **Beats** is one screen:
 - `{name}` becomes the player's name, `{NAME}` the name in capitals.
 - **Speed Scale**: 1 = normal, 0.5 = half speed (the letter).
 - **Pause Between Lines**: seconds between two lines of this beat (letter: 1.5).
-- **Black After**: extra seconds of black after the beat fades out (beat 4: 2 s after the loudspeaker).
+- **Black After**: extra seconds of black after the beat fades out (4b: 2 s after the loudspeaker).
+- The loudspeaker line deliberately has no name in it: `SUBJECT SECURED. TRANSFER TO RESERVOIR C.`
 
-Add, remove or reorder beats freely. The look (font, size, colour, position) is on
+Add, remove or reorder beats freely. A beat that is too long for one screen: split it into two beats.
+**Salok > Intro > Reset Script To Defaults** puts the default script back into the same asset. The look (font, size, colour, position) is on
 `Intro Canvas > Beat Text` in the Intro scene.
 
 ## Editing the sounds
@@ -70,13 +72,18 @@ Default cues:
 | 1 | `sfx_ambience_heatwave_01` loop fades in |
 | 2 | heatwave fades out (only the typing clicks) |
 | 3 | `sfx_ambience_tension_01` loop fades in |
-| 4 | `sfx_world_lockdown_06` siren at line 1; `sfx_player_collapse_06` and silence (all loops fade) before the loudspeaker line |
+| 3b | none ("So I took a water jug..." on its own page) |
+| 4 | when the hand closes: `sfx_player_collapse_06`, and every loop fades to silence |
+| 4b | the loudspeaker page: `sfx_world_lockdown_06` siren, then 2 s of black |
 | 5 | `sfx_gates_gateslide_01` at line 1, `sfx_gates_doorrise_01` at line 2 |
 | 6 | heatwave (wind) returns; `sfx_ambience_hubday_01` fades in under it after 1 s |
+| 6b | none ("But I knew that beyond the rim..." on its own page) |
 | 7 | none (the letter) |
 
-Typing click: **Click Clip** `sfx_ui_click_03`, **Click Volume** 0.25, one click every
-**Chars Per Click** = 2 visible characters (spaces don't click), random pitch 0.9 to 1.1.
+Typing click: **Click Clip** `sfx_ui_click_03`, **Click Volume** 0.18, one click every
+**Chars Per Click** = 3 visible characters (spaces don't click), never closer than **Min Click Gap**
+(0.12 s), random pitch 0.92 to 1.04. Each click cuts off the one before (one voice), so they never
+pile up into a buzz. For an even softer sound, try `sfx_ui_hover_03` (shorter, about 10 dB quieter).
 
 Every AudioSource (under `Intro Audio` in the scene) has a `SettingsVolume`: clicks and one-shots
 follow the SFX slider, loops follow the Music slider. Three loop channels (`Loop A/B/C`) are
@@ -115,6 +122,8 @@ Barlow Condensed Bold (if the sprite is missing, only the text is built). Both f
   Begin button. It is a copy of the Confirm Dialog's look (dim backdrop, clipboard-and-cloth box, wood
   button; dark rounded box with JetBrains Mono for the name). Every element is a normal object in the
   Hierarchy, not a prefab.
+- The title sign (`Game Logo`) now sits inside `Main Panel`, so it hides with the main buttons whenever
+  Name Entry or Settings is open.
 - Pre-filled with the last name used. Enter or Begin starts; Esc goes back to the main buttons.
 - Rules (`PlayerProfile.Clean`): spaces trimmed, 16 characters at most, `Survivor` if empty.
 - Saved to PlayerPrefs (`salok.playerName`) and into the save file (`SaveData.playerName`,

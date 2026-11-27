@@ -89,6 +89,32 @@ namespace TheLastDrop.EditorTools
             return s;
         }
 
+        /// <summary>
+        /// Salok > Intro > Reset Script To Defaults: puts the default words, cues and timings back into
+        /// the existing IntroScript asset (same asset, so the Intro scene keeps its link to it).
+        /// </summary>
+        [MenuItem("Salok/Intro/Reset Script To Defaults")]
+        public static void ResetScriptMenu()
+        {
+            if (!EditorUtility.DisplayDialog("Intro script", "Replace every beat, cue and timing in IntroScript.asset with the defaults?",
+                                             "Replace", "Cancel")) return;
+            ResetScriptToDefaults();
+        }
+
+        /// <summary>Same as the menu item, without asking.</summary>
+        public static void ResetScriptToDefaults()
+        {
+            var s = AssetDatabase.LoadAssetAtPath<IntroScript>(ScriptPath);
+            if (s == null) { MakeScriptAsset(); return; }
+            var fresh = ScriptableObject.CreateInstance<IntroScript>();
+            EditorUtility.CopySerialized(fresh, s);
+            Object.DestroyImmediate(fresh);
+            s.clickClip = Clip(Click);
+            s.beats = DefaultBeats();
+            EditorUtility.SetDirty(s);
+            AssetDatabase.SaveAssets();
+        }
+
         static List<IntroBeat> DefaultBeats() => new List<IntroBeat>
         {
             new IntroBeat
@@ -108,22 +134,31 @@ namespace TheLastDrop.EditorTools
             {
                 label = "3. The campus",
                 text = "Every night, Dalisay Data Campus lit up the sky like a city.\nYou could hear it from afar. A low, cold hum.\n" +
-                       "It drank more in a day than San Rafael did in a month.\nSo I took a water jug and wire cutters.\n" +
-                       "I only meant to take back what was ours.",
+                       "It drank more in a day than San Rafael did in a month.",
                 cues = { Cue(IntroCue.Action.StartLoop, Tension, 0, 0.45f, 3f) }
             },
             new IntroBeat
             {
+                label = "3b. The jug",
+                text = "So I took a water jug and wire cutters.\nI only meant to take back what was ours.",
+            },
+            new IntroBeat
+            {
                 label = "4. Caught",
-                text = "I got as far as the first pipe.\nThen a hand closed over my mouth.\n" +
-                       "[LOUDSPEAKER] SUBJECT {NAME} SECURED. TRANSFER TO RESERVOIR C.",
-                blackAfter = 2f,
+                text = "I got as far as the first pipe.\nThen a hand closed over my mouth.",
                 cues =
                 {
-                    Cue(IntroCue.Action.OneShot, Siren, 0, 0.6f, 0f),
+                    // When the hand closes: the collapse, and every loop fades to silence.
                     Cue(IntroCue.Action.OneShot, Collapse, 2, 0.8f, 0f),
                     Cue(IntroCue.Action.StopAllLoops, null, 2, 0f, 0.8f),
                 }
+            },
+            new IntroBeat
+            {
+                label = "4b. Loudspeaker",
+                text = "[LOUDSPEAKER] SUBJECT SECURED. TRANSFER TO RESERVOIR C.",
+                blackAfter = 2f,
+                cues = { Cue(IntroCue.Action.OneShot, Siren, 0, 0.6f, 0f) }
             },
             new IntroBeat
             {
@@ -140,14 +175,18 @@ namespace TheLastDrop.EditorTools
             {
                 label = "6. The reservoir",
                 text = "The cage stopped.\nNo guards. No voices.\n" +
-                       "Just a dry reservoir, walls taller than anything in San Rafael, and a pump standing in the dust.\n" +
-                       "But I knew that beyond the rim, the campus kept humming. Cold. Still drinking.\n" +
-                       "Nobody told me how to leave.\nSo I would find out.",
+                       "Just a dry reservoir, walls taller than anything in San Rafael, and a pump standing in the dust.",
                 cues =
                 {
                     Cue(IntroCue.Action.StartLoop, Heatwave, 0, 0.5f, 2f),
                     Cue(IntroCue.Action.StartLoop, HubDay, 0, 0.35f, 4f, delay: 1f),
                 }
+            },
+            new IntroBeat
+            {
+                label = "6b. Beyond the rim",
+                text = "But I knew that beyond the rim, the campus kept humming. Cold. Still drinking.\n" +
+                       "Nobody told me how to leave.\nSo I would find out.",
             },
             new IntroBeat
             {

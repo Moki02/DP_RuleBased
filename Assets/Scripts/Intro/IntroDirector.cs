@@ -2,7 +2,8 @@
 // IntroDirector.cs
 // Plays the text-only intro (Intro scene) before a New Game:
 //   - types each beat of the IntroScript asset line by line (about 35 characters a second,
-//     a soft click every 2 characters), holds it, fades it out, then the next beat;
+//     a soft click every few characters, never closer than Min Click Gap), holds it, fades it
+//     out, then the next beat;
 //   - [LOUDSPEAKER] lines are typed fast in the loudspeaker colour, without clicks;
 //   - fires the beat's sound cues (one-shots, loops fading in and out) on IntroAudio;
 //   - ends on the SALOK title card, then lets the game scene in;
@@ -78,7 +79,7 @@ namespace TheLastDrop
 
         AsyncOperation gameLoad;
         bool leaving, paused;
-        float hintTimer, skipHeld;
+        float hintTimer, skipHeld, clock, lastClick = -10f;
         string loudHex;
         readonly StringBuilder builder = new StringBuilder(512);
         readonly List<int> lineEnds = new List<int>(16);       // visible-character index where each line ends
@@ -208,8 +209,12 @@ namespace TheLastDrop
                 {
                     char ch = info.characterInfo[visible].character;
                     visible++;
-                    if (clicks && !char.IsWhiteSpace(ch) && ++typed % script.charsPerClick == 0 && introAudio != null)
+                    if (clicks && !char.IsWhiteSpace(ch) && ++typed % script.charsPerClick == 0 && introAudio != null &&
+                        clock - lastClick >= script.minClickGap)
+                    {
+                        lastClick = clock;
                         introAudio.Click(script.clickClip, script.clickVolume, script.clickPitch);
+                    }
                 }
                 beatText.maxVisibleCharacters = visible;
                 yield return null;
@@ -248,6 +253,7 @@ namespace TheLastDrop
         void Update()
         {
             float dt = Dt;
+            clock += dt;
 
             for (int i = pending.Count - 1; i >= 0; i--)
             {

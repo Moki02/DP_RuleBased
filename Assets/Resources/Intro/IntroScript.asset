@@ -10,14 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 40bb5be51b56c26469a0392765c4d139, type: 3}
-  m_Name: IntroScript
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TheLastDrop.IntroScript
   charsPerSecond: 35
   loudspeakerCharsPerSecond: 120
-  charsPerClick: 2
+  charsPerClick: 3
+  minClickGap: 0.12
   clickClip: {fileID: 8300000, guid: 8ab28063659c00341b9a427ce1369e4f, type: 3}
-  clickVolume: 0.25
-  clickPitch: {x: 0.9, y: 1.1}
+  clickVolume: 0.18
+  clickPitch: {x: 0.92, y: 1.04}
   holdAfterBeat: 1.5
   fadeOutSeconds: 0.6
   titleFadeIn: 1
@@ -68,12 +69,7 @@ MonoBehaviour:
       could hear it from afar. A low, cold hum.
 
       It drank more in a day than
-      San Rafael did in a month.
-
-      So I took a water jug and wire cutters.
-
-      I
-      only meant to take back what was ours.'
+      San Rafael did in a month.'
     speedScale: 1
     pauseBetweenLines: 0.4
     blackAfter: 0
@@ -84,23 +80,23 @@ MonoBehaviour:
       delay: 0
       volume: 0.45
       fadeSeconds: 3
+  - label: 3b. The jug
+    text: 'So I took a water jug and wire cutters.
+
+      I only meant to take back
+      what was ours.'
+    speedScale: 1
+    pauseBetweenLines: 0.4
+    blackAfter: 0
+    cues: []
   - label: 4. Caught
     text: 'I got as far as the first pipe.
 
-      Then a hand closed over my mouth.
-
-      [LOUDSPEAKER]
-      SUBJECT {NAME} SECURED. TRANSFER TO RESERVOIR C.'
+      Then a hand closed over my mouth.'
     speedScale: 1
     pauseBetweenLines: 0.4
-    blackAfter: 2
+    blackAfter: 0
     cues:
-    - action: 0
-      clip: {fileID: 8300000, guid: 040da8612f04e9849be3136b1161e110, type: 3}
-      beforeLine: 0
-      delay: 0
-      volume: 0.6
-      fadeSeconds: 0
     - action: 0
       clip: {fileID: 8300000, guid: 7229b4bca788ce640b3b610e9f0ede61, type: 3}
       beforeLine: 2
@@ -113,6 +109,18 @@ MonoBehaviour:
       delay: 0
       volume: 0
       fadeSeconds: 0.8
+  - label: 4b. Loudspeaker
+    text: '[LOUDSPEAKER] SUBJECT SECURED. TRANSFER TO RESERVOIR C.'
+    speedScale: 1
+    pauseBetweenLines: 0.4
+    blackAfter: 2
+    cues:
+    - action: 0
+      clip: {fileID: 8300000, guid: 040da8612f04e9849be3136b1161e110, type: 3}
+      beforeLine: 0
+      delay: 0
+      volume: 0.6
+      fadeSeconds: 0
   - label: 5. The cage
     text: 'I woke to the sound of chains.
 
@@ -145,15 +153,7 @@ MonoBehaviour:
       No guards. No voices.
 
       Just a dry reservoir,
-      walls taller than anything in San Rafael, and a pump standing in the dust.
-
-      But
-      I knew that beyond the rim, the campus kept humming. Cold. Still drinking.
-
-      Nobody
-      told me how to leave.
-
-      So I would find out.'
+      walls taller than anything in San Rafael, and a pump standing in the dust.'
     speedScale: 1
     pauseBetweenLines: 0.4
     blackAfter: 0
@@ -170,6 +170,17 @@ MonoBehaviour:
       delay: 1
       volume: 0.35
       fadeSeconds: 4
+  - label: 6b. Beyond the rim
+    text: 'But I knew that beyond the rim, the campus kept humming. Cold. Still drinking.
+
+      Nobody
+      told me how to leave.
+
+      So I would find out.'
+    speedScale: 1
+    pauseBetweenLines: 0.4
+    blackAfter: 0
+    cues: []
   - label: 7. The letter
     text: 'I hope someone still remembers me,
 
