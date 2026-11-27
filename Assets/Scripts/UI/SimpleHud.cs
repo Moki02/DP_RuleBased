@@ -5,6 +5,7 @@
 //   SimpleHud.SetLine("sick", "SICK 12 s");          // a status line, top right under the clock (null removes it)
 //   SimpleHud.Toast("+3.0 L banked");                    // a short message at the top for a few seconds (max 5 at once)
 //   SimpleHud.Banner("THUNDERSTORM", "Rain for 60 s");   // a big message in the middle for a few seconds
+//   SimpleHud.Radio("PAGASA has issued ...", 6f);        // the radio card (stone card at the top)
 //   SimpleHud.ShowPanel("THE DROUGHT WINS", "Day 14", ("Restart", Restart));  // full-screen panel with buttons
 //   SimpleHud.SetFade(1f);                               // black screen (0 = none)
 //
@@ -16,6 +17,9 @@
 // Playtest Scene menu adds one). Don't call these from OnDestroy: during a scene change that
 // would make a new canvas in the scene being closed. (Clearing a line with SetLine(key, null)
 // is safe anywhere: it never makes a canvas.)
+// A status line can be drawn somewhere else in the HUD with HudLineText (the "stage" line sits on
+// the clock's plank). The radio card's timer only runs while the player can see it (not while the
+// game is frozen, How to Play is up or a full-screen panel is showing).
 // Status line keys used so far: drinking, jugs, sick (SurvivalDirector), lockdown, stage, event, ... (the team HUD shows HYD, canteen, Raw Basin and Clean Storage)
 // (SurvivalDirector), stage (StageManager), lockdown (NightLockdown), plus the other batches'.
 //
@@ -52,6 +56,8 @@ namespace TheLastDrop
         readonly List<KeyValuePair<string, string>> lines = new List<KeyValuePair<string, string>>();
         readonly List<(string text, float until)> toastList = new List<(string, float)>();
         float bannerUntil;
+        float radioLeft;
+        const float RadioFade = 0.35f;
         bool statusDirty;
 
         // ------------------------------------------------------------------ Static API
@@ -62,6 +68,8 @@ namespace TheLastDrop
             // Removing a line never needs a canvas. Without this, a script clearing its line in
             // OnDestroy while the scene closes made a NEW SimpleHud after the old one was
             // gone ("Some objects were not cleaned up when closing the scene").
+            // A HudLineText placed in the HUD for this key draws it instead of the status box.
+            if (HudLineText.TryShow(key, text)) { RemoveLine(key); return; }
             if (string.IsNullOrEmpty(text) && instance == null) return;
             var h = Get();
             int i = h.lines.FindIndex(kv => kv.Key == key);
@@ -77,6 +85,39 @@ namespace TheLastDrop
             }
             else h.lines.Add(new KeyValuePair<string, string>(key, text));
             h.statusDirty = true;
+        }
+
+        /// <summary>Takes a status line out of the status box and returns its text ("" if none). HudLineText uses it.</summary>
+        public static string TakeLine(string key)
+        {
+            if (instance == null) return "";
+            int i = instance.lines.FindIndex(kv => kv.Key == key);
+            if (i < 0) return "";
+            string text = instance.lines[i].Value;
+            instance.lines.RemoveAt(i);
+            instance.statusDirty = true;
+            return text;
+        }
+
+        static void RemoveLine(string key)
+        {
+            if (instance == null) return;
+            int i = instance.lines.FindIndex(kv => kv.Key == key);
+            if (i >= 0) { instance.lines.RemoveAt(i); instance.statusDirty = true; }
+        }
+
+        /// <summary>
+        /// A radio message on the radio card (stone card at the top) for <paramref name="seconds"/> of play
+        /// (the time doesn't run while the game is frozen, e.g. under How to Play). Without a card: a toast.
+        /// </summary>
+        public static void Radio(string text, float seconds = 6f)
+        {
+            var h = Get();
+            var v = h.view;
+            if (v.radioCard == null || v.radioText == null) { Toast("RADIO: " + text, seconds); return; }
+            v.radioText.text = text;
+            v.radioCard.gameObject.SetActive(true);
+            h.radioLeft = seconds;
         }
 
         /// <summary>A short message at the top of the screen for a few seconds.</summary>
@@ -197,6 +238,7 @@ namespace TheLastDrop
             if (v.statusText != null) v.statusText.text = "";
             ShowStatusBox(v, false);
             if (v.toastsText != null) v.toastsText.text = "";
+            if (v.radioCard != null) { v.radioCard.alpha = 0f; v.radioCard.gameObject.SetActive(false); }
             return instance;
         }
 
@@ -237,11 +279,29 @@ namespace TheLastDrop
             if (toastList.Count > 0 && toastList.RemoveAll(t => t.until <= Time.unscaledTime) > 0)
                 RefreshToasts();
 
+            UpdateRadio();
+
             if (view.bannerTitle != null && view.bannerTitle.gameObject.activeSelf && Time.unscaledTime >= bannerUntil)
             {
                 view.bannerTitle.gameObject.SetActive(false);
                 if (view.bannerLine != null) view.bannerLine.gameObject.SetActive(false);
             }
+        }
+
+        // The radio card fades in, stays for its seconds of play (paused while the game is frozen), fades out.
+        void UpdateRadio()
+        {
+            var card = view.radioCard;
+            if (card == null || !card.gameObject.activeSelf) return;
+            // Clamped: the first frame after a scene load can report seconds of load time.
+            float dt = Mathf.Min(Time.unscaledDeltaTime, 0.1f);
+            // The time only runs while the player can read it: not while the game is frozen, How to Play
+            // is up or a full-screen panel is showing (the day-1 message used to run out under How to Play).
+            bool covered = Time.timeScale <= 0f || HowToPlay.IsOpen || PanelOpen || MainMenu.IsFrozen;
+            if (!covered) radioLeft -= dt;
+            float target = radioLeft > 0f ? 1f : 0f;
+            card.alpha = Mathf.MoveTowards(card.alpha, target, dt / RadioFade);
+            if (target == 0f && card.alpha <= 0f) card.gameObject.SetActive(false);
         }
 
         void RefreshToasts()

@@ -161,7 +161,7 @@ namespace TheLastDrop
         void Radio(string line)
         {
             if (string.IsNullOrEmpty(line)) return;
-            SimpleHud.Toast("RADIO: " + line, balance.radioToastSeconds);
+            SimpleHud.Radio(line, balance.radioToastSeconds);
         }
 
         static string Pick(string[] list, int index, string fallback) =>

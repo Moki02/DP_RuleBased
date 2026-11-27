@@ -33,7 +33,7 @@ namespace TheLastDrop
             "No rain is coming. The pump has run dry. Find the exit.",
         };
 
-        [Tooltip("The radio message for each stage, shown as a toast after \"RADIO: \" (R10.1).")]
+        [Tooltip("The radio message for each stage, shown on the radio card at the top (R10.1).")]
         public string[] stageRadioLines =
         {
             "PAGASA has issued an El Niño Advisory. Expect below-normal rainfall in the coming weeks.",

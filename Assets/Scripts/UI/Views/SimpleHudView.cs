@@ -38,6 +38,11 @@ namespace TheLastDrop
         [Tooltip("The line under the banner.")] public TMP_Text bannerLine;
         [Tooltip("Full-screen black image for fades (its alpha is set by the code).")] public Image fade;
 
+        [Header("Radio")]
+        [Tooltip("The radio message card (stone card at the top). Fades in and out. Empty = radio messages are toasts.")]
+        public CanvasGroup radioCard;
+        [Tooltip("The radio message's words.")] public TMP_Text radioText;
+
         [Header("Pop-up panel")]
         [Tooltip("Full-screen pop-up (should block clicks). Hidden until something shows it.")] public GameObject panel;
         public TMP_Text panelTitle;
